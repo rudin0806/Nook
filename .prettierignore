@@ -1,0 +1,8 @@
+node_modules
+.next
+.vercel
+out
+package-lock.json
+next-env.d.ts
+docs/PRD.md
+docs/HANDOFF.md
