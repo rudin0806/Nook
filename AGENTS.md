@@ -4,12 +4,11 @@
 
 문서는 역할별로 나눈다. 같은 규칙을 여러 파일에 중복해서 유지하지 않는다.
 
-- 프로젝트 소개·실행법: `README.md`
+- 프로젝트 소개·실행법·문서 지도: `README.md`
 - 현재 진행 상태·다음 작업: `docs/STATUS.md`
 - 제품 정의·범위·핵심 UX: `docs/PRD.md`
 - AI 판정·대화·보관·Safety 규칙: `docs/RULES.md`
 - 평가 케이스·기대값: `docs/EVALSET.md` (생성 후)
-- 문서 전체 안내: `docs/README.md`
 
 ### 문서 읽기 순서
 
@@ -28,7 +27,7 @@
 ## Current stage
 
 - 현재 단계는 `docs/STATUS.md`를 기준으로 한다.
-- STEP 2 ERD는 자동 구현하지 않는다. 사용자와 관계·상태·삭제 규칙을 검토해 확정한 뒤 Supabase 스키마로 옮긴다.
+- STEP 2 ERD는 자동 구현하지 않는다. 사용자와 관계·상태·삭제 규칙을 검토해 확정한 뒤 `docs/ERD.md`와 Supabase 스키마로 옮긴다.
 - 실제 기능 없이 성공하는 척하는 API, 저장, AI 응답, eval을 만들지 않는다.
 
 ## Stack
