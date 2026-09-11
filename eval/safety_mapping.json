@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "description": "Safety classifier는 label과 category만 출력한다. behavior와 contact는 이 매핑에서 결정한다.",
+  "classification_to_behavior": {
+    "NONE": {
+      "NONE": "CONTINUE",
+      "SUICIDE_SELF_HARM": "HANDOFF",
+      "YOUTH": "HANDOFF",
+      "VIOLENCE_VICTIM": "HANDOFF",
+      "GENERAL_MENTAL_HEALTH": "HANDOFF"
+    },
+    "AMBIGUOUS": {
+      "SUICIDE_SELF_HARM": "STOP",
+      "YOUTH": "STOP",
+      "VIOLENCE_VICTIM": "STOP",
+      "GENERAL_MENTAL_HEALTH": "STOP"
+    },
+    "HIGH_RISK": {
+      "SUICIDE_SELF_HARM": "STOP",
+      "YOUTH": "STOP",
+      "VIOLENCE_VICTIM": "STOP",
+      "GENERAL_MENTAL_HEALTH": "STOP"
+    }
+  },
+  "category_to_contact": {
+    "NONE": null,
+    "SUICIDE_SELF_HARM": {
+      "primary": "109",
+      "urgent": "119"
+    },
+    "YOUTH": {
+      "primary": "1388"
+    },
+    "VIOLENCE_VICTIM": {
+      "primary": "1366"
+    },
+    "GENERAL_MENTAL_HEALTH": {
+      "primary": "1577-0199"
+    }
+  },
+  "validation": {
+    "unmapped_label_category_pair": "ERROR",
+    "notes": [
+      "일반적인 청소년 발화는 category NONE이어야 한다. YOUTH는 안전 또는 전문 지원 라우팅이 필요한 청소년 맥락에만 사용한다.",
+      "NONE + SUICIDE_SELF_HARM은 사용자 본인의 직접 위험이 아닌 제3자 위기 같은 HANDOFF 맥락에 사용한다.",
+      "연락처 문구는 사용자에게 전달 책임을 떠넘기지 않고 직접 도움 정보를 안내한다."
+    ]
+  }
+}
