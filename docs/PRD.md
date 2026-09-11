@@ -1,9 +1,11 @@
 # PRD — Nook (눅)
 
-> 원티드 AI Championship 2026 출품작 · v2 · 2026.09.09
+> 원티드 AI Championship 2026 출품작 · v2.1 · 2026.09.11
 > 신청 마감 09.18 · 구현·배포 마감 09.20
 >
 > v2 이후 반영: 서비스명 확정 · Prompt D 추가 · 인증 방식 수정 · Pile 삭제 정책 통일 · 반복 질문 MVP 제외 · Safety Flow 확정 · CLEAR_AS_IS/NEEDS_INFO 추가 · CHECK 액션 제거 · 대화 톤/되받기 규칙 수정 · 종료 후 보관 선택 단순화
+>
+> v2.1 반영: EVALSET v4.1 판정 계약 · Safety HANDOFF/결정론적 매핑 · 데이터 무결성/소유권 계약 · 사용자 승인 전 Node 저장 금지 · Anchor 참조 · Pile 재시작 연결 보존
 
 ---
 
@@ -139,7 +141,7 @@ YES면 회고·Question Book·연결·공개로 확장한다. NO면 무엇을 �
 5. 사용자 선택
 ```
 
-**0~2는 결정론적, 3~4만 LLM.** LLM이 판단할 영역을 최소화한다.
+**1~2는 결정론적이다.** 0은 Moderation 신호와 별도 Safety Classifier로 일반 Judge와 분리하고, 3~4만 Core LLM 단계로 둔다. Safety classifier는 `label/category`만 출력하며 행동과 연락처는 결정론적 매핑이 정한다.
 
 **Safety는 Judge 안에 넣지 않는다.** Safety Gate가 대화 엔진 앞에 있다는 원칙이 깨지고, Judge 역할이 다시 넓어진다.
 
@@ -167,13 +169,13 @@ YES면 회고·Question Book·연결·공개로 확장한다. NO면 무엇을 �
 Q1. 기존 질문의 세부조건·증거·정보를 확인하는 중인가?     YES → NOT SHIFT
 Q2. 기존 질문에 답해도 새 고민이 남아 있는가?            NO  → NOT SHIFT
 Q3. 질문의 대상·기준·레벨 중 하나 이상이 달라졌는가?      NO  → NOT SHIFT
-Q4. AI가 끌고 간 게 아니라 사용자 발화에서 반복·강조됐나?  NO  → MEDIUM 이하
-                                                     YES → SHIFT 후보
+Q4. AI가 먼저 연 방향이 아니라 사용자가 자발적으로 꺼냈나?  NO  → MEDIUM 이하
+                                                     YES → Shift 후보
 ```
 
-**Q4가 게이트다.** Q1~Q3가 맞아도 사용자가 실제로 이동하지 않았다면 Shift가 아니다. AI 질문에 사용자가 "그럴 수도 있겠네요" 한 정도는 증거가 아니다.
+**Q4가 게이트다.** Q1~Q3가 맞아도 사용자가 실제로 이동하지 않았다면 Shift가 아니다. AI가 먼저 연 방향에 대한 동의는 자발적 증거로 세지 않는다. 자발성·완화형 화자 보정·1턴 자기 선언 예외·최근 창 밖 MEDIUM carryover의 정확한 실행 규칙은 [`docs/RULES.md`](RULES.md)를 따른다.
 
-**판정 단위는 최근 3~4턴.** 엔진은 `현재 문장 판정기`가 아니라 **최근 생각 흐름 판정기**다.
+엔진은 `현재 문장 판정기`가 아니라 **최근 생각 흐름 판정기**다.
 
 ### 5.3 참조 예시
 
@@ -603,6 +605,20 @@ AI            OpenAI
 > **구간은 여러 개여도 하나의 Thought Path로 연결한다.**
 > **AI 판정 결과와 사용자에게 보여줄 기록은 분리한다.**
 
+### 확정된 데이터 계약
+
+이 절은 ERD로 옮길 **제품 수준 계약**이다. 구체 필드·타입·FK·nullable·ENUM·RLS SQL은 관계와 미결 사항을 확정한 뒤 `docs/ERD.md`에서 정의한다.
+
+- 기본 소유 경로는 `User → Thought Session → Segment`다. Message·Session Feedback·Judge Log는 Session에, Question Node·Clarification은 Segment 안의 흐름에 속한다.
+- Question Node는 **사용자 승인 이후에만** 확정 기록으로 저장한다. 승인된 Node에는 AI 제안문과 사용자 최종문을 함께 보존한다.
+- Question Node와 Shift Edge는 사고의 역사이므로 append-only다. Clarification은 현재 이해이므로 수정·무효화·교체할 수 있다.
+- 새 Segment의 Anchor는 이전 Segment의 마지막 확정 Node를 **참조**한다. Node를 복제하지 않으며 새 Segment의 `node_count`에도 포함하지 않는다.
+- Pile Item은 출처 Session/Node와 재시작된 Session의 연결을 남긴다. Pile Item을 hard delete해도 이미 시작된 Session은 유지하며, 그 Session의 `origin_branch_id`는 `SET NULL` 처리한다.
+- Session Feedback은 Session당 0~1개다.
+- `node_count`, `turn_count`, `branch_count`는 Segment 단위 진실값이며, 원본 행 변경과 카운터 갱신은 같은 트랜잭션에서 처리한다.
+- Safety trigger 원문과 Moderation/Classifier 전체 입출력은 저장하지 않는다. 허용된 최소 안전 메타데이터만 사용자 기록과 분리해 남긴다.
+- RLS는 조회·생성·수정뿐 아니라 다른 행을 참조하는 연결 생성까지 현재 사용자의 소유권을 검증해야 한다.
+
 ### 엔티티
 
 | 엔티티 | 역할 |
@@ -630,13 +646,17 @@ SEGMENT
   branch_count
 ```
 
-`past_probe_count`는 과거 질문을 세션당 최대 1회로 제한하기 위한 세션 단위 카운터다.
+`past_probe_count`는 과거 질문을 세션당 최대 1회로 제한하기 위한 세션 단위 카운터다. Segment 카운터는 파생 캐시가 아니라 해당 Segment의 제한 판정에 쓰는 일관된 값이며, 관련 행 변경과 같은 트랜잭션에서 갱신한다.
 
 ### 반드시 포함할 것
 
-- Question Node: AI 제안 문장과 사용자 최종 문장을 둘 다 저장
+- Question Node: 사용자 승인 후에만 생성하며 AI 제안 문장과 사용자 최종 문장을 둘 다 저장
 - Pile Item 상태: `ACTIVE / RESUMED` (삭제는 실제 삭제)
 - Session 상태: `ACTIVE / COMPLETED / SAFETY_STOPPED`
+- Session Feedback: Session당 0~1개
+- Pile 재시작 연결: 원본 Pile Item 삭제 시에도 재시작 Session은 유지하고 `origin_branch_id SET NULL`
+- Safety 로그: trigger 원문·전체 모델 입출력 금지, 최소 메타데이터만 분리 저장
+- 소유권: 조회·생성·수정·참조 연결 전부 RLS 검증
 
 ### Judge 출력 스키마
 
@@ -875,6 +895,11 @@ Raw Thought 입력 · 예시 칩 · Node 0 Reframe(CLEAR_AS_IS 포함) + 승인 
 
 ## 28. 미결
 
+- ERD의 구체 필드·타입·FK·nullable·ENUM/status·cascade 규칙
+- RLS 정책과 참조 연결 소유권 검증 방식
+- HANDOFF의 정확한 Session lifecycle status
+- CHECK Event 엔티티를 최종 삭제할지 여부 (Judge action `CHECK`는 제거된 상태)
+- 익명 미완료 세션의 정리 시점 (24시간은 제안값이며 미확정)
 - Safety Classifier의 구체 프롬프트
 - 예시 칩 4개의 최종 문장
 - 이메일 로그인 추가 시점
