@@ -6,18 +6,9 @@ Nook은 현재의 중심 질문을 찾고, 사용자가 확정한 질문의 이�
 
 ## 현재 단계
 
-STEP 1 — 프로젝트 초기화 및 첫 배포 준비.
+진행 상태와 다음 작업은 [`docs/STATUS.md`](docs/STATUS.md)를 기준으로 확인합니다.
 
-- Next.js App Router / React / TypeScript strict / npm
-- SEED React를 사용한 한국어 첫 화면과 입력창
-- 서버 전용 OpenAI 클라이언트, Supabase 브라우저·Route Handler 클라이언트 팩토리
-- 환경변수 지연 검증: 키 없이 첫 화면 빌드 가능
-- 외부 API를 호출하지 않는 `GET /api/health`
-- Prettier, ESLint, 타입 검사, 프로덕션 빌드
-
-현재 입력은 전송·저장되지 않습니다. AI 응답, 인증, DB 테이블, Thought Path, eval은 다음 단계입니다.
-SDK 기반 준비는 실제 계정 연결이나 API 호출 성공을 의미하지 않습니다.
-배포 상태와 검증 결과는 `docs/STATUS.md`를 확인합니다.
+현재 저장소는 Next.js App Router / React / TypeScript strict / npm 기반이며, SEED React·Supabase·OpenAI·Zod를 사용합니다.
 
 ## 실행
 
@@ -63,18 +54,24 @@ npm run validate
 1. Vercel에서 이 비공개 GitHub 저장소를 Import합니다.
 2. Framework Preset은 Next.js, Root Directory는 저장소 루트, Node.js는 24.x를 사용합니다.
 3. Install Command: `npm ci`, Build Command: `npm run build`. Output Directory는 Next.js 기본값을 유지합니다.
-4. STEP 1은 키 없이 배포할 수 있습니다. 실제 연결 단계에서 필요한 환경변수를 해당 배포 환경에 등록합니다.
+4. 실제 연결 단계에서 필요한 환경변수를 해당 배포 환경에 등록합니다.
 5. 배포 완료 후 `/`의 한국어 첫 화면과 `/api/health`의 HTTP 200을 확인합니다.
 
 검색 제외 메타데이터는 접근 통제가 아닙니다. 개인정보를 다루는 실제 기능 공개 전 인증·RLS를 검증합니다.
 
-## 문서
+## 문서 구조
 
-- `AGENTS.md`: 개발 에이전트용 구현 규칙과 문서 참조 순서
-- `RULES.md`: AI 판정·대화 톤·보관/노출·Safety 등 제품 행동 규칙의 기준 문서
-- `docs/PRD.md`: 제품 정의·범위·데이터 구조 원칙
-- `docs/HANDOFF.md`: 구현 인수인계
-- `docs/DECISIONS.md`: 충돌 검토·구현 해석·미결
-- `docs/STATUS.md`: 완료 범위·검증·배포 상태
+루트에는 **사람과 개발 에이전트가 처음 읽어야 하는 문서만** 둡니다.
 
-제품 행동 규칙은 `AGENTS.md`나 README에 중복해서 유지하지 않고 `RULES.md`를 기준으로 봅니다.
+- [`README.md`](README.md): 프로젝트 소개·실행·개발 진입점
+- [`AGENTS.md`](AGENTS.md): Codex/AI 개발 도구가 지켜야 할 구현 규칙과 문서 읽기 순서
+
+제품 문서는 `docs/`에 모읍니다.
+
+- [`docs/README.md`](docs/README.md): 문서 지도와 읽기 순서
+- [`docs/STATUS.md`](docs/STATUS.md): 현재 완료 범위·검증·다음 작업
+- [`docs/PRD.md`](docs/PRD.md): 제품 정의·범위·핵심 UX·데이터 구조 원칙
+- [`docs/RULES.md`](docs/RULES.md): AI 판정·대화 톤·보관/노출·Safety 규칙
+- `docs/EVALSET.md`: 평가 케이스와 기대값 — 검증 완료 후 추가
+
+**같은 규칙을 README·AGENTS·PRD·RULES에 중복해서 유지하지 않습니다.** 제품 범위는 PRD, 실행 규칙은 RULES, 현재 상태는 STATUS를 기준으로 봅니다.
