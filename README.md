@@ -47,7 +47,7 @@ npm run validate
 `validate`는 `typecheck` → `lint` → `build` 순서입니다.
 `typecheck`는 깨끗한 체크아웃에서도 동작하도록 Next.js 라우트 타입 생성 후 TypeScript를 검사합니다.
 
-`npm run eval`은 실제 평가기 및 테스트셋을 도입하는 엔진 단계에서 추가합니다. 현재 통과를 가장하는 스크립트는 없습니다.
+[`docs/EVALSET.md`](docs/EVALSET.md)는 평가 계약을 정의합니다. `npm run eval`과 raw JSONL fixture는 엔진 구현 단계에서 실제로 연결하며, 현재 통과를 가장하는 스크립트는 만들지 않습니다.
 
 ## Vercel 배포
 
@@ -73,7 +73,7 @@ npm run validate
 | [`docs/STATUS.md`](docs/STATUS.md) | 현재 완료 범위, 검증 상태, 다음 작업 | 작업 시작 시 가장 먼저 |
 | [`docs/PRD.md`](docs/PRD.md) | 무엇을 왜 만드는지, MVP 범위와 핵심 UX | 기능·데이터 구조를 결정할 때 |
 | [`docs/RULES.md`](docs/RULES.md) | AI가 어떻게 판정하고 무엇을 말해야 하는지 | Judge, Prompt, Safety, 보관 로직 작업 시 |
-| `docs/EVALSET.md` | 판정·Safety 평가 케이스와 기대값 | 프롬프트/eval 구현 및 회귀 검증 시 |
+| [`docs/EVALSET.md`](docs/EVALSET.md) | 평가 계약·회귀 기준·fixture 검증 규칙 | 프롬프트/eval 구현 및 회귀 검증 시 |
 | `docs/ERD.md` | 확정된 데이터 모델 | 사용자와 ERD 설계를 확정한 뒤 생성 |
 
 ### 권장 읽기 순서
@@ -105,7 +105,7 @@ npm run validate
 - 제품 범위와 UX 의도 → `docs/PRD.md`
 - AI 실행 규칙 → `docs/RULES.md`
 - 현재 구현 상태 → `docs/STATUS.md`
-- 평가 기준 → `docs/EVALSET.md`
+- 평가 계약과 회귀 기준 → `docs/EVALSET.md`
 
 **같은 규칙을 README·AGENTS·PRD·RULES에 중복해서 유지하지 않습니다.** 한 규칙이 바뀌면 그 규칙의 기준 문서 한 곳을 수정하고, 다른 문서에는 링크나 짧은 요약만 둡니다.
 
