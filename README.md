@@ -26,11 +26,11 @@ npm run dev
 첫 화면과 `/api/health`에는 키가 필요하지 않습니다.
 실제 기능 연결 단계에서 `.env.example`을 `.env.local`로 복사한 뒤 설정합니다.
 
-| 이름                                   | 공개 범위          | 용도                                    |
-| -------------------------------------- | ------------------ | --------------------------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`             | 브라우저 공개 가능 | Supabase 프로젝트 URL                   |
+| 이름 | 공개 범위 | 용도 |
+|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | 브라우저 공개 가능 | Supabase 프로젝트 URL |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | 브라우저 공개 가능 | Supabase publishable key. RLS 적용 필수 |
-| `OPENAI_API_KEY`                       | 서버 전용          | OpenAI API 인증                         |
+| `OPENAI_API_KEY` | 서버 전용 | OpenAI API 인증 |
 
 실제 키를 채팅, PR, 소스 코드에 넣지 않습니다. Supabase secret/service-role key를 `NEXT_PUBLIC_` 변수에 넣지 않습니다.
 SDK 사용 시 설정이 없거나 유효하지 않으면 값 자체를 출력하지 않는 오류를 발생시킵니다.
@@ -61,17 +61,52 @@ npm run validate
 
 ## 문서 구조
 
-루트에는 **사람과 개발 에이전트가 처음 읽어야 하는 문서만** 둡니다.
+루트에는 **진입점 문서만** 둡니다.
 
-- [`README.md`](README.md): 프로젝트 소개·실행·개발 진입점
-- [`AGENTS.md`](AGENTS.md): Codex/AI 개발 도구가 지켜야 할 구현 규칙과 문서 읽기 순서
+- `README.md` — 사람이 처음 보는 프로젝트 안내, 실행법, 문서 지도
+- [`AGENTS.md`](AGENTS.md) — Codex/AI 개발 도구가 지켜야 할 구현 규칙
 
 제품 문서는 `docs/`에 모읍니다.
 
-- [`docs/README.md`](docs/README.md): 문서 지도와 읽기 순서
-- [`docs/STATUS.md`](docs/STATUS.md): 현재 완료 범위·검증·다음 작업
-- [`docs/PRD.md`](docs/PRD.md): 제품 정의·범위·핵심 UX·데이터 구조 원칙
-- [`docs/RULES.md`](docs/RULES.md): AI 판정·대화 톤·보관/노출·Safety 규칙
-- `docs/EVALSET.md`: 평가 케이스와 기대값 — 검증 완료 후 추가
+| 문서 | 역할 | 언제 읽나 |
+|---|---|---|
+| [`docs/STATUS.md`](docs/STATUS.md) | 현재 완료 범위, 검증 상태, 다음 작업 | 작업 시작 시 가장 먼저 |
+| [`docs/PRD.md`](docs/PRD.md) | 무엇을 왜 만드는지, MVP 범위와 핵심 UX | 기능·데이터 구조를 결정할 때 |
+| [`docs/RULES.md`](docs/RULES.md) | AI가 어떻게 판정하고 무엇을 말해야 하는지 | Judge, Prompt, Safety, 보관 로직 작업 시 |
+| `docs/EVALSET.md` | 판정·Safety 평가 케이스와 기대값 | 프롬프트/eval 구현 및 회귀 검증 시 |
+| `docs/ERD.md` | 확정된 데이터 모델 | 사용자와 ERD 설계를 확정한 뒤 생성 |
 
-**같은 규칙을 README·AGENTS·PRD·RULES에 중복해서 유지하지 않습니다.** 제품 범위는 PRD, 실행 규칙은 RULES, 현재 상태는 STATUS를 기준으로 봅니다.
+### 권장 읽기 순서
+
+**일반 개발 작업**
+
+1. `README.md`
+2. `docs/STATUS.md`
+3. 필요한 경우 `docs/PRD.md`
+
+**AI 엔진·대화 작업**
+
+1. `AGENTS.md`
+2. `docs/STATUS.md`
+3. `docs/PRD.md`
+4. `docs/RULES.md`
+5. `docs/EVALSET.md`
+
+**ERD·DB 작업**
+
+1. `docs/STATUS.md`
+2. `docs/PRD.md`
+3. `docs/RULES.md`의 저장·상태·Safety 관련 규칙
+4. 사용자와 관계·상태·삭제 규칙을 함께 확정
+5. 그 뒤에만 `docs/ERD.md`와 Supabase 스키마 작성
+
+### Source of truth
+
+- 제품 범위와 UX 의도 → `docs/PRD.md`
+- AI 실행 규칙 → `docs/RULES.md`
+- 현재 구현 상태 → `docs/STATUS.md`
+- 평가 기준 → `docs/EVALSET.md`
+
+**같은 규칙을 README·AGENTS·PRD·RULES에 중복해서 유지하지 않습니다.** 한 규칙이 바뀌면 그 규칙의 기준 문서 한 곳을 수정하고, 다른 문서에는 링크나 짧은 요약만 둡니다.
+
+빈 문서나 미래 계획용 파일은 미리 만들지 않습니다.
