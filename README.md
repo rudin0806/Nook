@@ -30,9 +30,10 @@ npm run dev
 |---|---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | 브라우저 공개 가능 | Supabase 프로젝트 URL |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | 브라우저 공개 가능 | Supabase publishable key. RLS 적용 필수 |
+| `SUPABASE_SECRET_KEY` | 서버 전용 | 검증된 메시지·AI 기록 저장. RLS 우회 키이므로 사용자 소유권을 서버에서 재검증 |
 | `OPENAI_API_KEY` | 서버 전용 | OpenAI API 인증 |
 
-실제 키를 채팅, PR, 소스 코드에 넣지 않습니다. Supabase secret/service-role key를 `NEXT_PUBLIC_` 변수에 넣지 않습니다.
+실제 키를 채팅, PR, 소스 코드에 넣지 않습니다. Supabase secret key를 `NEXT_PUBLIC_` 변수에 넣지 않습니다.
 SDK 사용 시 설정이 없거나 유효하지 않으면 값 자체를 출력하지 않는 오류를 발생시킵니다.
 데이터 접근 전 RLS, 익명 인증, OAuth 연결·기존 계정 예외·세션 갱신을 구현해야 합니다.
 모델 호출 전 Safety Gate, 입력 제한, 요청량 제한, 비용 설정과 평가기를 준비해야 합니다.
@@ -74,7 +75,7 @@ npm run validate
 | [`docs/PRD.md`](docs/PRD.md) | 무엇을 왜 만드는지, MVP 범위와 핵심 UX | 기능·데이터 구조를 결정할 때 |
 | [`docs/RULES.md`](docs/RULES.md) | AI가 어떻게 판정하고 무엇을 말해야 하는지 | Judge, Prompt, Safety, 보관 로직 작업 시 |
 | [`docs/EVALSET.md`](docs/EVALSET.md) | 평가 계약·회귀 기준·fixture 검증 규칙 | 프롬프트/eval 구현 및 회귀 검증 시 |
-| `docs/ERD.md` | 확정된 데이터 모델 | 사용자와 ERD 설계를 확정한 뒤 생성 |
+| [`docs/ERD.md`](docs/ERD.md) | 확정된 데이터 모델·상태·삭제·RLS | DB와 저장 흐름을 구현할 때 |
 
 ### 권장 읽기 순서
 
@@ -97,8 +98,8 @@ npm run validate
 1. `docs/STATUS.md`
 2. `docs/PRD.md`
 3. `docs/RULES.md`의 저장·상태·Safety 관련 규칙
-4. 사용자와 관계·상태·삭제 규칙을 함께 확정
-5. 그 뒤에만 `docs/ERD.md`와 Supabase 스키마 작성
+4. [`docs/ERD.md`](docs/ERD.md)에서 관계·상태·삭제·RLS 확인
+5. `supabase/migrations/` 순서대로 적용
 
 ### Source of truth
 

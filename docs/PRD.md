@@ -1,11 +1,13 @@
 # PRD — Nook (눅)
 
-> 원티드 AI Championship 2026 출품작 · v2.1 · 2026.09.11
+> 원티드 AI Championship 2026 출품작 · v2.2 · 2026.09.11
 > 신청 마감 09.18 · 구현·배포 마감 09.20
 >
-> v2 이후 반영: 서비스명 확정 · Prompt D 추가 · 인증 방식 수정 · Pile 삭제 정책 통일 · 반복 질문 MVP 제외 · Safety Flow 확정 · CLEAR_AS_IS/NEEDS_INFO 추가 · CHECK 액션 제거 · 대화 톤/되받기 규칙 수정 · 종료 후 보관 선택 단순화
+> v2 이후 반영: 서비스명 확정 · Prompt D 추가 · 인증 방식 수정 · 보관한 질문 삭제 정책 통일 · 반복 질문 MVP 제외 · Safety Flow 확정 · CLEAR_AS_IS/NEEDS_INFO 추가 · CHECK 액션 제거 · 대화 톤/되받기 규칙 수정 · 종료 후 보관 선택 단순화
 >
-> v2.1 반영: EVALSET v4.1 판정 계약 · Safety HANDOFF/결정론적 매핑 · 데이터 무결성/소유권 계약 · 사용자 승인 전 Node 저장 금지 · Anchor 참조 · Pile 재시작 연결 보존
+> v2.1 반영: EVALSET v4.1 판정 계약 · Safety HANDOFF/결정론적 매핑 · 데이터 무결성/소유권 계약 · 사용자 승인 전 Node 저장 금지 · Anchor 참조
+>
+> v2.2 반영: 생각더미/휴지통 7일 보관 · Branch 질문 명시 선택 · 질문 다회 재시작 · HANDOFF 상태 분리 · CHECK Event 최종 삭제 · ERD v1
 
 ---
 
@@ -112,7 +114,7 @@ YES면 회고·Question Book·연결·공개로 확장한다. NO면 무엇을 �
 사고 싶은데 계속 망설여져
 그냥 머릿속이 복잡해
 ───────────────────────────
-지나온 생각            최근 2~3개
+생각더미            최근 2~3개
 9월 9일
 이직할까? → 지금 회사에서 원하는 성장이 가능한가?
                           [전체 보기]
@@ -124,7 +126,7 @@ YES면 회고·Question Book·연결·공개로 확장한다. NO면 무엇을 �
 
 카테고리를 분산한다. 관계 예시만 크게 두면 연애상담 앱으로 인식된다. **칩 문장은 실제로 Shift가 잘 일어나는지 사전 검증한다.**
 
-**서랍을 첫 화면 주인공으로 만들지 않는다.** 그러면 첫인상이 생각 정리 도구가 아니라 기록장이 된다. 신규 사용자는 입력창만 보이고, 쓸수록 아래가 채워진다.
+**생각더미를 첫 화면 주인공으로 만들지 않는다.** 그러면 첫인상이 생각 정리 도구가 아니라 기록장이 된다. 신규 사용자는 입력창만 보이고, 쓸수록 아래가 채워진다.
 
 ---
 
@@ -265,15 +267,21 @@ Node 생성뿐 아니라 Closure, Clarification, Shift 근거, 종료 화면, �
 
 ### 5.7 Branch
 
-Shift가 아닌데 새 질문이 나왔으면 Branch → Question Pile.
+Shift는 아니지만 나중에 Nook에서 독립적으로 생각해볼 가치가 있는 질문이면 Branch 후보로 잡는다.
 
-**정보 조회만으로 해결되는 곁가지 질문은 Pile에 저장하지 않는다.**
+**정보 조회만으로 해결되는 곁가지 질문은 Branch 후보로 저장하지 않는다.**
 
-**조용히 보관한다.** 세션 종료 시 한꺼번에 보여준다.
+Branch 후보는 대화 중 `PENDING` 상태로만 임시 저장한다. 실시간으로 내용을 펼쳐 대화를 방해하지 않고, 정상 종료 화면에서 한꺼번에 보여준다.
 
-**Branch 저장과 다음 대화 액션은 별개다.** Branch를 저장한 턴에도 대화는 계속된다.
+> **발견과 보관은 별개다. 사용자가 명시적으로 고른 질문만 남는다.**
 
-**Branch → Shift 승격.** Pile은 잠재적 중심 질문 후보 저장소다.
+- 사용자가 고른 후보 → `KEPT`, `남겨둔 질문`에 표시
+- 고르지 않은 후보 → 종료 결정과 같은 트랜잭션에서 hard delete
+- 세션 기록을 생각더미에 남길지와 Branch 질문을 남길지는 서로 독립된 선택
+- Branch 질문을 만든 턴에도 일반 대화는 계속
+- 보관한 질문과 같은 방향이 HIGH Shift가 되면 중심 질문으로 승격 가능
+
+평가 계약 v4.1의 `input.pile` / `promote_pile_item` 필드명은 fixture 호환을 위해 유지한다. 제품 DB 엔티티 이름은 `Branch Question`이며 Pile Item 테이블이나 `RESUMED` 상태를 따로 만들지 않는다.
 
 ---
 
@@ -382,8 +390,8 @@ AMBIGUOUS / HIGH_RISK → Safety Flow (원문 미저장)
 | 처리 | 규칙 |
 |---|---|
 | 세션 상태 | `SAFETY_STOPPED` |
-| 지나온 생각 노출 | 없음 |
-| Pile 노출 | 없음 |
+| 생각더미 노출 | 없음 |
+| 남겨둔 질문 노출 | 없음 |
 | 기존 안전한 세션 데이터 | 삭제하지 않고 숨김 |
 | 위험 신호 발화 원문 | **저장하지 않음** (Judge Log 포함) |
 
@@ -409,24 +417,35 @@ AI가 지금 정리할 가치가 있는 지점이라고 판단해도 종료를 �
 
 **대화만 계속하고 지도를 멈추면 안 된다.**
 
-### C. Safety Stop
+### C. Safety Stop / Handoff
 
-8장 참조. **여기서만 "계속 보기"가 없다.**
+8장 참조. 이 경로에서만 일반 `조금 더 보기`와 보관 선택이 없다.
 
 ### Intentional Closure 정의
 
 > **더 이상 질문할 수 없는 순간이 아니라, 더 질문할 수 있어도 지금 정리할 가치가 있는 순간을 알아차리는 것.**
 
-### 종료 후 보관 — 한 번만 선택
+### 종료와 보관은 다른 상태다
 
-> **저장은 세션 전체에 대한 선택이고, ‘지나온 생각’과 ‘남겨둔 질문’은 저장된 데이터를 성격에 따라 나눠 보여주는 뷰다.**
+사용자가 `[여기까지 정리하기]`를 선택하면 먼저 `status = COMPLETED`가 된다. 이 값은 대화가 끝났다는 뜻이지, 기록이 보관됐다는 뜻이 아니다.
 
-종료 화면에서는 결과를 먼저 보여준 뒤, 사용자가 이번 기록 전체를 남길지만 한 번 결정한다. **서랍과 더미 중 어디에 보낼지는 사용자가 고르지 않는다.**
+**1. 나중에 다시 볼 질문**
 
-- **이 기록 남기기** → 확정된 중심 질문과 이동 경로는 `지나온 생각`에서 볼 수 있고, 대화 중 나왔지만 이번에는 따라가지 않은 Branch는 `남겨둔 질문`에서 볼 수 있다. Branch가 없으면 `남겨둔 질문`에는 아무것도 추가되지 않는다.
-- **남기지 않고 나가기** → 이번 기록과 이번 세션에서 새로 생긴 Pile Item을 보관하지 않는다. 기존에 저장된 기록과 Pile Item에는 영향이 없다.
+Branch 후보가 있을 때만 보여주며, 사용자가 고른 질문만 `KEPT`로 남긴다. 고르지 않은 후보는 삭제한다. 아무것도 고르지 않는 것도 정상이다.
 
-즉 `지나온 생각`과 `남겨둔 질문`은 기록이 갈 두 목적지가 아니다. **같은 세션에서 생긴 서로 다른 종류의 데이터를 보여주는 화면**이다.
+**2. 이번 세션 기록**
+
+```text
+[이 기록 남기기]  [남기지 않고 나가기]
+```
+
+- **이 기록 남기기** → `storage_state = SAVED`, `생각더미`에서 질문 경로를 볼 수 있다.
+- **남기지 않고 나가기** → `storage_state = TRASHED`, 휴지통에서 7일 동안 복원할 수 있다.
+- 휴지통 문구: `휴지통으로 이동해요. 7일 안에 복원할 수 있고, 이후 영구 삭제돼요.`
+
+세션 기록과 질문 보관은 독립적이다. 세션을 남기지 않아도 사용자가 보관한 질문은 유지되고, 세션을 남겨도 고르지 않은 Branch는 유지하지 않는다.
+
+Safety STOP/HANDOFF에서는 이 선택을 묻지 않고 일반 목록에서 숨긴 뒤 임시 보존 만료 정책을 따른다.
 
 ---
 
@@ -453,7 +472,7 @@ AI가 지금 정리할 가치가 있는 지점이라고 판단해도 종료를 �
 | **Main Node** | 질문의 진전 | HIGH Shift + 사용자 승인 |
 | **Clarification** | 같은 질문 안에서의 진행 | 의미 있는 범위 축소 |
 | **Shift Evidence** | 왜 이동했는가 | 노드 사이 연결선에 한 번 |
-| **Pile indicator** | 따라가지 않은 질문 | 개수만 |
+| **Branch indicator** | 따라가지 않은 질문 후보 | 개수만 |
 | **Current Question** | 지금 묻고 있는 것 | 항상 |
 
 ### Clarification
@@ -494,9 +513,9 @@ Shift가 없어도 정상 결과다.
 
 ---
 
-## 12. 지나온 생각
+## 12. 생각더미
 
-완료된 Thought Session 자체가 `지나온 생각`이다. 별도 Archive 테이블을 만들지 않는다.
+`COMPLETED + SAVED` Thought Session을 보여주는 보관 화면이다. 별도 Archive 테이블을 만들거나 같은 경로를 복제하지 않는다.
 
 Shift가 있었던 세션은 첫 질문 → 마지막 질문을 보여준다.
 
@@ -506,24 +525,20 @@ Shift 0 세션은 같은 질문을 반복 표시하지 않고 질문 + 대표 Cl
 
 **반복 질문 표시는 MVP에서 제외한다.**
 
+생각더미에서 삭제를 누르면 즉시 hard delete하지 않고 휴지통으로 이동한다. 휴지통에서는 7일 안에 복원할 수 있고, 복원하면 생각더미로 돌아온다.
+
 ---
 
 ## 13. 남겨둔 질문
 
-UI 표기는 **남겨둔 질문**. 내부적으로 Pile/더미로 부른다.
+대화에서 발견된 모든 Branch가 아니라, **정상 종료 때 사용자가 명시적으로 보관한 질문만** 보여주는 화면이다.
 
-**"미해결 질문"이라 부르지 않는다.** 숙제가 아니라 오늘 다루지 않기로 선택한 질문이다.
-
-**Pile은 별도의 저장 목적지가 아니다.** 사용자가 `이 기록 남기기`를 선택한 세션 안에서, 이번에는 따라가지 않은 Branch만 모아 보여주는 뷰다. 사용자가 Pile 저장 여부를 별도로 선택하지 않는다.
+**"미해결 질문"이라 부르지 않는다.** 답을 내야 하는 숙제가 아니라 사용자가 나중에 다시 보고 싶다고 고른 질문이다.
 
 ### 동작 두 개
 
-- **여기서 시작하기** — 그 질문이 새 세션의 Raw Thought가 된다. 원본 세션과의 연결을 저장한다.
-- **삭제** — 확인 후 **영구 삭제**
-
-별도의 가리기·보관·숨김 단계를 만들지 않는다.
-
-### 삭제 정책
+- **여기서 시작하기** — 그 질문이 새 세션의 Raw Thought가 된다. 같은 질문에서 여러 세션을 시작할 수 있고 질문은 계속 남는다.
+- **삭제** — 확인 후 즉시 영구 삭제
 
 ```text
 이 질문을 삭제할까요?
@@ -531,7 +546,11 @@ UI 표기는 **남겨둔 질문**. 내부적으로 Pile/더미로 부른다.
 [취소] [삭제]
 ```
 
-Pile 상태는 `ACTIVE / RESUMED`. 삭제는 실제 삭제다.
+질문 삭제는 휴지통을 거치지 않는다. 이미 그 질문에서 시작한 세션은 유지하고 `origin_branch_id`만 `NULL`로 바꾼다.
+
+원본 세션이 7일 뒤 영구 삭제돼도 보관한 질문은 유지한다. 이때 출처 FK만 `NULL`이 된다.
+
+제품 DB 상태는 `PENDING / KEPT`뿐이다. `RESUMED`로 사용 완료 처리하지 않는다.
 
 ---
 
@@ -543,7 +562,7 @@ Pile 상태는 `ACTIVE / RESUMED`. 삭제는 실제 삭제다.
 
 ```text
 익명 사용자로 세션 진행 → 지도 완성 → 종료 화면
-                    "이 생각을 남겨둘까요?"
+                    "이 기록을 생각더미에 남길까요?"
               [이 기록 남기기]  [남기지 않고 나가기]
                          ↓
                 (남기기를 선택한 경우)
@@ -558,7 +577,7 @@ Pile 상태는 `ACTIVE / RESUMED`. 삭제는 실제 삭제다.
 
 **앱에서 이메일을 비교해 계정을 임의 병합하지 않는다.**
 
-**남기지 않고 나가는 것도 정상 경로다.** 보관 여부는 종료 시 한 번만 묻고, 서랍/Pile을 따로 선택하게 하지 않는다.
+**남기지 않고 나가는 것도 정상 경로다.** 세션 기록 선택과 Branch 질문 선택은 범위가 다르며, Branch는 사용자가 명시적으로 고른 것만 남긴다.
 
 ---
 
@@ -596,91 +615,63 @@ AI            OpenAI
 
 ## 16. 데이터 구조
 
+정확한 필드·FK·RLS·삭제 규칙은 [`docs/ERD.md`](ERD.md)를 Source of Truth로 사용한다.
+
 ### 핵심 원칙
 
 > **대화 자체보다 질문의 이동을 중심 데이터로 저장한다.**
-> **저장은 세션 전체에 대한 선택이고, ‘지나온 생각’과 ‘남겨둔 질문’은 저장된 데이터를 성격에 따라 나눠 보여주는 뷰다.**
-> **완료된 세션이 곧 '지나온 생각'이다. 같은 내용을 두 번 저장하지 않는다.**
+> **대화 종료와 기록 보관은 별도 상태다.**
+> **완료·보관된 세션이 곧 생각더미 항목이다. 같은 내용을 두 번 저장하지 않는다.**
 > **Node는 지나온 사고의 역사, Clarification은 현재 이해라 수정될 수 있다.**
 > **구간은 여러 개여도 하나의 Thought Path로 연결한다.**
 > **AI 판정 결과와 사용자에게 보여줄 기록은 분리한다.**
 
-### 확정된 데이터 계약
+### 상태 두 축
 
-이 절은 ERD로 옮길 **제품 수준 계약**이다. 구체 필드·타입·FK·nullable·ENUM·RLS SQL은 관계와 미결 사항을 확정한 뒤 `docs/ERD.md`에서 정의한다.
+| 필드 | 값 | 뜻 |
+|---|---|---|
+| `status` | `ACTIVE / COMPLETED / SAFETY_STOPPED / HANDOFF_STOPPED` | 대화 lifecycle |
+| `storage_state` | `TEMPORARY / SAVED / TRASHED` | 보관 lifecycle |
 
-- 기본 소유 경로는 `User → Thought Session → Segment`다. Message·Session Feedback·Judge Log는 Session에, Question Node·Clarification은 Segment 안의 흐름에 속한다.
-- Question Node는 **사용자 승인 이후에만** 확정 기록으로 저장한다. 승인된 Node에는 AI 제안문과 사용자 최종문을 함께 보존한다.
-- Question Node와 Shift Edge는 사고의 역사이므로 append-only다. Clarification은 현재 이해이므로 수정·무효화·교체할 수 있다.
-- 새 Segment의 Anchor는 이전 Segment의 마지막 확정 Node를 **참조**한다. Node를 복제하지 않으며 새 Segment의 `node_count`에도 포함하지 않는다.
-- Pile Item은 출처 Session/Node와 재시작된 Session의 연결을 남긴다. Pile Item을 hard delete해도 이미 시작된 Session은 유지하며, 그 Session의 `origin_branch_id`는 `SET NULL` 처리한다.
-- Session Feedback은 Session당 0~1개다.
-- `node_count`, `turn_count`, `branch_count`는 Segment 단위 진실값이며, 원본 행 변경과 카운터 갱신은 같은 트랜잭션에서 처리한다.
-- Safety trigger 원문과 Moderation/Classifier 전체 입출력은 저장하지 않는다. 허용된 최소 안전 메타데이터만 사용자 기록과 분리해 남긴다.
-- RLS는 조회·생성·수정뿐 아니라 다른 행을 참조하는 연결 생성까지 현재 사용자의 소유권을 검증해야 한다.
+- 정상 종료는 `COMPLETED + TEMPORARY`를 먼저 만든다.
+- 보관 선택은 `SAVED`, 남기지 않기는 `TRASHED`로 바꾼다.
+- 휴지통은 7일 뒤 hard delete한다.
+- 익명·미완료 또는 보관 미결정 임시 데이터는 마지막 활동 기준 24시간 뒤 정리한다.
+- HANDOFF는 직접 위험 STOP과 구분해 `HANDOFF_STOPPED`로 남기되 일반 사용자 목록에서는 숨긴다.
 
 ### 엔티티
 
 | 엔티티 | 역할 |
 |---|---|
-| **User** | 사용자 (익명 → identity linking) |
-| **Thought Session** | 한 번의 생각 흐름 |
+| **Auth User** | Supabase 사용자, 익명 → identity linking |
+| **Thought Session** | 한 번의 생각 흐름 + 대화/보관 상태 |
 | **Segment** | 긴 세션의 구간 |
-| **Message** | 실제 대화 |
-| **Question Node** | 중심 질문 (START / SHIFT) |
-| **Shift Edge** | 질문이 이동한 이유 + 근거 발화 |
+| **Message** | Safety를 통과한 실제 대화 |
+| **Question Node** | 사용자 승인된 중심 질문 `START / SHIFT` |
+| **Shift Edge** | 질문이 이동한 이유 |
 | **Clarification** | 같은 질문 안에서 선명해진 것 |
-| **Pile Item** | 남겨둔 질문 |
-| **Session Feedback** | 종료 설문 |
-| **Judge Log** | 개발용, 사용자 기록과 분리 |
+| **Branch Question** | 발견 후보 `PENDING` 또는 보관 질문 `KEPT` |
+| **Session Feedback** | 종료 설문, Session당 0~1개 |
+| **Judge Log** | 검증된 판정 운영 로그 |
+| **Safety Event** | 원문 없는 최소 Safety 메타데이터 |
 
-### 카운터 위치
+별도 `Archive`, `Trash`, `Pile Item`, `Check Event` 테이블은 만들지 않는다.
 
-```text
-SESSION
-  past_probe_count
+### 데이터 계약
 
-SEGMENT
-  node_count
-  turn_count
-  branch_count
-```
+- 보관 질문은 원본 세션 삭제 뒤에도 소유권을 유지하도록 `user_id`를 직접 가진다.
+- Question Node는 사용자 승인 이후에만 저장하며 AI 제안문과 사용자 최종문을 함께 보존한다.
+- Question Node와 Shift Edge는 append-only, Clarification은 수정·무효화 가능하다.
+- 새 Segment는 이전 Segment 마지막 Node를 Anchor로 참조하며 Anchor는 새 Segment `node_count`에 포함하지 않는다.
+- 보관한 질문은 여러 Session의 `origin_branch_id`가 참조할 수 있다.
+- 질문 삭제 시 재시작 Session은 유지하고 `origin_branch_id SET NULL`.
+- 원본 Session 영구 삭제 시 보관 질문은 유지하고 출처 FK만 `SET NULL`.
+- `node_count`, `turn_count`, `branch_count`는 원본 변경과 같은 트랜잭션에서 갱신한다.
+- Safety trigger 원문과 Moderation/Classifier 전체 입출력은 저장하지 않는다.
+- RLS는 읽기뿐 아니라 다른 행을 참조하는 연결 생성까지 소유권을 검증한다.
+- Judge Log는 Zod 검증을 통과한 구조화 결과만 저장하며 사용자에게 노출하지 않는다.
 
-`past_probe_count`는 과거 질문을 세션당 최대 1회로 제한하기 위한 세션 단위 카운터다. Segment 카운터는 파생 캐시가 아니라 해당 Segment의 제한 판정에 쓰는 일관된 값이며, 관련 행 변경과 같은 트랜잭션에서 갱신한다.
-
-### 반드시 포함할 것
-
-- Question Node: 사용자 승인 후에만 생성하며 AI 제안 문장과 사용자 최종 문장을 둘 다 저장
-- Pile Item 상태: `ACTIVE / RESUMED` (삭제는 실제 삭제)
-- Session 상태: `ACTIVE / COMPLETED / SAFETY_STOPPED`
-- Session Feedback: Session당 0~1개
-- Pile 재시작 연결: 원본 Pile Item 삭제 시에도 재시작 Session은 유지하고 `origin_branch_id SET NULL`
-- Safety 로그: trigger 원문·전체 모델 입출력 금지, 최소 메타데이터만 분리 저장
-- 소유권: 조회·생성·수정·참조 연결 전부 RLS 검증
-
-### Judge 출력 스키마
-
-Branch는 액션이 아니라 side effect다.
-
-```json
-{
-  "action": "CLOSE | SHIFT | REFLECT",
-  "branches": [
-    { "text": "새로 발견된 갈래", "evidence_turns": ["U2"] }
-  ],
-  "clarifications": [
-    {
-      "text": "반복 업무가 계속 걸림",
-      "evidence_turns": ["U3"],
-      "confidence": "HIGH"
-    }
-  ],
-  "shift_confidence": "HIGH | MEDIUM | LOW",
-  "evidence_turns": ["U1", "U3"]
-}
-```
-
-`clarifications`는 없으면 빈 배열 `[]`. `evidence_turns`는 사용자 발화 번호만 사용한다.
+평가 계약 v4.1 호환을 위해 Judge 출력의 `promote_pile_item` 필드명은 그대로 둔다. 제품 DB 엔티티명과는 분리한다.
 
 ---
 
@@ -697,7 +688,7 @@ Raw Thought → 시작 질문 또는 빠른 라우팅. 출력은 `NEEDS_INFO / C
 
 ### Prompt B — Turn Judge
 
-입력: 현재 Main Question, 최근 3~4턴, Main Path, 현재 Branch/Pile.
+입력: 현재 Main Question, 최근 3~4턴, Main Path, 현재 Branch 후보.
 
 출력: action, branches, clarifications, confidence, evidence.
 
@@ -758,7 +749,7 @@ Judge가 REFLECT를 반환했을 때만 호출. 사용자에게 던질 실제 �
 
 ### 넣는 것
 
-Raw Thought 입력 · 예시 칩 · Node 0 Reframe(CLEAR_AS_IS 포함) + 승인 · Reflection · Turn Judge · Shift Proposal · User Confirm · Clarification · Shift Evidence · Thought Path · Segment + Anchor · Question Pile · Soft Closure · Structural Transition · Safety Gate + Safety Flow · 종료 화면 · 종료 설문 · 소셜 로그인 · 홈 · 지나온 생각 미리보기/목록/상세 · 남겨둔 질문 목록 · Pile에서 재시작 · Pile 삭제 · 과거 기록과 재시작 연결
+Raw Thought 입력 · 예시 칩 · Node 0 Reframe(CLEAR_AS_IS 포함) + 승인 · Reflection · Turn Judge · Shift Proposal · User Confirm · Clarification · Shift Evidence · Thought Path · Segment + Anchor · 남겨둔 질문 · Soft Closure · Structural Transition · Safety Gate + Safety Flow · 종료 화면 · 종료 설문 · 소셜 로그인 · 홈 · 생각더미 미리보기/목록/상세 · 남겨둔 질문 목록 · 보관한 질문에서 재시작 · 보관한 질문 삭제 · 과거 기록과 재시작 연결
 
 ### 빼는 것
 
@@ -770,7 +761,7 @@ Raw Thought 입력 · 예시 칩 · Node 0 Reframe(CLEAR_AS_IS 포함) + 승인 
 
 1. **생각을 정리하는 엔진** — Judge / Shift / Reframe / Reflection / Close 품질
 2. **결과가 Thought Path로 정확히 남는 것**
-3. **지나온 생각을 다시 펼쳐보는 것**
+3. **생각더미을 다시 펼쳐보는 것**
 4. **남겨둔 질문에서 다시 시작하는 것**
 
 **일정이 밀리면 기능의 코어를 자르지 말고 장식을 자른다.**
@@ -780,7 +771,7 @@ Raw Thought 입력 · 예시 칩 · Node 0 Reframe(CLEAR_AS_IS 포함) + 승인 
 | 09.09~09.10 | 계정·키 세팅 · ERD · 테스트셋 20개 |
 | 09.11~09.13 | 프롬프트 4개 + 오답 분석 · 1차 배포 |
 | 09.14~09.16 | 세션 화면 (지도까지) |
-| 09.17 | 홈 · 지나온 생각 · 남겨둔 질문 |
+| 09.17 | 홈 · 생각더미 · 남겨둔 질문 |
 | 09.18 | **참가 신청 제출 (마감)** |
 | 09.19~09.20 | 최종 배포 · 링크 점검 · 카피 |
 
@@ -833,7 +824,7 @@ Raw Thought 입력 · 예시 칩 · Node 0 Reframe(CLEAR_AS_IS 포함) + 승인 
 > **시스템은 사용자가 많이·멀리·깊게 생각했다고 평가하지 않는다.**
 > **사용자의 고민이 별거 아니라고 평가하지 않는다.**
 > **쌓인 양이 아니라 쌓인 내용을 보여준다.**
-> **따라가지 않은 생각은 버리지 않되, 시야에서는 치운다.**
+> **사용자가 남기기로 한 곁가지 질문은 보존하되, 진행 중 시야에서는 치운다.**
 > **지도는 진행률이 아니라 사고의 흔적이다.**
 
 ### 품질의 정의
@@ -889,18 +880,14 @@ Raw Thought 입력 · 예시 칩 · Node 0 Reframe(CLEAR_AS_IS 포함) + 승인 
 | 프라이버시 | 삭제권·저장 여부·공개 기본 OFF |
 | 보수 정책과 데모 충돌 | 예시 칩 사전 검증, Shift 0 화면 설계 |
 | Safety 오탐 | 2단계 분류 + 3단계 출력 |
-| 리텐션 | 지나온 생각 + 남겨둔 질문 |
+| 리텐션 | 생각더미 + 남겨둔 질문 |
 
 ---
 
 ## 28. 미결
 
-- ERD의 구체 필드·타입·FK·nullable·ENUM/status·cascade 규칙
-- RLS 정책과 참조 연결 소유권 검증 방식
-- HANDOFF의 정확한 Session lifecycle status
-- CHECK Event 엔티티를 최종 삭제할지 여부 (Judge action `CHECK`는 제거된 상태)
-- 익명 미완료 세션의 정리 시점 (24시간은 제안값이며 미확정)
 - Safety Classifier의 구체 프롬프트
 - 예시 칩 4개의 최종 문장
 - 이메일 로그인 추가 시점
 - Nook 상표·도메인 확인 (대회 이후)
+- 실제 사용 데이터가 생긴 뒤 24시간 임시 보존·7일 휴지통 정책의 체감 검증
