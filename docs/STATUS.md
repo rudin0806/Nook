@@ -2,7 +2,7 @@
 
 기준일: 2026-09-11
 
-## STEP 1 — 초기화 / 첫 배포
+## STEP 1 — 초기화 / 첫 배포 (완료)
 
 ### 완료한 구현
 
@@ -25,15 +25,16 @@
 | 프로덕션 서버 `/api/health` | HTTP 200 |
 | 외부 키 없이 첫 화면 | 빌드·응답 성공 |
 
-### Vercel
+### Vercel 검증
 
-첫 Preview 배포는 생성했지만 원격 상태와 실제 앱 응답은 아직 최종 검증하지 못했다.
+운영 배포와 실제 응답을 검증해 STEP 1을 완료했다.
 
-- 기존 배포 ID: `dpl_DtV4XW5uZ3wEie6M4QrhQunVPDjW`
-- 기존 Preview 주소: `https://nook-cr0l98ap2-suzie990806-3166.vercel.app`
-- 당시 Vercel 팀 리소스 조회는 403, 직접 접속은 로그인 페이지로 이동
+- 운영 주소: `https://nook-nine-eta.vercel.app`
+- `/`: HTTP 200, Nook 첫 화면 정상 응답
+- `/api/health`: HTTP 200, `status: ok`
+- 외부 API 키 없이 첫 화면과 health 응답 성공
 
-따라서 **STEP 1 전체를 완료로 표시하지 않는다.** 접근 권한 해결 후 기존 배포 상태·로그·실제 `/`·`/api/health`부터 확인하고 불필요한 중복 배포를 만들지 않는다.
+기존 로그인 제한 Preview는 현재 운영 주소가 아니므로 완료 판단 기준에서 제외한다.
 
 ---
 
@@ -55,6 +56,21 @@ docs/
 - `docs/RULES.md` — 판정·대화·Safety·보관 실행 규칙 Source of Truth
 - `docs/EVALSET.md` — 평가 계약·회귀 기준 Source of Truth
 - `docs/ERD.md` — 아직 없음. 사용자와 설계를 확정한 뒤 생성
+
+### PRD / 데이터 계약 최신화
+
+2026-09-11 대화에서 확정된 제품 수준 데이터 규칙을 `docs/PRD.md` v2.1에 반영했다.
+
+- 사용자 승인 전 Question Node 확정 저장 금지
+- Question Node/Shift Edge append-only, Clarification mutable
+- 이전 Segment 마지막 확정 Node를 Anchor로 참조하고 복제하지 않음
+- Segment 카운터를 관련 변경과 같은 트랜잭션에서 갱신
+- Session Feedback은 Session당 0~1개
+- Pile hard delete 시 재시작 Session 유지 + `origin_branch_id SET NULL`
+- Safety trigger 원문·전체 모델 입출력 저장 금지
+- 조회·생성·수정·참조 연결 모두 소유권 검증
+
+ERD의 정확한 필드·FK·nullable·상태값·cascade·RLS SQL은 아직 미확정이며 자동 구현하지 않는다.
 
 ### RULES / EVALSET 검증
 
@@ -109,8 +125,11 @@ docs/
 
 ## 다음 단계
 
-1. Vercel 기존 Preview의 실제 접속/상태를 확인해 STEP 1 종료
-2. **사용자와 ERD를 함께 설계** — 관계 → 상태 → 삭제 규칙 → RLS → SQL migration 순서
+1. **사용자와 ERD의 남은 결정을 마무리** — 정확한 필드·FK·nullable·상태·cascade → RLS → SQL migration 순서
+   - HANDOFF lifecycle status
+   - CHECK Event 엔티티 최종 삭제 여부
+   - 익명 미완료 세션 정리 시점 (24시간 제안값)
+2. 확정 내용을 `docs/ERD.md`와 Supabase migration으로 옮기기
 3. 사용자 제공 raw `judge/start/safety` JSONL을 저장소에 넣고 EVALSET 입고 검증
 4. EVALSET v4.1의 추가 경계 fixture를 보강
    - AI가 A/B 대조를 먼저 연 1턴 자기 선언 음성 케이스
