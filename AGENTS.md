@@ -27,7 +27,7 @@
 ## Current stage
 
 - 현재 단계는 `docs/STATUS.md`를 기준으로 한다.
-- STEP 2 ERD는 자동 구현하지 않는다. 사용자와 관계·상태·삭제 규칙을 검토해 확정한 뒤 `docs/ERD.md`와 Supabase 스키마로 옮긴다.
+- STEP 2의 관계·상태·삭제 규칙은 사용자와 검토를 마치고 `docs/ERD.md`와 `supabase/migrations/`에 옮겼다. 이후 DB 작업은 `docs/ERD.md`를 먼저 읽고, 제품 의미를 바꾸는 스키마 수정은 `docs/PRD.md`/`docs/RULES.md`와 함께 갱신한다.
 - 실제 기능 없이 성공하는 척하는 API, 저장, AI 응답, eval을 만들지 않는다.
 - `docs/EVALSET.md`가 존재하더라도 실제 raw JSONL fixture와 eval harness가 구현되기 전에는 `npm run eval` 통과를 주장하지 않는다.
 
