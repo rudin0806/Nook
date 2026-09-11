@@ -8,7 +8,7 @@
 - 현재 진행 상태·다음 작업: `docs/STATUS.md`
 - 제품 정의·범위·핵심 UX: `docs/PRD.md`
 - AI 판정·대화·보관·Safety 규칙: `docs/RULES.md`
-- 평가 케이스·기대값: `docs/EVALSET.md` (생성 후)
+- 평가 계약·회귀 기준: `docs/EVALSET.md`
 
 ### 문서 읽기 순서
 
@@ -22,13 +22,14 @@
 
 **제품 규칙을 `AGENTS.md`에 중복해서 적지 않는다.** 판정·대화·보관·화면 동작이 바뀌면 먼저 `docs/RULES.md`와 필요한 경우 `docs/PRD.md`를 수정한다.
 
-문서끼리 충돌하면 임의로 해석해 구현하지 않는다. `docs/PRD.md`는 제품 범위, `docs/RULES.md`는 실행 규칙의 기준으로 보고, 그래도 충돌하면 사용자 확인 후 수정한다.
+문서끼리 충돌하면 임의로 해석해 구현하지 않는다. `docs/PRD.md`는 제품 범위, `docs/RULES.md`는 실행 규칙, `docs/EVALSET.md`는 평가 계약의 기준으로 본다. 그래도 충돌하면 사용자 확인 후 수정한다.
 
 ## Current stage
 
 - 현재 단계는 `docs/STATUS.md`를 기준으로 한다.
 - STEP 2 ERD는 자동 구현하지 않는다. 사용자와 관계·상태·삭제 규칙을 검토해 확정한 뒤 `docs/ERD.md`와 Supabase 스키마로 옮긴다.
 - 실제 기능 없이 성공하는 척하는 API, 저장, AI 응답, eval을 만들지 않는다.
+- `docs/EVALSET.md`가 존재하더라도 실제 raw JSONL fixture와 eval harness가 구현되기 전에는 `npm run eval` 통과를 주장하지 않는다.
 
 ## Stack
 
@@ -55,6 +56,7 @@
 ## Data and AI implementation guardrails
 
 - Safety Gate는 일반 대화 엔진보다 먼저 실행한다. 세부 판정은 `docs/RULES.md`를 따른다.
+- Safety classifier는 label/category만 출력하고 behavior/contact는 결정론적 mapping에서 처리한다.
 - Judge 응답은 반드시 Zod로 검증하고, 검증되지 않은 결과를 저장하지 않는다.
 - Main Node는 사용자 확인 전 확정 기록으로 취급하지 않는다.
 - Question Node는 historical/append-only, Clarification은 mutable이라는 구분을 유지한다.
@@ -84,7 +86,7 @@
 
 가능하면 `npm run validate`로 통합한다.
 
-Judge / Reframe / Reflection / Safety 엔진을 수정했다면 실제 평가기가 준비된 이후:
+Judge / Reframe / Reflection / Safety 엔진을 수정했고 실제 평가기와 raw fixture가 준비된 이후에는:
 
 - `npm run eval`
 
