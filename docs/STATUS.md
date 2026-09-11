@@ -1,11 +1,11 @@
-# STEP 1 작업 상태
+# 작업 상태
 
-기준일: 2026-09-10
+기준일: 2026-09-11
 
-## 완료한 구현
+## STEP 1 — 초기화 / 첫 배포
 
-- 기존 개발 규칙 보존·보강 및 첨부 PRD / 인수인계 원본 보관
-- 문서 충돌·미결 사항을 `DECISIONS.md`에 기록
+### 완료한 구현
+
 - Next.js 16.3.4 / React 19.3.0 / TypeScript / npm 초기화
 - SEED React 2.4.1 및 CSS 2.7.0 적용
 - 한국어 최소 첫 화면·접근 가능한 입력창·모바일 대응 스타일
@@ -14,52 +14,108 @@
 - 외부 API를 호출하지 않는 `/api/health`
 - npm 잠금 파일, Prettier, ESLint, 타입 검사, 빌드 스크립트
 
-## 검증 결과
+### 로컬 검증 결과
 
-| 확인                        | 결과                                                                 |
-| --------------------------- | -------------------------------------------------------------------- |
-| `npm run format:check`      | 통과                                                                 |
-| `npm run validate`          | 타입 검사 → 린트 → 빌드 통과                                         |
-| `npm audit`                 | 알려진 취약점 0건                                                    |
-| 프로덕션 서버 `/`           | HTTP 200, 한국어 문구·textarea·접근성 레이블 확인                    |
-| 프로덕션 서버 `/api/health` | HTTP 200, `{service: "nook", status: "ok", stage: "initialization"}` |
-| 외부 키 없이 첫 화면        | 빌드·응답 성공                                                       |
-| 원본 문서                   | 첨부 파일을 그대로 보관, 포맷터 대상 제외                            |
+| 확인 | 결과 |
+|---|---|
+| `npm run format:check` | 통과 |
+| `npm run validate` | 타입 검사 → 린트 → 빌드 통과 |
+| `npm audit` | 알려진 취약점 0건 |
+| 프로덕션 서버 `/` | HTTP 200, 한국어 문구·textarea·접근성 레이블 확인 |
+| 프로덕션 서버 `/api/health` | HTTP 200 |
+| 외부 키 없이 첫 화면 | 빌드·응답 성공 |
 
-프로덕션 HTTP 검증은 로컬 실행 기준입니다. 브라우저 시각 QA 및 실제 Vercel 접속 검증과 구분합니다.
+### Vercel
 
-## 배포
+첫 Preview 배포는 생성했지만 원격 상태와 실제 앱 응답은 아직 최종 검증하지 못했다.
 
-Vercel에 첫 Preview 배포를 생성했습니다. 소스 기준 커밋은 `fc0d85af1640cd1654b7f14ee2e4d9210462e747`입니다.
+- 기존 배포 ID: `dpl_DtV4XW5uZ3wEie6M4QrhQunVPDjW`
+- 기존 Preview 주소: `https://nook-cr0l98ap2-suzie990806-3166.vercel.app`
+- 당시 Vercel 팀 리소스 조회는 403, 직접 접속은 로그인 페이지로 이동
 
-- 배포 ID: `dpl_DtV4XW5uZ3wEie6M4QrhQunVPDjW`
-- 배포 주소: https://nook-cr0l98ap2-suzie990806-3166.vercel.app
-- 관리 화면: https://vercel.com/suzie990806-3166/nook/DtV4XW5uZ3wEie6M4QrhQunVPDjW
-- 대상: preview
-- 마지막 확인된 생성 응답: INITIALIZING
-- 배포 방식: GitHub에 반영한 소스 파일을 Vercel API로 전달. GitHub 자동 배포 연결은 미검증.
+따라서 **STEP 1 전체를 완료로 표시하지 않는다.** 접근 권한 해결 후 기존 배포 상태·로그·실제 `/`·`/api/health`부터 확인하고 불필요한 중복 배포를 만들지 않는다.
 
-현재 연결된 Vercel 계정으로 팀 `suzie990806-3166`의 배포 상태·프로젝트·빌드 로그를 조회하면 403 Forbidden이 반환됩니다.
-팀 접근 권한을 포함한 인증이 필요하다는 오류입니다. 연결 플러그인 설치 완료와 이 팀의 리소스 조회 권한을 구분합니다.
+---
 
-직접 HTTP 요청은 첫 화면과 `/api/health` 모두 Vercel 로그인 페이지로 이동했습니다.
-로그인 페이지의 HTTP 200은 Nook의 정상 응답으로 계산하지 않습니다.
-인증된 배포 페이지 조회도 403으로 차단되어 원격 빌드 성공·실제 앱 접속을 아직 검증하지 못했습니다.
+## 제품 문서 상태
 
-따라서 STEP 1 전체를 완료로 표시하지 않습니다.
-팀 접근 권한 해결 후 동일 배포의 상태·로그·실제 응답부터 확인하고, 불필요한 중복 배포를 만들지 않습니다.
+현재 문서 구조:
+
+```text
+README.md
+AGENTS.md
+docs/
+  STATUS.md
+  PRD.md
+  RULES.md
+  EVALSET.md
+```
+
+- `docs/PRD.md` — 제품 범위 / UX Source of Truth
+- `docs/RULES.md` — 판정·대화·Safety·보관 실행 규칙 Source of Truth
+- `docs/EVALSET.md` — 평가 계약·회귀 기준 Source of Truth
+- `docs/ERD.md` — 아직 없음. 사용자와 설계를 확정한 뒤 생성
+
+### RULES / EVALSET 검증
+
+2026-09-11에 사용자 제공 EVALSET v4 패치 노트를 기존 RULES/EVALSET과 대조해 검증하고 RULES를 v4.1 수준으로 고도화했다.
+
+반영된 핵심:
+
+- hedge 계산을 harness 책임으로 명확화
+- `hedge_speaker` 면제 범위 확정
+- 1턴 명시적 자기 선언 조건 강화
+- carryover `medium_reason` 정의
+- Clarification 금지어 / HIGH-only 금지어 분리
+- invalidate/promote exact 채점 계약
+- Safety classifier는 label/category만 출력
+- `eval/safety_mapping.json`에서 behavior/contact 결정
+- HANDOFF 경계 규칙 보강
+- 여러 고민이 섞인 Raw Thought의 임의 중심 선택 금지
+- `~것 같아요?`처럼 완화형 답변을 유도하는 질문 억제
+
+### 평가 데이터 상태
+
+사용자 제공 패치의 목표 규모는 **judge 32 · start 17 · safety 15**다.
+
+현재 저장소에 있는 것은:
+
+- `docs/EVALSET.md` — 검증된 사람용 평가 계약
+- `eval/safety_mapping.json` — 결정론적 Safety behavior/contact 매핑
+
+아직 저장소에 없는 것:
+
+- `judge.jsonl`
+- `start.jsonl`
+- `safety.jsonl`
+- 실제 eval harness / `npm run eval`
+
+따라서 **평가셋 설계가 검증된 것과 모델 eval이 실행된 것은 구분한다.** raw fixture가 들어오면 `docs/EVALSET.md`의 입고 체크리스트를 통과한 뒤 정답셋으로 사용한다.
+
+---
 
 ## 아직 구현하지 않은 것
 
-AI 모델 호출, Safety / Judge / Reframe / Reflection, ERD / SQL / RLS, 익명 인증과 OAuth,
-Thought Path, Pile, 데이터 저장, 실제 eval은 다음 단계입니다.
+- AI 모델 호출
+- Safety / Judge / Reframe / Reflection 엔진
+- ERD / SQL / RLS
+- 익명 인증과 OAuth
+- Thought Path / Pile / 실제 데이터 저장
+- raw eval fixture와 eval harness
 
-현재 입력은 브라우저의 입력창에만 존재하며 전송·저장하지 않습니다.
-실제 API 키나 Supabase 프로젝트 연결은 설정되지 않았습니다.
+현재 입력은 브라우저 입력창에만 존재하며 전송·저장하지 않는다. 실제 API 키나 Supabase 프로젝트 연결은 설정되지 않았다.
+
+---
 
 ## 다음 단계
 
-1. Vercel 첫 배포와 실제 `/`, `/api/health` 접속 검증으로 STEP 1 종료
-2. 문서 미결을 해결하고 ERD·테이블·RLS·SQL migration 작성
-3. Core 평가셋 20개 및 별도 Safety 평가셋 준비
-4. 평가셋을 기준으로 대화 엔진 구현
+1. Vercel 기존 Preview의 실제 접속/상태를 확인해 STEP 1 종료
+2. **사용자와 ERD를 함께 설계** — 관계 → 상태 → 삭제 규칙 → RLS → SQL migration 순서
+3. 사용자 제공 raw `judge/start/safety` JSONL을 저장소에 넣고 EVALSET 입고 검증
+4. EVALSET v4.1의 추가 경계 fixture를 보강
+   - AI가 A/B 대조를 먼저 연 1턴 자기 선언 음성 케이스
+   - hedge 면제 경계
+   - `medium_reason` carryover (J-CARRY-03)
+   - HANDOFF / 제3자 긴급도 / 초성·은어·철자 변형
+   - 긴 입력 / 여러 고민 Raw Thought
+5. 평가셋 기준으로 Safety → Judge → Reframe / Reflection 엔진 구현
