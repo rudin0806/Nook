@@ -2,19 +2,32 @@
 
 ## Source of truth
 
-- 제품 정의와 범위: `docs/PRD.md`
-- AI 판정·대화·화면 행동 규칙: `RULES.md`
-- 테스트 케이스와 기대값: `docs/EVALSET.md`
-- 구현 인수인계: `docs/HANDOFF.md`
-- 문서 충돌·새 결정: `docs/DECISIONS.md`
-- 진행 상태: `docs/STATUS.md`
+문서는 역할별로 나눈다. 같은 규칙을 여러 파일에 중복해서 유지하지 않는다.
 
-**제품 규칙을 `AGENTS.md`에 중복해서 적지 않는다.** 판정·대화·보관·화면 동작이 바뀌면 먼저 `RULES.md`와 필요한 경우 `docs/PRD.md`를 수정한다. 문서가 충돌하면 임의로 구현하지 말고 `docs/DECISIONS.md`에 남긴다.
+- 프로젝트 소개·실행법: `README.md`
+- 현재 진행 상태·다음 작업: `docs/STATUS.md`
+- 제품 정의·범위·핵심 UX: `docs/PRD.md`
+- AI 판정·대화·보관·Safety 규칙: `docs/RULES.md`
+- 평가 케이스·기대값: `docs/EVALSET.md` (생성 후)
+- 문서 전체 안내: `docs/README.md`
+
+### 문서 읽기 순서
+
+작업 시작 전 필요한 범위까지만 아래 순서로 읽는다.
+
+1. `README.md`
+2. `docs/STATUS.md`
+3. `docs/PRD.md`
+4. AI/대화/판정 작업이면 `docs/RULES.md`
+5. eval 작업이면 `docs/EVALSET.md`
+
+**제품 규칙을 `AGENTS.md`에 중복해서 적지 않는다.** 판정·대화·보관·화면 동작이 바뀌면 먼저 `docs/RULES.md`와 필요한 경우 `docs/PRD.md`를 수정한다.
+
+문서끼리 충돌하면 임의로 해석해 구현하지 않는다. `docs/PRD.md`는 제품 범위, `docs/RULES.md`는 실행 규칙의 기준으로 보고, 그래도 충돌하면 사용자 확인 후 수정한다.
 
 ## Current stage
 
-- 현재 단계는 STEP 1: 초기화, 최소 첫 화면, SDK 기반, 검증, Vercel 첫 배포.
-- 이 단계에서 AI Judge, 프롬프트, ERD, 인증 기능을 선행 구현하지 않는다.
+- 현재 단계는 `docs/STATUS.md`를 기준으로 한다.
 - STEP 2 ERD는 자동 구현하지 않는다. 사용자와 관계·상태·삭제 규칙을 검토해 확정한 뒤 Supabase 스키마로 옮긴다.
 - 실제 기능 없이 성공하는 척하는 API, 저장, AI 응답, eval을 만들지 않는다.
 
@@ -42,7 +55,7 @@
 
 ## Data and AI implementation guardrails
 
-- Safety Gate는 일반 대화 엔진보다 먼저 실행한다. 세부 판정은 `RULES.md`를 따른다.
+- Safety Gate는 일반 대화 엔진보다 먼저 실행한다. 세부 판정은 `docs/RULES.md`를 따른다.
 - Judge 응답은 반드시 Zod로 검증하고, 검증되지 않은 결과를 저장하지 않는다.
 - Main Node는 사용자 확인 전 확정 기록으로 취급하지 않는다.
 - Question Node는 historical/append-only, Clarification은 mutable이라는 구분을 유지한다.
