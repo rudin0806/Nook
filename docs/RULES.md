@@ -161,9 +161,11 @@ Judge 입력에는 **`hedge_speaker` boolean만 넣는다.** `history`와 `hedge
 - Clarification HIGH의 **단정형 요구 면제**
 - **3.8의 1턴 명시적 자기 선언에는 면제하지 않는다.** 1턴 예외 규칙까지 완화하면 False Positive 비용이 너무 커진다.
 
+완화형 판정은 C-03-pre 확정본의 `src/engine/hedge.ts` 패턴과 일치 패턴명으로 관리한다. 임계값 0.7, 최소 사용자 발화 5개다. 기존 API도 같은 계산기를 사용한다.
+
 완화형 어미 목록은 운영 코드 상수로 관리한다. 최소 `것 같아`, `것 같기도 해`, `싶기도 해`는 포함하고, 변경 시 eval fixture의 `expected_hedge_speaker`를 먼저 검증한다.
 
-초기 공통 계산기는 `src/engine/hedge.ts`의 `HEDGE_ENDINGS_VERSION = v1`을 사용한다. 기존 확장 감사 목록을 적용하며 어미·문장 끝 부호 처리·최소 표본·중복 발화는 `npm run test:hedge`로 확인한다. Judge 창만이 아니라 중복 없는 전체 세션 발화를 전달해야 한다. API 연결은 별도 구현 단계다.
+C-03-pre 공통 계산기는 `HEDGE_PATTERNS`, `HEDGE_THRESHOLD`, `HEDGE_MIN_TURNS`와 일치 패턴명을 사용한다. `npm run test:hedge`로 회귀 검사한다. 중복 없는 세션 전체 발화를 전달하며 API 연결은 별도 단계다.
 
 ### 3.6 증거에서 제외
 
@@ -513,6 +515,7 @@ Closure, Clarification, Shift 근거, 종료 화면, 안내, Safety 모두 동�
 - Judge는 새 중심 질문 문장을 만들지 않는다. Prompt C가 만든다.
 - `evidence_turns`는 사용자 turn id만 허용한다.
 - `medium_reason`은 `REFLECT/MEDIUM`일 때만 non-null.
+- `CLOSE`는 `shift_confidence` 필드를 생략한다. SHIFT는 HIGH, REFLECT는 MEDIUM/LOW만 허용한다.
 - `clarifications` / `branches`는 없으면 빈 배열.
 - `invalidate_clarifications`는 없으면 빈 배열.
 - `promote_pile_item`은 없으면 `null`.

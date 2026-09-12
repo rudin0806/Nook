@@ -33,7 +33,7 @@ main에는 초기 migration 2개와 ERD가 있다. [PR #2](https://github.com/ru
 [파일별 검증 기록](https://github.com/rudin0806/Nook/blob/8cfb144a69d30352d429207992f9cd411f855a43/docs/reviews/2026-09-12-document-validation.md):
 
 - 패치 누락으로 발생한 정적 검사 오류 8개 수정
-- 계약 호환성 오류 10개 잔여: carryover 사유 2개, Safety category 8개
+- C-03-pre 반영 후 계약 호환성 오류 8개 잔여: Safety category 8개
 - 별도로 HANDOFF 상태·문구 및 확장 규칙 차이 검토 필요
 - 실제 모델 평가기와 실제 모델 정확도는 아직 없음
 
@@ -54,3 +54,7 @@ main에는 초기 migration 2개와 ERD가 있다. [PR #2](https://github.com/ru
 ## 개발 체크포인트 — 완화형 계산기
 
 공통 완화형 비율 계산기와 경계 테스트를 PR #2에 추가했다. 실제 저장 API와 LLM 호출에는 아직 연결하지 않았다. 재개 순서와 미결은 [CHECKPOINT.md](CHECKPOINT.md)를 먼저 확인한다.
+
+## C-03-pre 구현
+
+Prompt B 확정본, Judge Zod 출력 검증, 결정론적 채점기, 공통 hedge 계산기 통합. 상세와 다음 작업은 [CHECKPOINT.md](CHECKPOINT.md), 평가 범위는 [EVALSET.md](EVALSET.md)를 따른다. 실제 모델 호출은 아직 없다.
