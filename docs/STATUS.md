@@ -69,9 +69,13 @@
 ## 제품·평가 문서 상태
 
 - `docs/PRD.md` v2.3 — 홈 `지나온 생각` 표기, 익명 즉시 폐기, HANDOFF Message 저장 반영
-- `docs/RULES.md` v3 — EVALSET v4.1 판정 계약, 완화형 보정, carryover, Safety 분리
+- `docs/RULES.md` v3 저장소 확장본 — 첨부 원본과 일부 계약 충돌. 전체 동기화 완료가 아님
 - `docs/EVALSET.md` v4.1 — 채점·리포트 계약과 우선 경계쌍
 - `eval/safety_mapping.json` — 결정론적 Safety 매핑
+- 사용자 제공 원본 4개 입고 완료. RULES 원본은 `docs/references/RULES-v3-upload.md`, JSONL 작업본은 `eval/`에 있음
+- `npm run eval:validate` 추가: 64개 구조·ID·패치·완화형 통제쌍 검사. 실제 모델은 호출하지 않음
+- 확인된 v4 패치 누락 수정. carryover 2개·Safety 분류 8개의 저장소 계약 불일치는 남아 있어 전체 검증은 실패 상태
+- [문서별 검증 기록](reviews/2026-09-12-document-validation.md)에 원본 해시, 수정 내용, 미결과 실행 결과 기록
 
 평가 fixture 필드 `input.pile` / `promote_pile_item`은 v4.1 호환을 위해 유지한다. 제품 DB에는 Pile Item 테이블을 만들지 않고 `branch_questions`를 사용한다.
 
@@ -83,16 +87,16 @@
 - Safety / Judge / Reframe / Reflection 엔진
 - 실제 세션/메시지/Node/Branch 저장 API
 - 생각더미 / 휴지통 / 남겨둔 질문 UI
-- raw `judge.jsonl`, `start.jsonl`, `safety.jsonl`과 실제 eval harness
+- 실제 모델을 호출·채점하는 eval harness (`npm run eval`)
 - 로컬 Supabase migration reset 기반 재현 테스트
 
-원본 JSONL은 정답 데이터이므로 문서 설명만으로 재구성하지 않는다.
+원본 JSONL은 수신해 보존했다. 라벨을 임의로 바꾸거나 없는 회귀 케이스를 정답 데이터인 것처럼 채우지 않는다.
 
 ---
 
 ## 다음 단계
 
-1. 원본 `judge.jsonl`, `start.jsonl`, `safety.jsonl` 입고 및 정적 fixture 검증
+1. 검증 기록의 HANDOFF 상태·Safety 분류명·carryover 확장 계약 확인 및 fixture 호환성 해결
 2. 서버 전용 Supabase secret client와 Safety-first 저장 API 구현
 3. 익명 로그인 → 종료 → 필요 시 OAuth Identity Linking → 보관/즉시 폐기 흐름 구현
 4. Safety → Judge → Reframe / Reflection 엔진과 실제 eval harness 구현

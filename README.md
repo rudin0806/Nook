@@ -26,12 +26,12 @@ npm run dev
 첫 화면과 `/api/health`에는 키가 필요하지 않습니다.
 실제 기능 연결 단계에서 `.env.example`을 `.env.local`로 복사한 뒤 설정합니다.
 
-| 이름 | 공개 범위 | 용도 |
-|---|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | 브라우저 공개 가능 | Supabase 프로젝트 URL |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | 브라우저 공개 가능 | Supabase publishable key. RLS 적용 필수 |
-| `SUPABASE_SECRET_KEY` | 서버 전용 | 검증된 메시지·AI 기록 저장. RLS 우회 키이므로 사용자 소유권을 서버에서 재검증 |
-| `OPENAI_API_KEY` | 서버 전용 | OpenAI API 인증 |
+| 이름                                   | 공개 범위          | 용도                                                                          |
+| -------------------------------------- | ------------------ | ----------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`             | 브라우저 공개 가능 | Supabase 프로젝트 URL                                                         |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | 브라우저 공개 가능 | Supabase publishable key. RLS 적용 필수                                       |
+| `SUPABASE_SECRET_KEY`                  | 서버 전용          | 검증된 메시지·AI 기록 저장. RLS 우회 키이므로 사용자 소유권을 서버에서 재검증 |
+| `OPENAI_API_KEY`                       | 서버 전용          | OpenAI API 인증                                                               |
 
 실제 키를 채팅, PR, 소스 코드에 넣지 않습니다. Supabase secret key를 `NEXT_PUBLIC_` 변수에 넣지 않습니다.
 SDK 사용 시 설정이 없거나 유효하지 않으면 값 자체를 출력하지 않는 오류를 발생시킵니다.
@@ -48,7 +48,7 @@ npm run validate
 `validate`는 `typecheck` → `lint` → `build` 순서입니다.
 `typecheck`는 깨끗한 체크아웃에서도 동작하도록 Next.js 라우트 타입 생성 후 TypeScript를 검사합니다.
 
-[`docs/EVALSET.md`](docs/EVALSET.md)는 평가 계약을 정의합니다. `npm run eval`과 raw JSONL fixture는 엔진 구현 단계에서 실제로 연결하며, 현재 통과를 가장하는 스크립트는 만들지 않습니다.
+[`docs/EVALSET.md`](docs/EVALSET.md)는 평가 계약을 정의합니다. 사용자 제공 JSONL은 `eval/`에 있으며 `npm run eval:validate`로 구조·참조·패치·현재 매핑 호환성을 검사합니다. 확인된 계약 충돌이 남아 있으면 이 명령은 실패로 종료합니다. 실제 모델을 호출하는 `npm run eval`은 아직 구현하지 않았습니다. [파일별 검증 기록](docs/reviews/2026-09-12-document-validation.md)에서 범위와 미해결 항목을 확인합니다.
 
 ## Vercel 배포
 
@@ -69,13 +69,13 @@ npm run validate
 
 제품 문서는 `docs/`에 모읍니다.
 
-| 문서 | 역할 | 언제 읽나 |
-|---|---|---|
-| [`docs/STATUS.md`](docs/STATUS.md) | 현재 완료 범위, 검증 상태, 다음 작업 | 작업 시작 시 가장 먼저 |
-| [`docs/PRD.md`](docs/PRD.md) | 무엇을 왜 만드는지, MVP 범위와 핵심 UX | 기능·데이터 구조를 결정할 때 |
-| [`docs/RULES.md`](docs/RULES.md) | AI가 어떻게 판정하고 무엇을 말해야 하는지 | Judge, Prompt, Safety, 보관 로직 작업 시 |
-| [`docs/EVALSET.md`](docs/EVALSET.md) | 평가 계약·회귀 기준·fixture 검증 규칙 | 프롬프트/eval 구현 및 회귀 검증 시 |
-| [`docs/ERD.md`](docs/ERD.md) | 확정된 데이터 모델·상태·삭제·RLS | DB와 저장 흐름을 구현할 때 |
+| 문서                                 | 역할                                      | 언제 읽나                                |
+| ------------------------------------ | ----------------------------------------- | ---------------------------------------- |
+| [`docs/STATUS.md`](docs/STATUS.md)   | 현재 완료 범위, 검증 상태, 다음 작업      | 작업 시작 시 가장 먼저                   |
+| [`docs/PRD.md`](docs/PRD.md)         | 무엇을 왜 만드는지, MVP 범위와 핵심 UX    | 기능·데이터 구조를 결정할 때             |
+| [`docs/RULES.md`](docs/RULES.md)     | AI가 어떻게 판정하고 무엇을 말해야 하는지 | Judge, Prompt, Safety, 보관 로직 작업 시 |
+| [`docs/EVALSET.md`](docs/EVALSET.md) | 평가 계약·회귀 기준·fixture 검증 규칙     | 프롬프트/eval 구현 및 회귀 검증 시       |
+| [`docs/ERD.md`](docs/ERD.md)         | 확정된 데이터 모델·상태·삭제·RLS          | DB와 저장 흐름을 구현할 때               |
 
 ### 권장 읽기 순서
 

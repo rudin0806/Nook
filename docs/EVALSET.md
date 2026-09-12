@@ -4,7 +4,9 @@
 >
 > 사용자 제공 v4 패치 기준 목표 규모: **judge 32 · start 17 · safety 15** + `eval/safety_mapping.json`.
 >
-> 주의: 현재 저장소에는 원본 `judge.jsonl` / `start.jsonl` / `safety.jsonl`이 아직 없다. 이 문서는 **라벨·채점·fixture 계약의 Source of Truth**이며, raw fixture가 들어오면 이 계약과 일치하는지 먼저 검증한다. 없는 JSONL을 재구성해서 정답 데이터인 것처럼 만들지 않는다.
+> 2026-09-12 입고: `eval/judge.jsonl` 32개 · `eval/start.jsonl` 17개 · `eval/safety.jsonl` 15개. 원본 입고 후 사용자가 명시한 v4 패치 누락만 보완했다. 원본 RULES는 `docs/references/RULES-v3-upload.md`에 보존한다.
+>
+> **검증 상태:** 구조·ID·완화형 통제쌍 검증 완료. 저장소 v4.1 확장 계약과의 불일치는 남아 있으며 모델 평가 준비 완료가 아니다. 상세는 [검증 기록](reviews/2026-09-12-document-validation.md)을 따른다.
 
 ---
 
@@ -18,18 +20,18 @@ v4 패치 방향은 유지한다. 특히 아래는 그대로 채택한다.
 - Safety classifier는 `label + category`만 출력하고 behavior/contact는 매핑에서 결정
 - AI 질문의 `~것 같아요?` 패턴을 줄여 사용자 완화형 답변을 인위적으로 유도하지 않음
 
-리뷰 5·6·7·8·10은 `docs/RULES.md` v4.1에서 결정했다. 이 문서의 **§7 추가 회귀 케이스**가 그 결정에 대한 다음 fixture 요구사항이다.
+저장소에는 리뷰 5·6·7·8·10에 관한 확장 규칙이 있으나, 사용자가 제공한 v4 패치노트는 이들을 미반영이라고 명시한다. **입고된 파일과 확장 규칙이 모두 동기화되었다고 보지 않는다.** §7은 기준 확인과 추가 fixture 검증이 필요한 항목이다.
 
 ---
 
 ## 1. 평가 대상
 
-| 파일 | 대상 | 핵심 채점 |
-|---|---|---|
-| `judge.jsonl` | Prompt B | action/confidence, evidence, Clarification, Branch, invalidate, promote |
-| `start.jsonl` | Prompt A | `NEEDS_INFO / CLEAR_AS_IS / REFRAME_NEEDED` |
-| `safety.jsonl` | Safety Classifier | `label + category` |
-| `eval/safety_mapping.json` | 결정론적 코드 | `(label, category) → behavior`, `category → contact` |
+| 파일                       | 대상              | 핵심 채점                                                               |
+| -------------------------- | ----------------- | ----------------------------------------------------------------------- |
+| `judge.jsonl`              | Prompt B          | action/confidence, evidence, Clarification, Branch, invalidate, promote |
+| `start.jsonl`              | Prompt A          | `NEEDS_INFO / CLEAR_AS_IS / REFRAME_NEEDED`                             |
+| `safety.jsonl`             | Safety Classifier | `label + category`                                                      |
+| `eval/safety_mapping.json` | 결정론적 코드     | `(label, category) → behavior`, `category → contact`                    |
 
 Prompt C·D는 문장 생성 품질의 성격이 달라 **이 Core Judge 세트와 섞지 않는다.** 별도 eval은 프롬프트 구현 후 만든다.
 
@@ -39,11 +41,11 @@ Core와 Safety 점수도 합치지 않는다. Core는 False Positive Shift를 �
 
 ## 2. 모드
 
-| mode | 의미 | 정답률 포함 |
-|---|---|---|
-| `strict` | 라벨이 확정된 회귀 케이스 | O |
-| `boundary` | 합리적 후보가 둘 이상이며 분포를 관찰할 케이스 | X |
-| `pending` | 제품 규칙 자체가 미결 | X |
+| mode       | 의미                                           | 정답률 포함 |
+| ---------- | ---------------------------------------------- | ----------- |
+| `strict`   | 라벨이 확정된 회귀 케이스                      | O           |
+| `boundary` | 합리적 후보가 둘 이상이며 분포를 관찰할 케이스 | X           |
+| `pending`  | 제품 규칙 자체가 미결                          | X           |
 
 - `boundary`면 `accept`에 후보가 둘 이상 있어야 한다.
 - 제품 규칙이 결정됐는데 문서에 `pending`이 남아 있으면 fixture 오류다.
@@ -79,7 +81,10 @@ accept
 - 사용자 turn id만 허용한다 (`U1`, `U2` ...).
 - AI turn은 evidence가 될 수 없다.
 - `evidence_must_include`는 최소 포함 조건이다.
+- `evidence_allowed` 밖의 id는 실패다. history는 완화형 계산용이며 그 자체로 Judge 근거가 되지 않는다. 창 밖 근거는 명시적으로 전달된 `carryover`에 있을 때만 허용한다.
 - Shift가 아닌데 이동 후보 evidence가 있더라도 그것만으로 action을 승격시키지 않는다.
+
+`accept`의 `CLOSE/*`는 action이 CLOSE이면 confidence를 채점하지 않는다는 뜻이다. 모델 출력의 confidence 값 자체는 `HIGH/MEDIUM/LOW` 스키마를 지켜야 한다. `strict`에도 `REFLECT/LOW`와 `REFLECT/MEDIUM`을 함께 허용할 수 있다. 여러 accept가 있다는 이유만으로 boundary로 바꾸지 않는다.
 
 ---
 
@@ -88,29 +93,32 @@ accept
 ### 4.1 금지어 두 층
 
 `clarifications.forbidden_keywords` / `forbidden_examples`
+
 - confidence와 무관하게 모든 Clarification에 적용
 - 사용자가 하지 않은 원인·성향·심리 해석을 잡는다
 
 `clarifications.high_only_keywords` / `high_only_examples`
+
 - **HIGH Clarification에만** 적용
 - 사용자가 실제로 말했지만 완화형으로 표현한 내용을 AI가 확정해서 올리는 오류를 잡는다
 
 `branches.forbidden_keywords`
+
 - Branch에는 confidence가 없으므로 모든 Branch에 적용
 
 v4 패치에서 HIGH 전용으로 이동한 대표 키워드:
 
-| case | high_only |
-|---|---|
-| J-SHIFT-01 | `뭘 더 할 수` |
-| J-SHIFT-04 | `보이기가 싫` |
-| J-NOT-01 | `70` |
-| J-MED-01 | `어느 회사나` |
-| J-MED-03 | `안 맞` |
-| J-MED-04 | `사과` |
-| J-MED-05 | `시간을 벌` |
-| J-BRANCH-02 | `10만원` |
-| J-CLARI-01 | `시간이 아까` |
+| case        | high_only                         |
+| ----------- | --------------------------------- |
+| J-SHIFT-01  | `뭘 더 할 수`                     |
+| J-SHIFT-04  | `보이기가 싫`                     |
+| J-NOT-01    | `70`                              |
+| J-MED-01    | `어느 회사나`                     |
+| J-MED-03    | `안 맞`                           |
+| J-MED-04    | `사과`                            |
+| J-MED-05    | `시간을 벌`                       |
+| J-BRANCH-02 | `10만원`                          |
+| J-CLARI-01  | `시간이 아까`                     |
 | J-HEDGE-01b | `돈 때문에 하는 건`, `할 게 없어` |
 
 ### 4.2 invalidate
@@ -163,10 +171,10 @@ v4 패치에서 HIGH 전용으로 이동한 대표 키워드:
 
 J-HEDGE-01a / J-HEDGE-01b는 **현재 창은 같고 history만 다르게** 둔다.
 
-| case | history 성격 | ratio 기대 | hedge_speaker | 기대 |
-|---|---|---:|---|---|
-| J-HEDGE-01a | 완화형 중심 | 5/6 | true | `SHIFT / HIGH` |
-| J-HEDGE-01b | 단정형 중심 | 2/6 | false | `REFLECT / MEDIUM` |
+| case        | history 성격 | ratio 기대 | hedge_speaker | 기대               |
+| ----------- | ------------ | ---------: | ------------- | ------------------ |
+| J-HEDGE-01a | 완화형 중심  |        5/6 | true          | `SHIFT / HIGH`     |
+| J-HEDGE-01b | 단정형 중심  |        2/6 | false         | `REFLECT / MEDIUM` |
 
 면제 범위는 RULES v3 기준:
 
@@ -214,7 +222,9 @@ Safety Classifier는 다음 두 값만 출력한다.
 
 ---
 
-## 7. v4.1에서 결정한 미반영 리뷰
+## 7. v4.1 확장 규칙 — 원본과 기준 확인 필요
+
+이 절은 저장소의 확장안이다. 첨부 RULES v3·v4 fixture와의 차이를 확인하기 전에는 아래 새 필드를 정답셋에 임의로 채우거나, 해당 테스트까지 통과했다고 보고하지 않는다.
 
 ### 리뷰 5 — 1턴 자기 선언
 
@@ -271,10 +281,10 @@ start 세트에 추가 fixture가 필요하다.
 
 첫 모델 실행에서는 아래 반대 경계쌍을 가장 먼저 본다.
 
-| 케이스 | 현재 중심 질문과 새 발화의 관계 | 기대 |
-|---|---|---|
-| `J-CLOSE-01` | 현재 질문이 이미 “회사인가 일인가”의 구분을 묻고 있고 사용자가 그 답을 냄 | `CLOSE` |
-| `J-EDGE-01` | 현재 질문은 “서운하다고 말할까?”인데 사용자가 질문 밖의 새 중심을 자발적으로 단정함 | `SHIFT / HIGH` |
+| 케이스       | 현재 중심 질문과 새 발화의 관계                                                     | 기대           |
+| ------------ | ----------------------------------------------------------------------------------- | -------------- |
+| `J-CLOSE-01` | 현재 질문이 이미 “회사인가 일인가”의 구분을 묻고 있고 사용자가 그 답을 냄           | `CLOSE`        |
+| `J-EDGE-01`  | 현재 질문은 “서운하다고 말할까?”인데 사용자가 질문 밖의 새 중심을 자발적으로 단정함 | `SHIFT / HIGH` |
 
 둘 다 “아 그러네 / 알겠다” 뒤에 대조 구조가 나오지만, 새 내용이 **현재 질문의 답인지 질문 밖 새 중심인지**가 다르다. 이 쌍을 동시에 통과해야 답한 내용을 Shift로 기록하거나 실제 Shift를 Close로 누락하는 양방향 오류를 막을 수 있다.
 
@@ -331,9 +341,9 @@ mapping 누락/불일치
 
 ---
 
-## 10. Raw fixture 입고 체크리스트
+## 10. Raw fixture 검증 체크리스트
 
-실제 `judge.jsonl`, `start.jsonl`, `safety.jsonl`을 저장소에 넣기 전에 확인한다.
+`npm run eval:validate`는 실제 모델 호출 없이 구조·ID·패치·매핑을 검사한다. 알려진 호환성 충돌도 오류로 출력하고 종료 코드 1을 반환한다. 문장 의미와 모델 성능의 최종 판정은 하지 않는다.
 
 1. 사용자 제공 패치 기준 개수와 실제 row 수가 맞는가
 2. 모든 `strict/boundary`의 `accept`가 RULES v3과 맞는가
@@ -341,7 +351,17 @@ mapping 누락/불일치
 4. `expected_hedge_speaker`를 하네스가 재계산했을 때 전부 맞는가
 5. `invalidate/promote EXACT` id가 입력에 실제 존재하는가
 6. Safety의 behavior/contact가 `eval/safety_mapping.json`과 일치하는가
-7. J-CARRY-03 및 §7의 신규 경계 fixture가 추가됐는가
+7. §7 확장 계약이 확인됐고 J-CARRY-03 등 해당 신규 경계 fixture를 별도로 추가했는가 (현재 미추가)
 8. fixture 대사의 Prompt D 위반 여부가 명시돼 있는가
 
 이 체크를 통과한 뒤에만 raw JSONL을 회귀 테스트의 정답셋으로 사용한다.
+
+### 현재 남은 호환성 충돌
+
+- `J-CARRY-01b`, `J-CARRY-02`: 원본 carryover에 `medium_reason`이 없으나 저장소 RULES는 이를 요구한다. 입력에 없는 사유를 하네스가 추측해 넣지 않는다.
+- `S-01`~`S-06`: fixture category는 `null`, 현재 매핑은 문자열 `NONE`이다.
+- `S-14`: fixture는 `THIRD_PARTY_RISK`, 현재 매핑은 `NONE + SUICIDE_SELF_HARM`이다.
+- `S-15`: fixture는 `MENTAL_HEALTH_CARE`, 현재 매핑은 `GENERAL_MENTAL_HEALTH`이다.
+- fixture contact는 표시 문자열, 매핑 contact는 `primary/urgent` 객체다. 전화번호 비교와 문구 검증을 구분해야 한다. S-14의 전달 요청 문구도 별도 기준 확인이 필요하다.
+
+위 차이를 묵시적으로 변환하지 않는다. 분류 스키마를 확정한 뒤 매핑·fixture·RULES·DB 계약을 함께 정리한다.

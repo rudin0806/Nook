@@ -1,6 +1,6 @@
 # PRD — Nook (눅)
 
-> 원티드 AI Championship 2026 출품작 · v2.3 · 2026.09.11
+> 원티드 AI Championship 2026 출품작 · v2.3 · 2026.09.12
 > 신청 마감 09.18 · 구현·배포 마감 09.20
 >
 > v2 이후 반영: 서비스명 확정 · Prompt D 추가 · 인증 방식 수정 · 보관한 질문 삭제 정책 통일 · 반복 질문 MVP 제외 · Safety Flow 확정 · CLEAR_AS_IS/NEEDS_INFO 추가 · CHECK 액션 제거 · 대화 톤/되받기 규칙 수정 · 종료 후 보관 선택 단순화
@@ -672,7 +672,7 @@ AI            OpenAI
 - 질문 삭제 시 재시작 Session은 유지하고 `origin_branch_id SET NULL`.
 - 원본 Session 영구 삭제 시 보관 질문은 유지하고 출처 FK만 `SET NULL`.
 - `node_count`, `turn_count`, `branch_count`는 원본 변경과 같은 트랜잭션에서 갱신한다.
-- Safety trigger 원문과 Moderation/Classifier 전체 입출력은 저장하지 않는다.
+- `STOP`으로 분류된 위험 신호 원문은 저장하지 않는다. `HANDOFF` 발화는 Message로 저장한다. 두 경로 모두 Moderation/Classifier 전체 입출력은 저장하지 않는다.
 - RLS는 읽기뿐 아니라 다른 행을 참조하는 연결 생성까지 소유권을 검증한다.
 - Judge Log는 Zod 검증을 통과한 구조화 결과만 저장하며 사용자에게 노출하지 않는다.
 
@@ -784,7 +784,7 @@ Raw Thought 입력 · 예시 칩 · Node 0 Reframe(CLEAR_AS_IS 포함) + 승인 
 
 ## 21. 테스트셋
 
-20개로 시작하고, 오답이 나온 유형을 변형해 확장한다.
+현재 입고된 평가셋은 Judge 32개·Start 17개·Safety 15개다. Judge의 boundary 1개는 정답률에서 제외한다. 파일별 검증 상태와 남은 계약 충돌은 [`문서·fixture 검증 기록`](reviews/2026-09-12-document-validation.md)을 따른다. 정적 검증과 실제 모델 정확도는 구분한다.
 
 **범주:** 명확한 SHIFT · NOT SHIFT · 하위 질문 · Branch · MEDIUM 경계 · AI가 만든 자기해석 · Branch → Shift 승격 · 좋은 지점에서 Close · 피로로 Close · 반복으로 Close · Depth Guard · 외부→내부 억지 이동 · CLEAR_AS_IS · 단순해 보이지만 갈등이 있는 질문 · NEEDS_INFO.
 

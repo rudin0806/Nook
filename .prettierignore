@@ -6,3 +6,5 @@ package-lock.json
 next-env.d.ts
 docs/PRD.md
 docs/HANDOFF.md
+# Exact user-provided reference, not an editable execution spec.
+docs/references/RULES-v3-upload.md
