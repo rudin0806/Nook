@@ -1,6 +1,6 @@
 # 작업 상태
 
-기준일: 2026-09-11
+기준일: 2026-09-12
 
 ## STEP 1 — 초기화 / 첫 배포 (완료)
 
@@ -13,46 +13,64 @@
 
 ---
 
-## STEP 2 — ERD / DB 설계 (설계 완료, 적용 전)
+## STEP 2 — ERD / DB 설계·적용 (완료)
 
-2026-09-11 사용자와 확정한 관계·상태·삭제 규칙을 문서와 Supabase migration으로 옮겼다.
+사용자와 확정한 관계·상태·삭제 규칙을 문서와 Supabase migration으로 옮기고, NOOK Supabase 프로젝트에 적용했다.
 
 ### 확정한 제품 데이터 규칙
 
 - 세션 생성 시점: 첫 Raw Thought 제출
 - 대화 상태와 보관 상태 분리
 - 생각더미: `COMPLETED + SAVED` 세션 조회
-- 휴지통: `COMPLETED + TRASHED`, 7일 복원 후 hard delete
+- 휴지통: 계정 연결 사용자의 `COMPLETED + TRASHED`, 7일 복원 후 hard delete
+- 익명 사용자가 아무것도 보관하지 않으면 `TRASHED` 없이 즉시 hard delete
+- 익명 사용자가 세션 또는 Branch 질문을 보관하면 먼저 OAuth identity linking
 - Branch 질문: `PENDING` 후보 중 사용자가 고른 것만 `KEPT`
 - 보관 질문 다회 재시작, 질문 삭제 뒤 재시작 Session 유지
 - Segment Anchor는 직전 Segment 마지막 Node 참조, 복제·카운트 금지
 - Question Node / Shift Edge append-only, Clarification mutable
 - CHECK Event / `check_count` / Pile `RESUMED` 제거
-- HANDOFF lifecycle은 `HANDOFF_STOPPED`
-- Safety trigger 원문과 전체 분류 입출력 미저장
+- HANDOFF 발화는 Message로 저장하고 `HANDOFF_STOPPED`; STOP 위험 원문은 미저장
+- Safety classifier는 `label + category`만 출력하고 behavior/contact는 결정론적 매핑
 
-### 생성한 설계·마이그레이션
+### 적용한 migration
 
-- `docs/ERD.md` — 코드 이름의 자연어 뜻, ERD, 컬럼, 상태, 삭제, RLS, 트랜잭션
-- `supabase/migrations/202609110001_nook_core_schema.sql` — 타입, 13개 앱 테이블, 증거 연결, FK, 제약, 카운터 트리거
-- `supabase/migrations/202609110002_nook_access_and_retention.sql` — RLS, 보관/휴지통/복원 RPC, Branch 삭제, Segment 전환, Safety 종료, 정리 함수, 조회 View
-- `supabase/snippets/schedule_retention_cleanup.sql` — 시간당 보존 만료 정리 Cron
+1. `202609110001_nook_core_schema.sql`
+2. `202609110002_nook_access_and_retention.sql`
+3. `20260912001339_fix_temporary_expiry_nullable.sql`
+4. `20260912011744_harden_retention_rls_and_indexes.sql`
 
-### 아직 적용하지 않은 것
+세 번째 migration은 `SAVED/TRASHED` 전환 시 `temporary_expires_at = NULL`을 허용한다. 네 번째 migration은 익명 즉시 폐기, 보관 전 identity 연결 강제, RLS 정책 최적화, 자동 RLS helper 실행 권한 회수, 복합 FK 인덱스를 반영한다.
 
-- 실제 Supabase 프로젝트 연결과 migration push
-- Supabase 로컬 스택에서 migration reset / DB test
-- 서버 전용 Supabase secret client와 API 저장 흐름
+### 실제 DB 검증
 
-migration은 저장소에 설계 산출물로 들어가며, 원격 DB에 적용·검증하기 전에는 운영 DB가 만들어졌다고 주장하지 않는다.
+- public 앱 테이블 13개 모두 RLS 활성화
+- 사용자 A가 자기 Session/Branch/Evidence만 조회하고 사용자 B 행은 0건으로 숨겨짐
+- 다른 사용자 세션에 보관 RPC를 호출하면 `SESSION_NOT_FOUND`
+- 익명 `남기지 않고 나가기`는 즉시 삭제되고 RPC 결과는 `NULL`
+- 익명 보관 요청은 `IDENTITY_LINK_REQUIRED`
+- 계정 연결 사용자의 저장은 `SAVED + temporary_expires_at NULL`
+- 계정 연결 사용자의 미보관은 `TRASHED + 정확히 7일`
+- `judge_logs` / `safety_events`는 클라이언트 SELECT 권한 없음
+- Supabase 자동 RLS helper는 `anon/authenticated` 실행 불가
+- 테스트용 사용자·세션·질문 행은 모두 제거됨
+
+### Advisor 검토
+
+- Security Advisor의 익명 실행 가능 함수, 정책 없는 RLS 테이블 경고는 해결
+- 남은 Security 경고 9건은 소유권을 내부에서 재검사하는 사용자용 `SECURITY DEFINER` RPC이며 의도된 공개 범위
+- Performance Advisor의 미인덱싱 FK와 `auth.uid()` init-plan 경고는 해결
+- 남은 항목은 데이터가 아직 없는 새 인덱스의 `unused_index` 정보뿐이며 지금 삭제하지 않음
+
+로컬 Supabase stack의 `migration reset`은 아직 실행하지 않았다. 원격 프로젝트 적용과 실제 SQL/RLS 검증을 완료한 상태다.
 
 ---
 
-## 제품 문서 상태
+## 제품·평가 문서 상태
 
-- `docs/PRD.md` v2.2 — 생각더미/휴지통/질문 명시 보관과 DB 상태 반영
-- `docs/RULES.md` — EVALSET v4.1 판정 계약 유지 + 보관/Safety lifecycle 동기화
-- `docs/EVALSET.md` v4.1 — 평가 계약 유지
+- `docs/PRD.md` v2.3 — 홈 `지나온 생각` 표기, 익명 즉시 폐기, HANDOFF Message 저장 반영
+- `docs/RULES.md` v3 — EVALSET v4.1 판정 계약, 완화형 보정, carryover, Safety 분리
+- `docs/EVALSET.md` v4.1 — 채점·리포트 계약과 우선 경계쌍
 - `eval/safety_mapping.json` — 결정론적 Safety 매핑
 
 평가 fixture 필드 `input.pile` / `promote_pile_item`은 v4.1 호환을 위해 유지한다. 제품 DB에는 Pile Item 테이블을 만들지 않고 `branch_questions`를 사용한다.
@@ -61,18 +79,21 @@ migration은 저장소에 설계 산출물로 들어가며, 원격 DB에 적용�
 
 ## 아직 구현하지 않은 것
 
-- 익명 인증과 Google/Kakao Identity Linking
+- 익명 인증과 Google/Kakao Identity Linking UI/API
 - Safety / Judge / Reframe / Reflection 엔진
 - 실제 세션/메시지/Node/Branch 저장 API
 - 생각더미 / 휴지통 / 남겨둔 질문 UI
-- raw `judge/start/safety` JSONL과 실제 eval harness
+- raw `judge.jsonl`, `start.jsonl`, `safety.jsonl`과 실제 eval harness
+- 로컬 Supabase migration reset 기반 재현 테스트
+
+원본 JSONL은 정답 데이터이므로 문서 설명만으로 재구성하지 않는다.
 
 ---
 
 ## 다음 단계
 
-1. Supabase 프로젝트를 연결하고 두 migration을 빈 로컬 DB에 적용
-2. RLS allow/deny와 7일 삭제·복원·Anchor·cross-owner FK를 DB test로 검증
-3. 서버 전용 Supabase secret client를 추가하고 Safety-first 저장 API 구현
-4. 익명 로그인 → 종료 → OAuth Identity Linking → 보관 흐름 구현
-5. raw eval fixture 입고 후 Safety → Judge → Reframe / Reflection 엔진 구현
+1. 원본 `judge.jsonl`, `start.jsonl`, `safety.jsonl` 입고 및 정적 fixture 검증
+2. 서버 전용 Supabase secret client와 Safety-first 저장 API 구현
+3. 익명 로그인 → 종료 → 필요 시 OAuth Identity Linking → 보관/즉시 폐기 흐름 구현
+4. Safety → Judge → Reframe / Reflection 엔진과 실제 eval harness 구현
+5. 생각더미·휴지통·남겨둔 질문 UI 연결

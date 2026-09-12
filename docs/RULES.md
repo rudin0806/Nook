@@ -3,7 +3,9 @@
 > **AI가 매 턴 어떻게 판정하고 무엇을 말하는가**를 정의한다.  
 > 제품 정의는 `docs/PRD.md`, 평가 계약은 `docs/EVALSET.md`.
 >
-> **v4.1 변경** — EVALSET v4 패치 검증 반영 · hedge 계산/면제 범위 명시 · 1턴 자기 선언 조건 강화 · carryover `medium_reason` 추가 · Safety classifier와 behavior/contact 매핑 분리 · Prompt A 다중 고민 처리 원칙 추가 · `~것 같아요?` 유도 질문 억제.
+> **문서 버전: RULES v3.** EVALSET v4.1과 동기화한다.
+>
+> **v3 변경** — EVALSET v4 패치 검증 반영 · hedge 계산/면제 범위 명시 · 1턴 자기 선언 조건 강화 · carryover `medium_reason` 추가 · Safety classifier와 behavior/contact 매핑 분리 · Prompt A 다중 고민 처리 원칙 추가 · `~것 같아요?` 유도 질문 억제.
 >
 > **데이터 규칙 동기화** — 생각더미/휴지통 7일 · Branch 질문 명시 보관 · HANDOFF_STOPPED · CHECK Event 삭제. DB 상세는 `docs/ERD.md`.
 
@@ -408,6 +410,16 @@ behavior:
 
 기본 매핑은 `eval/safety_mapping.json`을 기준으로 한다.
 
+behavior별 저장·실행 순서는 고정한다.
+
+```text
+CONTINUE → Message 저장 → Turn Judge
+HANDOFF  → Message 저장 → Judge/되묻기 없이 도움 안내
+STOP     → 위험 신호 발화 원문 미저장 → Safety Flow
+```
+
+`HANDOFF`는 위험 label이 아니므로 해당 사용자 발화를 보존한다. `STOP`과 같은 미저장 경로로 처리하면 안 된다.
+
 ### 9.2 STOP
 
 - Reflection / Shift / Node / 지도 갱신 중단
@@ -426,6 +438,7 @@ behavior:
 
 HANDOFF에서는:
 
+- 해당 사용자 발화를 Message로 저장한다.
 - 일반 Judge/Reflection을 더 실행하지 않는다.
 - 해당 발화를 새 Node·Clarification·Branch로 만들지 않는다.
 - 경고 톤이나 사용자 위험 판정처럼 쓰지 않는다.
@@ -606,7 +619,7 @@ Core와 Safety는 점수를 섞지 않는다.
 
 ## 16. 다음 eval에서 반드시 추가할 경계 케이스
 
-현재 v4 패치는 구현 가능한 수준으로 검증했지만 아래는 회귀 케이스가 더 필요하다.
+현재 EVALSET v4.1 패치는 구현 가능한 수준으로 검증했지만 아래는 회귀 케이스가 더 필요하다.
 
 1. **1턴 자기 선언 음성 케이스** — AI가 먼저 A/B 대조를 제시한 경우 HIGH가 되면 안 됨
 2. **hedge 면제 경계** — A2/HIGH와 Clarification에는 적용, 1턴 자기 선언에는 미적용
@@ -615,3 +628,15 @@ Core와 Safety는 점수를 섞지 않는다.
 5. **여러 고민이 섞인 Raw Thought** — 우선순위 근거가 없으면 AI가 중심을 임의 선택하지 않음
 
 `hedge_ratio` 임계값 0.7 자체는 제품 진실이 아니라 초기 가설이다. 실제 세션 데이터가 생기면 조정한다.
+
+
+---
+
+## 17. 미결
+
+아래는 구현 전에 임의 확정하지 않는다.
+
+- Safety Classifier의 구체 프롬프트
+- `hedge_ratio >= 0.7` 임계값의 적정성 — 실제 세션 데이터로 조정
+- `lead_in` 필드 필요 여부 — 현재는 만들지 않고, 프롬프트 실행에서 어색한 지점이 확인될 때 추가
+- 3.8의 1턴 명시적 자기 선언 조건 범위 — `J-EDGE-01`과 반대 경계 케이스로 확인

@@ -47,7 +47,7 @@ Core와 Safety 점수도 합치지 않는다. Core는 False Positive Shift를 �
 
 - `boundary`면 `accept`에 후보가 둘 이상 있어야 한다.
 - 제품 규칙이 결정됐는데 문서에 `pending`이 남아 있으면 fixture 오류다.
-- **v4.1 규칙 기준으로 새 pending을 만들지 않는다.** 정말 제품 결정이 필요하면 RULES부터 수정한다.
+- **RULES v3 기준으로 새 pending을 만들지 않는다.** 정말 제품 결정이 필요하면 RULES부터 수정한다.
 
 ---
 
@@ -168,7 +168,7 @@ J-HEDGE-01a / J-HEDGE-01b는 **현재 창은 같고 history만 다르게** 둔�
 | J-HEDGE-01a | 완화형 중심 | 5/6 | true | `SHIFT / HIGH` |
 | J-HEDGE-01b | 단정형 중심 | 2/6 | false | `REFLECT / MEDIUM` |
 
-면제 범위는 RULES v4.1 기준:
+면제 범위는 RULES v3 기준:
 
 - 일반 HIGH의 `단정형 1턴` 요구 → 면제 가능
 - Clarification HIGH 단정형 요구 → 면제 가능
@@ -269,6 +269,15 @@ start 세트에 추가 fixture가 필요하다.
 
 ## 8. 기존 핵심 회귀 케이스
 
+첫 모델 실행에서는 아래 반대 경계쌍을 가장 먼저 본다.
+
+| 케이스 | 현재 중심 질문과 새 발화의 관계 | 기대 |
+|---|---|---|
+| `J-CLOSE-01` | 현재 질문이 이미 “회사인가 일인가”의 구분을 묻고 있고 사용자가 그 답을 냄 | `CLOSE` |
+| `J-EDGE-01` | 현재 질문은 “서운하다고 말할까?”인데 사용자가 질문 밖의 새 중심을 자발적으로 단정함 | `SHIFT / HIGH` |
+
+둘 다 “아 그러네 / 알겠다” 뒤에 대조 구조가 나오지만, 새 내용이 **현재 질문의 답인지 질문 밖 새 중심인지**가 다르다. 이 쌍을 동시에 통과해야 답한 내용을 Shift로 기록하거나 실제 Shift를 Close로 누락하는 양방향 오류를 막을 수 있다.
+
 다음 케이스군은 유지한다.
 
 - `J-SHIFT-*` — 명확한 중심 이동 / boundary 이동
@@ -311,9 +320,10 @@ fixture hedge_speaker 계산 오류
 
 Safety label 정확도
 Safety category 정확도
-STOP → CONTINUE 미탐
-CONTINUE → STOP/HANDOFF 오탐
-HANDOFF → CONTINUE 오류
+STOP이어야 하는데 CONTINUE인 미탐
+CONTINUE여야 하는데 STOP인 오탐
+CONTINUE여야 하는데 HANDOFF인 오탐
+HANDOFF이어야 하는데 CONTINUE인 오류
 mapping 누락/불일치
 ```
 
@@ -326,7 +336,7 @@ mapping 누락/불일치
 실제 `judge.jsonl`, `start.jsonl`, `safety.jsonl`을 저장소에 넣기 전에 확인한다.
 
 1. 사용자 제공 패치 기준 개수와 실제 row 수가 맞는가
-2. 모든 `strict/boundary`의 `accept`가 RULES v4.1과 맞는가
+2. 모든 `strict/boundary`의 `accept`가 RULES v3과 맞는가
 3. `pending`이 남아 있지 않은가
 4. `expected_hedge_speaker`를 하네스가 재계산했을 때 전부 맞는가
 5. `invalidate/promote EXACT` id가 입력에 실제 존재하는가

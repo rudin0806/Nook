@@ -1,6 +1,6 @@
 # ERD — Nook 데이터 모델 v1
 
-> 기준일: 2026-09-11  
+> 기준일: 2026-09-12  
 > 범위: Supabase PostgreSQL / Auth / RLS / 보관·삭제 정책  
 > 제품 기준: `docs/PRD.md`, 실행 규칙: `docs/RULES.md`
 
@@ -11,7 +11,9 @@
 - 사용자가 정상 종료한 세션만 보관 여부를 선택한다.
 - `생각더미`는 별도 테이블이 아니라 `COMPLETED + SAVED` 세션을 보여주는 목록이다.
 - `휴지통`도 별도 테이블이 아니라 `COMPLETED + TRASHED` 세션을 보여주는 목록이다.
-- 휴지통 세션은 7일 안에 복원할 수 있고, 이후 세션 소유 데이터와 함께 영구 삭제한다.
+- 계정이 연결된 사용자의 휴지통 세션은 7일 안에 복원할 수 있고, 이후 세션 소유 데이터와 함께 영구 삭제한다.
+- 익명 사용자가 아무것도 보관하지 않으면 `TRASHED`를 만들지 않고 세션을 즉시 영구 삭제한다.
+- 익명 사용자가 세션이나 Branch 질문을 하나라도 보관하면 먼저 OAuth identity를 연결한다.
 - 대화에서 발견된 Branch 중 사용자가 명시적으로 고른 질문만 `KEPT`로 남긴다. 나머지는 종료 결정과 함께 삭제한다.
 - 보관한 질문은 한 번 사용해도 사라지지 않는다. 같은 질문에서 여러 새 세션을 시작할 수 있다.
 - 보관한 질문을 삭제하면 즉시 영구 삭제한다. 이미 시작한 세션은 유지하고 `origin_branch_id`만 `NULL`이 된다.
@@ -19,7 +21,8 @@
 - Clarification은 현재 이해라 무효화하거나 내용을 갱신할 수 있다.
 - CHECK 액션, Check Event, `check_count`, Pile의 `RESUMED` 상태는 만들지 않는다.
 - HANDOFF는 직접 위험으로 인한 `SAFETY_STOPPED`와 구분해 `HANDOFF_STOPPED`로 기록한다.
-- 위험 신호 발화 원문과 Moderation/Classifier 전체 입출력은 저장하지 않는다.
+- HANDOFF 발화는 Message로 저장한 뒤 Judge/되묻기/Node 생성을 중단한다.
+- STOP 위험 신호 발화 원문과 Moderation/Classifier 전체 입출력은 저장하지 않는다.
 
 ## 2. 코드 이름과 자연어 뜻
 
@@ -29,7 +32,7 @@
 | `storage_state` | 보관 상태 | 임시인지, 생각더미에 보관됐는지, 휴지통에 있는지 |
 | `TEMPORARY` | 임시 | 진행 중이거나 종료 후 사용자의 보관 결정을 기다리는 상태 |
 | `SAVED` | 보관됨 | 생각더미에서 다시 볼 수 있는 상태 |
-| `TRASHED` | 휴지통 | 7일 복원 기간에 있는 상태 |
+| `TRASHED` | 휴지통 | 계정이 연결된 사용자가 7일 동안 복원할 수 있는 상태 |
 | `ACTIVE` | 진행 중 | 아직 사용자가 대화를 끝내지 않은 세션 |
 | `COMPLETED` | 정상 종료 | 사용자가 `여기까지 정리하기`를 선택한 세션 |
 | `SAFETY_STOPPED` | 안전상 중단 | 사용자 직접 위험 신호로 일반 질문 흐름을 중단한 세션 |
@@ -39,7 +42,7 @@
 | `anchor_node_id` | 이어받은 기준 질문 | 새 구간이 이전 구간의 마지막 확정 질문을 복제하지 않고 참조하는 값 |
 | `origin_branch_id` | 시작이 된 보관 질문 | 보관한 질문에서 새 세션을 시작했을 때 그 출처 |
 | `purge_after` | 영구 삭제 예정 시각 | 휴지통 이동 시각에서 7일 뒤 |
-| `temporary_expires_at` | 임시 데이터 정리 시각 | 익명·미완료 또는 보관 미결정 데이터를 정리할 기준 시각 |
+| `temporary_expires_at` | 임시 데이터 정리 시각 | 진행 중 이탈 또는 보관 미결정 데이터를 정리할 기준 시각 |
 
 ## 3. 관계도
 
@@ -244,8 +247,9 @@ Anchor FK는 `ON DELETE NO ACTION DEFERRABLE`을 쓴다. 개별 Anchor Node 삭�
 stateDiagram-v2
     [*] --> ACTIVE: Raw Thought 제출
     ACTIVE --> COMPLETED: 여기까지 정리하기
-    COMPLETED --> SAVED: 이 기록 남기기
-    COMPLETED --> TRASHED: 남기지 않고 나가기
+    COMPLETED --> SAVED: 계정 연결 후 이 기록 남기기
+    COMPLETED --> TRASHED: 연결 계정이 남기지 않기
+    COMPLETED --> [*]: 익명 + 아무것도 보관하지 않기
     SAVED --> TRASHED: 생각더미에서 삭제
     TRASHED --> SAVED: 7일 안에 복원
     TRASHED --> [*]: 7일 뒤 영구 삭제
@@ -269,6 +273,7 @@ stateDiagram-v2
 | 삭제 대상 | DB 동작 | 독립 데이터 처리 |
 |---|---|---|
 | 생각더미의 세션 | 즉시 삭제하지 않고 `TRASHED`, `purge_after = now() + 7 days` | 보관한 질문과 그 질문에서 시작한 다른 세션은 유지 |
+| 익명 사용자의 미보관 완료 세션 | `TRASHED` 없이 즉시 hard delete | 보관 항목이 있으면 먼저 identity linking이 필요 |
 | 휴지통 세션 복원 | `SAVED`로 되돌리고 삭제 시각 제거 | 생각더미에 다시 노출 |
 | 만료된 휴지통 세션 | 세션과 Segment/Message/Node/Edge/Clarification/Feedback/Judge/Safety를 hard delete | 보관한 질문의 출처 FK만 `NULL` |
 | 보관한 질문 | 확인 후 hard delete | 그 질문에서 시작한 세션의 `origin_branch_id`만 `NULL` |
@@ -280,6 +285,7 @@ stateDiagram-v2
 ## 7. RLS와 쓰기 경계
 
 - 익명 로그인 사용자도 Supabase의 `authenticated` 역할을 사용하므로 모든 개인 조회는 `auth.uid()` 소유권으로 제한한다.
+- 보관 RPC는 JWT의 `is_anonymous` claim을 검사한다. 익명 사용자의 보관 요청은 거절하고, 미보관 요청은 즉시 삭제한다.
 - `anon` 역할에는 Nook 개인 데이터 권한을 주지 않는다.
 - 사용자는 자신의 일반 세션, 생각더미, 휴지통, 보관 질문만 읽을 수 있다.
 - `SAFETY_STOPPED`와 `HANDOFF_STOPPED` 세션은 사용자 목록 조회에서 숨긴다.
@@ -296,7 +302,7 @@ stateDiagram-v2
 2. 승인된 Question Node 저장 + `node_count` 증가
 3. Branch 후보 저장 + `branch_count` 증가
 4. Shift Node + Shift Edge + 근거 연결 저장
-5. 세션 보관 선택 + 선택된 질문 `KEPT` 전환 + 선택하지 않은 후보 삭제
+5. 세션 보관 선택 + 선택된 질문 `KEPT` 전환 + 선택하지 않은 후보 삭제 + 익명 미보관 세션 즉시 삭제
 6. 구간 닫기 + Anchor를 참조하는 다음 구간 생성
 7. 휴지통 영구 삭제 + 독립 데이터의 출처 FK `SET NULL`
 
@@ -317,6 +323,8 @@ stateDiagram-v2
 
 - `supabase/migrations/202609110001_nook_core_schema.sql` — 타입, 테이블, FK, 제약, 카운터 트리거
 - `supabase/migrations/202609110002_nook_access_and_retention.sql` — RLS, 보관·복원·삭제 RPC, 안전한 조회 View
+- `supabase/migrations/20260912001339_fix_temporary_expiry_nullable.sql` — SAVED/TRASHED 전환 시 임시 만료 시각을 비울 수 있도록 수정
+- `supabase/migrations/20260912011744_harden_retention_rls_and_indexes.sql` — 익명 즉시 폐기, RLS 보강, FK 인덱스
 - `supabase/snippets/schedule_retention_cleanup.sql` — 7일 휴지통/24시간 임시 데이터 정리 Cron 등록
 
 ## 11. 다음 구현에서 지킬 API 순서
@@ -325,8 +333,9 @@ stateDiagram-v2
 사용자 발화 수신
 → Moderation
 → Safety Classifier
-→ STOP/HANDOFF면 원문 없이 Safety Event + 세션 종료
-→ CONTINUE면 Message 저장
+→ CONTINUE면 Message 저장 + 일반 엔진 진행
+→ HANDOFF면 Message 저장 + Safety Event + 도움 안내 후 종료
+→ STOP이면 원문 없이 Safety Event + Safety Flow로 종료
 → Structural Check
 → Judge
 → Zod 검증 성공
