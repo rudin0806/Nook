@@ -50,3 +50,7 @@ main에는 초기 migration 2개와 ERD가 있다. [PR #2](https://github.com/ru
 ## 이번 문서 변경 검증
 
 확정된 PRD·RULES·ERD의 저장 규칙과 문서 링크를 교차 확인한다. 코드 검사 결과는 문서 PR의 검증란에 기록한다.
+
+## 개발 체크포인트 — 완화형 계산기
+
+공통 완화형 비율 계산기와 경계 테스트를 PR #2에 추가했다. 실제 저장 API와 LLM 호출에는 아직 연결하지 않았다. 재개 순서와 미결은 [CHECKPOINT.md](CHECKPOINT.md)를 먼저 확인한다.

@@ -163,6 +163,8 @@ Judge 입력에는 **`hedge_speaker` boolean만 넣는다.** `history`와 `hedge
 
 완화형 어미 목록은 운영 코드 상수로 관리한다. 최소 `것 같아`, `것 같기도 해`, `싶기도 해`는 포함하고, 변경 시 eval fixture의 `expected_hedge_speaker`를 먼저 검증한다.
 
+초기 공통 계산기는 `src/engine/hedge.ts`의 `HEDGE_ENDINGS_VERSION = v1`을 사용한다. 기존 확장 감사 목록을 적용하며 어미·문장 끝 부호 처리·최소 표본·중복 발화는 `npm run test:hedge`로 확인한다. Judge 창만이 아니라 중복 없는 전체 세션 발화를 전달해야 한다. API 연결은 별도 구현 단계다.
+
 ### 3.6 증거에서 제외
 
 다음은 사용자가 스스로 꺼내도 Shift 증거로 세지 않는다.

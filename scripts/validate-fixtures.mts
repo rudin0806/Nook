@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { z } from "zod";
+import { calculateHedgeStats } from "../src/engine/hedge.ts";
 
 // Static fixture validation only. This script never calls or scores a model.
 const root = resolve(import.meta.dirname, "..");
@@ -164,7 +165,7 @@ check(
   "Only J-SHIFT-04 is boundary",
 );
 
-// Two declared audit lists; neither is an implemented production hedge detector.
+// Independent audit lists remain as controls alongside the shared engine function.
 const endings = {
   minimal: /(것 같아|것 같기도 해|싶기도 해)$/u,
   broad:
@@ -197,6 +198,13 @@ for (const r of judge) {
     "Calculate the flag; do not hardcode it in input",
   );
   hedge[r.id] = {};
+  const shared = calculateHedgeStats(turns);
+  check(
+    shared.hedgeSpeaker === r.fixture_meta.expected_hedge_speaker,
+    r.id,
+    "hedge_engine",
+    `${shared.hedgedTurnCount}/${shared.userTurnCount}: ${shared.hedgeSpeaker}`,
+  );
   for (const [name, pattern] of Object.entries(endings)) {
     const users = turns.filter((t) => t.role === "user");
     const hedged = users.filter((t) =>

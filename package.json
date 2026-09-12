@@ -14,7 +14,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "validate": "npm run typecheck && npm run lint && npm run build",
-    "eval:validate": "node --experimental-strip-types scripts/validate-fixtures.mts"
+    "eval:validate": "node --experimental-strip-types scripts/validate-fixtures.mts",
+    "test:hedge": "node --experimental-strip-types --test tests/hedge.test.mts"
   },
   "dependencies": {
     "@seed-design/css": "2.7.0",
