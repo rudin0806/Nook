@@ -1,6 +1,6 @@
 # 작업 상태
 
-기준일: 2026-09-11
+기준일: 2026-09-12
 
 ## STEP 1 — 초기화 / 첫 배포 (완료)
 
@@ -8,71 +8,45 @@
 - SEED React, Supabase, OpenAI, Zod 기반 초기화
 - 한국어 첫 화면과 `/api/health` 구현
 - 운영 주소: `https://nook-nine-eta.vercel.app`
-- `/`와 `/api/health` HTTP 200 검증
-- `npm run format:check`, `npm run validate`, `npm audit` 통과
+- 초기 배포에서 HTTP 200·format·validate·audit 검증 기록 있음
 
----
+## 확정된 문서와 구현 상태
 
-## STEP 2 — ERD / DB 설계 (설계 완료, 적용 전)
+- PRD v2.3: 홈 `지나온 생각`, 익명 미보관 즉시 폐기, HANDOFF Message 저장을 반영했다.
+- RULES와 ERD의 같은 저장 규칙도 함께 정리했다.
+- 상태는 기존 main의 `HANDOFF_STOPPED`를 유지했다. 첨부 원본의 `COMPLETED`로 변경한 것이 아니다.
+- 이번 변경은 문서다. 저장 API·인증 화면·AI 엔진을 구현하거나 운영 배포를 검증했다는 뜻이 아니다.
 
-2026-09-11 사용자와 확정한 관계·상태·삭제 규칙을 문서와 Supabase migration으로 옮겼다.
+## STEP 2 — DB 설계 / 후속 보완 검토
 
-### 확정한 제품 데이터 규칙
+main에는 초기 migration 2개와 ERD가 있다. [PR #2](https://github.com/rudin0806/Nook/pull/2)에 원격 DB 적용·RLS 테스트 기록 및 후속 migration 2개가 있다. 이번 문서 작업에서 원격 DB를 다시 조회하거나 적용하지 않았다.
 
-- 세션 생성 시점: 첫 Raw Thought 제출
-- 대화 상태와 보관 상태 분리
-- 생각더미: `COMPLETED + SAVED` 세션 조회
-- 휴지통: `COMPLETED + TRASHED`, 7일 복원 후 hard delete
-- Branch 질문: `PENDING` 후보 중 사용자가 고른 것만 `KEPT`
-- 보관 질문 다회 재시작, 질문 삭제 뒤 재시작 Session 유지
-- Segment Anchor는 직전 Segment 마지막 Node 참조, 복제·카운트 금지
-- Question Node / Shift Edge append-only, Clarification mutable
-- CHECK Event / `check_count` / Pile `RESUMED` 제거
-- HANDOFF lifecycle은 `HANDOFF_STOPPED`
-- Safety trigger 원문과 전체 분류 입출력 미저장
+- 원격 이력과 main의 migration 파일 개수는 같다고 가정하지 않는다.
+- 후속 보완을 병합하기 전에 원격 이력·파일·재현 검증을 맞춘다.
+- 이미 적용된 migration을 이름만 바꿔 다시 적용하지 않는다.
+- 로컬 Supabase reset 기반 재현 테스트와 실제 저장 API는 아직 남아 있다.
 
-### 생성한 설계·마이그레이션
+## 평가 파일
 
-- `docs/ERD.md` — 코드 이름의 자연어 뜻, ERD, 컬럼, 상태, 삭제, RLS, 트랜잭션
-- `supabase/migrations/202609110001_nook_core_schema.sql` — 타입, 13개 앱 테이블, 증거 연결, FK, 제약, 카운터 트리거
-- `supabase/migrations/202609110002_nook_access_and_retention.sql` — RLS, 보관/휴지통/복원 RPC, Branch 삭제, Segment 전환, Safety 종료, 정리 함수, 조회 View
-- `supabase/snippets/schedule_retention_cleanup.sql` — 시간당 보존 만료 정리 Cron
+원본 RULES·Judge 32·Start 17·Safety 15는 PR #2에 보존돼 있다. main에는 아직 JSONL과 정적 검증 스크립트를 합치지 않았다.
 
-### 아직 적용하지 않은 것
+[파일별 검증 기록](https://github.com/rudin0806/Nook/blob/8cfb144a69d30352d429207992f9cd411f855a43/docs/reviews/2026-09-12-document-validation.md):
 
-- 실제 Supabase 프로젝트 연결과 migration push
-- Supabase 로컬 스택에서 migration reset / DB test
-- 서버 전용 Supabase secret client와 API 저장 흐름
+- 패치 누락으로 발생한 정적 검사 오류 8개 수정
+- 계약 호환성 오류 10개 잔여: carryover 사유 2개, Safety category 8개
+- 별도로 HANDOFF 상태·문구 및 확장 규칙 차이 검토 필요
+- 실제 모델 평가기와 실제 모델 정확도는 아직 없음
 
-migration은 저장소에 설계 산출물로 들어가며, 원격 DB에 적용·검증하기 전에는 운영 DB가 만들어졌다고 주장하지 않는다.
+## 다음 개발 순서
 
----
+1. 원본과 저장소의 계약 차이를 검토하고 필요한 제품 결정을 확정한다.
+2. PR #2의 DB 보완·평가 파일을 분리 검증해 순차 병합한다.
+3. 서버 입출력 스키마와 평가기를 구현한다.
+4. 인증·소유권 검증과 Safety-first 저장 API를 연결한다.
+5. 프롬프트 초안으로 실제 평가 → 오답 수정 → 세션 UI 연결을 진행한다.
 
-## 제품 문서 상태
+병행 작업의 역할·첫 과제·전달 형식은 [HANDOFF.md](HANDOFF.md)를 따른다. Codex는 개발·평가 실행·통합, Claude는 프롬프트·분석 제안을 담당한다.
 
-- `docs/PRD.md` v2.2 — 생각더미/휴지통/질문 명시 보관과 DB 상태 반영
-- `docs/RULES.md` — EVALSET v4.1 판정 계약 유지 + 보관/Safety lifecycle 동기화
-- `docs/EVALSET.md` v4.1 — 평가 계약 유지
-- `eval/safety_mapping.json` — 결정론적 Safety 매핑
+## 이번 문서 변경 검증
 
-평가 fixture 필드 `input.pile` / `promote_pile_item`은 v4.1 호환을 위해 유지한다. 제품 DB에는 Pile Item 테이블을 만들지 않고 `branch_questions`를 사용한다.
-
----
-
-## 아직 구현하지 않은 것
-
-- 익명 인증과 Google/Kakao Identity Linking
-- Safety / Judge / Reframe / Reflection 엔진
-- 실제 세션/메시지/Node/Branch 저장 API
-- 생각더미 / 휴지통 / 남겨둔 질문 UI
-- raw `judge/start/safety` JSONL과 실제 eval harness
-
----
-
-## 다음 단계
-
-1. Supabase 프로젝트를 연결하고 두 migration을 빈 로컬 DB에 적용
-2. RLS allow/deny와 7일 삭제·복원·Anchor·cross-owner FK를 DB test로 검증
-3. 서버 전용 Supabase secret client를 추가하고 Safety-first 저장 API 구현
-4. 익명 로그인 → 종료 → OAuth Identity Linking → 보관 흐름 구현
-5. raw eval fixture 입고 후 Safety → Judge → Reframe / Reflection 엔진 구현
+확정된 PRD·RULES·ERD의 저장 규칙과 문서 링크를 교차 확인한다. 코드 검사 결과는 문서 PR의 검증란에 기록한다.
