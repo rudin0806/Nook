@@ -19,7 +19,7 @@
 
 ## STEP 2 — DB 설계 / 후속 보완 검토
 
-main에는 초기 migration 2개와 ERD가 있다. [PR #2](https://github.com/rudin0806/Nook/pull/2)에 원격 DB 적용·RLS 테스트 기록 및 후속 migration 2개가 있다. 이번 문서 작업에서 원격 DB를 다시 조회하거나 적용하지 않았다.
+main에는 초기 migration 2개와 후속 보완 2개, ERD가 있다. [PR #2](https://github.com/rudin0806/Nook/pull/2)에 원격 DB 적용·RLS 테스트 기록 및 후속 migration 2개가 있다. 이번 문서 작업에서 원격 DB를 다시 조회하거나 적용하지 않았다.
 
 - 원격 이력과 main의 migration 파일 개수는 같다고 가정하지 않는다.
 - 후속 보완을 병합하기 전에 원격 이력·파일·재현 검증을 맞춘다.
@@ -50,3 +50,9 @@ main에는 초기 migration 2개와 ERD가 있다. [PR #2](https://github.com/ru
 ## 이번 문서 변경 검증
 
 확정된 PRD·RULES·ERD의 저장 규칙과 문서 링크를 교차 확인한다. 코드 검사 결과는 문서 PR의 검증란에 기록한다.
+
+## DB 재현·RLS 재검증 — 2026-09-12
+
+원격 4개 migration 대조 및 동일 RLS SQL 재검증을 마쳤다. 보조 함수가 없는 새 환경에서 마지막 migration이 실패하는 문제를 조건부 REVOKE로 수정했다. 독립 PostgreSQL 엔진의 처음부터 적용 검사도 통과했다. 원격에는 재적용하지 않았다.
+
+전체 Supabase reset, Branch/Anchor 삭제 연쇄와 실제 Auth/API 테스트는 남았다. **pg_cron은 아직 미설치**라 자동 만료 정리는 가동 중이 아니다. 상세 범위·재현법·버전 대응은 [DB 검증 기록](reviews/2026-09-12-db-replay.md)을 따른다.
