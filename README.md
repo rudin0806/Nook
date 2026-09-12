@@ -8,6 +8,8 @@ Nook은 현재의 중심 질문을 찾고, 사용자가 확정한 질문의 이�
 
 진행 상태와 다음 작업은 [`docs/STATUS.md`](docs/STATUS.md)를 기준으로 확인합니다.
 
+Codex·Claude 병행 작업의 역할과 전달 형식은 [`docs/HANDOFF.md`](docs/HANDOFF.md)를 참고합니다.
+
 현재 저장소는 Next.js App Router / React / TypeScript strict / npm 기반이며, SEED React·Supabase·OpenAI·Zod를 사용합니다.
 
 ## 실행

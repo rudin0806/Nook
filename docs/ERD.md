@@ -321,6 +321,8 @@ stateDiagram-v2
 
 ## 10. 구현 파일
 
+후속 보완 migration과 원격 검증 기록은 [PR #2](https://github.com/rudin0806/Nook/pull/2)에서 관리한다. 문서의 확정 규칙과 구현 완료 범위를 구분하고, migration 적용 전 원격 이력을 대조한다.
+
 - `supabase/migrations/202609110001_nook_core_schema.sql` — 타입, 테이블, FK, 제약, 카운터 트리거
 - `supabase/migrations/202609110002_nook_access_and_retention.sql` — RLS, 보관·복원·삭제 RPC, 안전한 조회 View
 - `supabase/migrations/20260912001339_fix_temporary_expiry_nullable.sql` — SAVED/TRASHED 전환 시 임시 만료 시각을 비울 수 있도록 수정

@@ -784,7 +784,7 @@ Raw Thought 입력 · 예시 칩 · Node 0 Reframe(CLEAR_AS_IS 포함) + 승인 
 
 ## 21. 테스트셋
 
-현재 입고된 평가셋은 Judge 32개·Start 17개·Safety 15개다. Judge의 boundary 1개는 정답률에서 제외한다. 파일별 검증 상태와 남은 계약 충돌은 [`문서·fixture 검증 기록`](reviews/2026-09-12-document-validation.md)을 따른다. 정적 검증과 실제 모델 정확도는 구분한다.
+입고된 평가셋은 Judge 32개·Start 17개·Safety 15개다. Judge의 boundary 1개는 정답률에서 제외한다. 평가 파일과 검증 스크립트는 [PR #2](https://github.com/rudin0806/Nook/pull/2)에서 계약 불일치를 검토 중이며 아직 main 반영 전이다. [검증 기록](https://github.com/rudin0806/Nook/blob/8cfb144a69d30352d429207992f9cd411f855a43/docs/reviews/2026-09-12-document-validation.md)을 참고한다. 정적 검증과 실제 모델 정확도는 구분한다.
 
 **범주:** 명확한 SHIFT · NOT SHIFT · 하위 질문 · Branch · MEDIUM 경계 · AI가 만든 자기해석 · Branch → Shift 승격 · 좋은 지점에서 Close · 피로로 Close · 반복으로 Close · Depth Guard · 외부→내부 억지 이동 · CLEAR_AS_IS · 단순해 보이지만 갈등이 있는 질문 · NEEDS_INFO.
 
