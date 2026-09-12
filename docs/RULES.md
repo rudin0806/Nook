@@ -290,7 +290,7 @@ O 월세랑 관리비는 한 달에 얼마까지 감당할 수 있어요?
 
 같은 질문 안에서 **실제로 선명해진 것**만 남긴다.
 
-- 출력은 항상 `clarifications: []`
+- 출력에 `clarifications` 배열을 항상 포함한다. 추출한 항목이 없을 때만 `[]`로 둔다.
 - HIGH만 화면 반영
 - 한 구간 화면 표시 최대 2~3개
 - Clarification은 mutable
@@ -408,6 +408,8 @@ behavior:
 
 기본 매핑은 `eval/safety_mapping.json`을 기준으로 한다.
 
+저장·실행 순서는 `CONTINUE → Message 저장 + 일반 엔진`, `HANDOFF → Message 저장 + Judge/되묻기 중단`, `STOP → 위험 신호 원문 미저장 + Safety Flow`다. Moderation/Classifier의 전체 입출력은 저장하지 않는다.
+
 ### 9.2 STOP
 
 - Reflection / Shift / Node / 지도 갱신 중단
@@ -426,6 +428,7 @@ behavior:
 
 HANDOFF에서는:
 
+- 해당 사용자 발화를 Message로 저장한다.
 - 일반 Judge/Reflection을 더 실행하지 않는다.
 - 해당 발화를 새 Node·Clarification·Branch로 만들지 않는다.
 - 경고 톤이나 사용자 위험 판정처럼 쓰지 않는다.
@@ -510,8 +513,10 @@ Closure, Clarification, Shift 근거, 종료 화면, 안내, Safety 모두 동�
 [이 기록 남기기]  [남기지 않고 나가기]
 ```
 
-- 남기기 → `storage_state = SAVED`, 생각더미에 노출
-- 남기지 않고 나가기 → `storage_state = TRASHED`, 휴지통에서 7일 복원 가능
+- 계정이 연결된 사용자가 남기기 → `storage_state = SAVED`, 생각더미에 노출
+- 계정이 연결된 사용자가 남기지 않고 나가기 → `storage_state = TRASHED`, 휴지통에서 7일 복원 가능
+- 익명 사용자가 아무것도 보관하지 않기 → `TRASHED` 없이 즉시 영구 삭제. 문구는 `이 기록은 저장되지 않아요.`
+- 익명 사용자가 세션 또는 질문을 하나라도 보관하기 → 먼저 OAuth identity를 연결한 뒤 보관 결정을 확정
 - 생각더미에서 삭제 → 휴지통 이동
 - 휴지통에서 복원 → 생각더미로 복귀
 - 7일 경과 → 세션 소유 데이터 hard delete

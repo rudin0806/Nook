@@ -11,7 +11,8 @@
 - 사용자가 정상 종료한 세션만 보관 여부를 선택한다.
 - `생각더미`는 별도 테이블이 아니라 `COMPLETED + SAVED` 세션을 보여주는 목록이다.
 - `휴지통`도 별도 테이블이 아니라 `COMPLETED + TRASHED` 세션을 보여주는 목록이다.
-- 휴지통 세션은 7일 안에 복원할 수 있고, 이후 세션 소유 데이터와 함께 영구 삭제한다.
+- 계정이 연결된 사용자의 휴지통 세션은 7일 안에 복원할 수 있고, 이후 세션 소유 데이터와 함께 영구 삭제한다.
+- 익명 사용자가 아무것도 보관하지 않으면 `TRASHED` 없이 즉시 영구 삭제한다. 세션이나 질문을 하나라도 보관하면 먼저 OAuth identity를 연결한다.
 - 대화에서 발견된 Branch 중 사용자가 명시적으로 고른 질문만 `KEPT`로 남긴다. 나머지는 종료 결정과 함께 삭제한다.
 - 보관한 질문은 한 번 사용해도 사라지지 않는다. 같은 질문에서 여러 새 세션을 시작할 수 있다.
 - 보관한 질문을 삭제하면 즉시 영구 삭제한다. 이미 시작한 세션은 유지하고 `origin_branch_id`만 `NULL`이 된다.
@@ -19,7 +20,8 @@
 - Clarification은 현재 이해라 무효화하거나 내용을 갱신할 수 있다.
 - CHECK 액션, Check Event, `check_count`, Pile의 `RESUMED` 상태는 만들지 않는다.
 - HANDOFF는 직접 위험으로 인한 `SAFETY_STOPPED`와 구분해 `HANDOFF_STOPPED`로 기록한다.
-- 위험 신호 발화 원문과 Moderation/Classifier 전체 입출력은 저장하지 않는다.
+- HANDOFF 발화는 Message로 저장한 뒤 Judge/되묻기/Node 생성을 중단한다.
+- STOP 위험 신호 발화 원문과 Moderation/Classifier 전체 입출력은 저장하지 않는다.
 
 ## 2. 코드 이름과 자연어 뜻
 
@@ -29,7 +31,7 @@
 | `storage_state` | 보관 상태 | 임시인지, 생각더미에 보관됐는지, 휴지통에 있는지 |
 | `TEMPORARY` | 임시 | 진행 중이거나 종료 후 사용자의 보관 결정을 기다리는 상태 |
 | `SAVED` | 보관됨 | 생각더미에서 다시 볼 수 있는 상태 |
-| `TRASHED` | 휴지통 | 7일 복원 기간에 있는 상태 |
+| `TRASHED` | 휴지통 | 계정이 연결된 사용자가 7일 동안 복원할 수 있는 상태 |
 | `ACTIVE` | 진행 중 | 아직 사용자가 대화를 끝내지 않은 세션 |
 | `COMPLETED` | 정상 종료 | 사용자가 `여기까지 정리하기`를 선택한 세션 |
 | `SAFETY_STOPPED` | 안전상 중단 | 사용자 직접 위험 신호로 일반 질문 흐름을 중단한 세션 |
@@ -97,7 +99,7 @@ Supabase Auth를 사용자 원장으로 쓴다. 앱 전용 프로필 정보가 �
 | `created_at` | 생성 시각 | 감사용 |
 | `updated_at` | 수정 시각 | 상태 변경 시 자동 갱신 |
 
-`raw_thought`는 이 테이블에 중복 저장하지 않는다. Safety를 통과한 첫 사용자 `Message`가 Raw Thought다. 첫 입력이 Safety STOP/HANDOFF로 분류되면 세션과 최소 안전 메타데이터만 만들고 원문 Message는 만들지 않는다.
+`raw_thought`는 이 테이블에 중복 저장하지 않는다. `CONTINUE` 또는 `HANDOFF`로 분류된 첫 사용자 `Message`가 Raw Thought다. 첫 입력이 `STOP`이면 세션과 최소 Safety 메타데이터만 만들고 원문 Message는 만들지 않는다. 첫 입력이 `HANDOFF`이면 해당 Message를 저장한 뒤 일반 Judge·Node 생성 없이 도움 안내로 종료한다.
 
 ### `segments` — 생각 흐름의 구간
 
@@ -244,8 +246,9 @@ Anchor FK는 `ON DELETE NO ACTION DEFERRABLE`을 쓴다. 개별 Anchor Node 삭�
 stateDiagram-v2
     [*] --> ACTIVE: Raw Thought 제출
     ACTIVE --> COMPLETED: 여기까지 정리하기
-    COMPLETED --> SAVED: 이 기록 남기기
-    COMPLETED --> TRASHED: 남기지 않고 나가기
+    COMPLETED --> SAVED: 계정 연결 후 이 기록 남기기
+    COMPLETED --> TRASHED: 연결 계정이 남기지 않기
+    COMPLETED --> [*]: 익명 + 아무것도 보관하지 않기
     SAVED --> TRASHED: 생각더미에서 삭제
     TRASHED --> SAVED: 7일 안에 복원
     TRASHED --> [*]: 7일 뒤 영구 삭제
@@ -269,6 +272,7 @@ stateDiagram-v2
 | 삭제 대상 | DB 동작 | 독립 데이터 처리 |
 |---|---|---|
 | 생각더미의 세션 | 즉시 삭제하지 않고 `TRASHED`, `purge_after = now() + 7 days` | 보관한 질문과 그 질문에서 시작한 다른 세션은 유지 |
+| 익명 사용자의 미보관 완료 세션 | `TRASHED` 없이 즉시 hard delete | 보관 항목이 있으면 먼저 identity linking 필요 |
 | 휴지통 세션 복원 | `SAVED`로 되돌리고 삭제 시각 제거 | 생각더미에 다시 노출 |
 | 만료된 휴지통 세션 | 세션과 Segment/Message/Node/Edge/Clarification/Feedback/Judge/Safety를 hard delete | 보관한 질문의 출처 FK만 `NULL` |
 | 보관한 질문 | 확인 후 hard delete | 그 질문에서 시작한 세션의 `origin_branch_id`만 `NULL` |
@@ -315,6 +319,8 @@ stateDiagram-v2
 
 ## 10. 구현 파일
 
+아래 main migration 2개는 초기 스키마다. 익명 즉시 폐기 등 후속 보완 migration과 검증 기록은 [PR #2](https://github.com/rudin0806/Nook/pull/2)에서 관리한다. 문서의 확정 규칙과 main의 구현 완료 범위를 혼동하지 않는다.
+
 - `supabase/migrations/202609110001_nook_core_schema.sql` — 타입, 테이블, FK, 제약, 카운터 트리거
 - `supabase/migrations/202609110002_nook_access_and_retention.sql` — RLS, 보관·복원·삭제 RPC, 안전한 조회 View
 - `supabase/snippets/schedule_retention_cleanup.sql` — 7일 휴지통/24시간 임시 데이터 정리 Cron 등록
@@ -325,7 +331,8 @@ stateDiagram-v2
 사용자 발화 수신
 → Moderation
 → Safety Classifier
-→ STOP/HANDOFF면 원문 없이 Safety Event + 세션 종료
+→ HANDOFF면 Message 저장 + Safety Event + 도움 안내 후 종료
+→ STOP이면 원문 없이 Safety Event + Safety Flow로 종료
 → CONTINUE면 Message 저장
 → Structural Check
 → Judge
