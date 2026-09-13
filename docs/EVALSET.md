@@ -374,3 +374,7 @@ mapping 누락/불일치
 - reference, forbidden_examples, high_only_examples 및 must_not의 의미적 동등성은 자동 키워드 검사로 대체하지 않는다. 별도 의미 검토 대상이며 코드 통과가 의미 평가 통과를 뜻하지 않는다.
 - 현재 채점 리포트는 결정론적 검사 결과다. 실제 모델 정확도는 아직 없다. boundary는 통과율에서 제외한다.
 - 0.70~0.80 fixture 공백을 확인했다. 합성 계산 경계 테스트는 임계값의 제품 적합성을 검증하지 않는다.
+
+## Judge 모델 runner 추가 — 2026-09-13
+
+`npm run eval`에 Responses API 연결을 구현했다. 앞선 절의 runner 미연결 기록은 당시 상태다. 현재 실제 호출은 API 키와 모델 설정이 없어 미실행이며 정확도 결과도 없다. [실행 안내](reviews/2026-09-13-judge-model-runner.md)를 따른다. Core/Safety는 계속 분리하며 이 명령은 Judge만 평가한다.

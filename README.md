@@ -50,7 +50,7 @@ npm run validate
 `validate`는 `typecheck` → `lint` → `build` 순서입니다.
 `typecheck`는 깨끗한 체크아웃에서도 동작하도록 Next.js 라우트 타입 생성 후 TypeScript를 검사합니다.
 
-[`docs/EVALSET.md`](docs/EVALSET.md)는 평가 계약을 정의합니다. 사용자 제공 JSONL은 `eval/`에 있으며 `npm run eval:validate`로 구조·참조·패치·현재 매핑 호환성을 검사합니다. 확인된 계약 충돌이 남아 있으면 이 명령은 실패로 종료합니다. 실제 모델을 호출하는 `npm run eval`은 아직 구현하지 않았습니다. [파일별 검증 기록](docs/reviews/2026-09-12-document-validation.md)에서 범위와 미해결 항목을 확인합니다.
+[`docs/EVALSET.md`](docs/EVALSET.md)는 평가 계약을 정의합니다. 사용자 제공 JSONL은 `eval/`에 있으며 `npm run eval:validate`로 구조·참조·패치·현재 매핑 호환성을 검사합니다. 확인된 계약 충돌이 남아 있으면 이 명령은 실패로 종료합니다. `npm run eval`로 Judge 모델 평가를 실행할 수 있습니다. API 키와 모델 지정이 필요하며, 실제 모델 평가는 아직 실행하지 않았습니다. [파일별 검증 기록](docs/reviews/2026-09-12-document-validation.md)에서 범위와 미해결 항목을 확인합니다.
 
 ## Vercel 배포
 
@@ -113,3 +113,7 @@ npm run validate
 **같은 규칙을 README·AGENTS·PRD·RULES에 중복해서 유지하지 않습니다.** 한 규칙이 바뀌면 그 규칙의 기준 문서 한 곳을 수정하고, 다른 문서에는 링크나 짧은 요약만 둡니다.
 
 빈 문서나 미래 계획용 파일은 미리 만들지 않습니다.
+
+### Judge 모델 평가
+
+`npm run eval -- --dry`로 기본 경계쌍을 검사합니다. 실제 호출 설정·비용 제한·보고서 범위는 [평가기 실행 안내](docs/reviews/2026-09-13-judge-model-runner.md)를 따릅니다.

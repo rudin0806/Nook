@@ -17,7 +17,9 @@
     "eval:validate": "node --experimental-strip-types scripts/validate-fixtures.mts",
     "test:hedge": "node --experimental-strip-types --test tests/hedge.test.mts",
     "test:judge": "node --experimental-strip-types --test tests/judge.test.mts",
-    "eval:judge:validate": "node --experimental-strip-types scripts/eval-core.mts --dry"
+    "eval:judge:validate": "node --experimental-strip-types scripts/eval-core.mts --dry",
+    "eval": "node --env-file-if-exists=.env.local --experimental-strip-types scripts/eval-judge.mts",
+    "test:judge-model": "node --experimental-strip-types --test tests/judge-model.test.mts"
   },
   "dependencies": {
     "@seed-design/css": "2.7.0",

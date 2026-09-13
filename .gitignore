@@ -145,3 +145,6 @@ vite.config.ts.timestamp-*
 # Deployment and local tooling
 .vercel/
 .sites-runtime/
+
+# Local model evaluation reports
+/eval/reports/

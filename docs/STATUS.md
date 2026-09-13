@@ -64,3 +64,7 @@ Prompt B 확정본, Judge Zod 출력 검증, 결정론적 채점기, 공통 hedg
 Prompt D 및 REFLECT 전용 요청 준비/출력 검증 코드를 추가했다. medium_reason 전달, PAST 상한, 증거 ID 확인 테스트 8개와 타입·린트·빌드 통과. 원본·검토 내용은 [C-02 통합 기록](reviews/2026-09-13-C-02-integration.md)을 따른다. 실제 모델/API/DB 배선과 focus_required 담당 결정은 남아 있다.
 
 별도 DB 작업은 PR #4/#5가 main에 병합됐고 #5의 운영 적용·삭제/RLS 회귀도 완료됐다. 이 AI 브랜치는 해당 main과 아직 동기화하지 않았으며 PR 전체 병합 전 충돌 정리가 필요하다. 자동 삭제 예약은 가동하지 않았다.
+
+## Judge 모델 runner — 2026-09-13
+
+Responses API → Judge Zod 검증 → 결정론적 채점 연결을 구현했다. 기본 두 사례, 요청 수·출력 토큰 상한, API 오류 시 중단, 원문 없는 보고서를 제공한다. 단위 테스트 7개와 dry-run/타입/린트/빌드 통과. 실행 환경에 API 키·평가 모델이 없어 실제 호출은 미실행이다. [설정과 제한](reviews/2026-09-13-judge-model-runner.md). PR #2의 main 동기화 및 병합은 별도다.

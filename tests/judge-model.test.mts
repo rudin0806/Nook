@@ -1,0 +1,109 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import test from "node:test";
+import {
+  evaluateJudge,
+  makeJudgeRequest,
+  selectFixtures,
+  type ModelResponse,
+} from "../scripts/judge-model.mts";
+import type { Fixture } from "../scripts/eval-core.mts";
+const all: Fixture[] = readFileSync(
+  new URL("../eval/judge.jsonl", import.meta.url),
+  "utf8",
+)
+  .trim()
+  .split("\n")
+  .map((l) => JSON.parse(l));
+const get = (id: string) => structuredClone(all.find((f) => f.id === id)!);
+const output = (action = "CLOSE") => ({
+  action,
+  ...(action === "CLOSE" ? {} : { shift_confidence: "HIGH" }),
+  medium_reason: null,
+  evidence_turns: ["U3"],
+  clarifications: [],
+  branches: [],
+  invalidate_clarifications: [],
+  promote_pile_item: null,
+});
+const response = (out: unknown): ModelResponse => ({
+  status: "completed",
+  output_text: JSON.stringify(out),
+  model: "test-model",
+  usage: { input_tokens: 10, output_tokens: 5 },
+});
+test("history and gold data do not leak; no persistence and output cap", () => {
+  const f = get("J-HEDGE-01a");
+  f.rationale = "GOLD_MARKER";
+  f.fixture_meta.history[0].text =
+    "SECRET_HISTORY " + f.fixture_meta.history[0].text;
+  const r = makeJudgeRequest(f, "test-model", 1024);
+  assert.ok(!r.input.includes("GOLD_MARKER"));
+  assert.ok(!r.input.includes("SECRET_HISTORY"));
+  assert.ok(r.input.includes("hedge_speaker: true"));
+  assert.equal(r.store, false);
+  assert.equal(r.max_output_tokens, 1024);
+});
+test("unknown IDs, duplicates and excessive case counts fail before calls", () => {
+  assert.throws(() => selectFixtures(all, ["BAD"], 2));
+  assert.throws(() => selectFixtures(all, ["J-CLOSE-01", "J-CLOSE-01"], 2));
+  assert.throws(() => selectFixtures(all, ["J-CLOSE-01", "J-EDGE-01"], 1));
+});
+test("fixture mismatch blocks every model call", async () => {
+  const f = get("J-HEDGE-01a");
+  f.fixture_meta.expected_hedge_speaker = false;
+  let calls = 0;
+  await assert.rejects(
+    evaluateJudge([f], "test", 1024, async () => {
+      calls++;
+      return response(output());
+    }),
+  );
+  assert.equal(calls, 0);
+});
+test("MEDIUM to HIGH counts both severity errors and captures usage", async () => {
+  const r = await evaluateJudge([get("J-MED-01")], "test", 1024, async () =>
+    response(output("SHIFT")),
+  );
+  assert.equal(r.errors.FALSE_POSITIVE_SHIFT, 1);
+  assert.equal(r.errors.MEDIUM_TO_HIGH, 1);
+  assert.equal(r.cases[0].inputTokens, 10);
+});
+test("malformed or incomplete outputs fail rather than count as a pass", async () => {
+  for (const r of [
+    { status: "incomplete", output_text: "{}" },
+    { status: "completed", output_text: "not-json" },
+    response({ action: "CLOSE" }),
+  ]) {
+    const report = await evaluateJudge(
+      [get("J-CLOSE-01")],
+      "test",
+      1024,
+      async () => r,
+    );
+    assert.equal(report.strict.passed, 0);
+    assert.equal(report.cases[0].failures.length, 1);
+  }
+});
+test("provider failure stops further requests and never leaks the error", async () => {
+  let calls = 0;
+  const r = await evaluateJudge(
+    [get("J-CLOSE-01"), get("J-EDGE-01")],
+    "test",
+    1024,
+    async () => {
+      calls++;
+      throw Error("SECRET_PROVIDER_DATA");
+    },
+  );
+  assert.equal(calls, 1);
+  assert.equal(r.complete, false);
+  assert.ok(!JSON.stringify(r).includes("SECRET_PROVIDER_DATA"));
+});
+test("boundary cases do not enter strict denominator", async () => {
+  const r = await evaluateJudge([get("J-SHIFT-04")], "test", 1024, async () =>
+    response(output("SHIFT")),
+  );
+  assert.equal(r.strict.total, 0);
+  assert.equal(r.cases.length, 1);
+});
