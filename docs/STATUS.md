@@ -58,3 +58,9 @@ main에는 초기 migration 2개와 ERD가 있다. [PR #2](https://github.com/ru
 ## C-03-pre 구현
 
 Prompt B 확정본, Judge Zod 출력 검증, 결정론적 채점기, 공통 hedge 계산기 통합. 상세와 다음 작업은 [CHECKPOINT.md](CHECKPOINT.md), 평가 범위는 [EVALSET.md](EVALSET.md)를 따른다. 실제 모델 호출은 아직 없다.
+
+## C-02 수령·통합 — 2026-09-13
+
+Prompt D 및 REFLECT 전용 요청 준비/출력 검증 코드를 추가했다. medium_reason 전달, PAST 상한, 증거 ID 확인 테스트 8개와 타입·린트·빌드 통과. 원본·검토 내용은 [C-02 통합 기록](reviews/2026-09-13-C-02-integration.md)을 따른다. 실제 모델/API/DB 배선과 focus_required 담당 결정은 남아 있다.
+
+별도 DB 작업은 PR #4/#5가 main에 병합됐고 #5의 운영 적용·삭제/RLS 회귀도 완료됐다. 이 AI 브랜치는 해당 main과 아직 동기화하지 않았으며 PR 전체 병합 전 충돌 정리가 필요하다. 자동 삭제 예약은 가동하지 않았다.
