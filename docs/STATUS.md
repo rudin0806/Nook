@@ -19,13 +19,14 @@ main에는 migration 5개가 있다. PR #4의 신규 환경 REVOKE 보완, PR #5
 - 만료 경계 SQL 테스트 통과: 만료 시각 이전 보호·정각 삭제, SAVED 보호, SAFETY_STOPPED 만료, 일반 사용자 호출 거절, 반복 실행 안전성을 독립 PGlite에서 확인했다. **자동 삭제 예약은 가동하지 않는다.** 예약 설정·실행 이력 검증은 남았다.
 - 전체 Supabase reset, 실제 Auth/HTTP API·동시성 검증은 남았다.
 
-## AI — PR #2에 구현, 첫 실제 모델 평가 실행 준비
+## AI — PR #2에 구현, 핵심 실제 모델 평가 통과
 
 - 공통 hedge 계산: 전체 사용자 발화로 비율 계산, 최소 5턴·0.7 기준, 중복 ID 거절, 일치 패턴 반환.
 - C-03-pre: Prompt B, Judge Zod 출력 검증, MEDIUM 사유와 결정론적 채점기.
 - [C-02 통합](reviews/2026-09-13-C-02-integration.md): Prompt D의 REFLECT 전용 요청 준비, MEDIUM 사유 전달, PAST 제한·출력 검증.
 - [모델 평가기](reviews/2026-09-13-judge-model-runner.md): Responses API 연결, 기본 핵심 2개 사례·출력 제한·에러 중단·원문 없는 보고서.
-- GitHub Actions의 `AI_API_KEY` secret을 평가 실행 때만 `OPENAI_API_KEY`로 전달하는 수동 workflow를 추가했다. 첫 범위는 `gpt-5.6-sol`의 J-CLOSE-01/J-EDGE-01 두 건이며 실행 결과 확인 전이다.
+- GitHub Actions의 `AI_API_KEY` secret을 평가 실행 때만 `OPENAI_API_KEY`로 전달한다. `gpt-5.6-sol` 핵심 관문은 J-CLOSE-01=`CLOSE`, J-EDGE-01=`SHIFT/HIGH`로 2/2 통과했다([run 34757408510](https://github.com/rudin0806/Nook/actions/runs/34757408510)). 입력 6,009·출력 636토큰이었고 실행 시점 공개 단가 기준 약 $0.037이다.
+- Responses API 입력은 명시적 `user`/`input_text` 배열이며, JSON mode 검증을 위해 사용자 입력에도 JSON 출력 요구를 넣었다. 유료 push trigger는 strict schema, 중복 ID 거절, 최대 32호출·호출당 4096 출력토큰 상한을 거친다. 32건 전체 전송·실행은 별도 명시 승인 전까지 하지 않는다.
 - Prompt C는 Claude 산출물 대기. 실제 사용자 대화에 대한 Safety/종료/상한→Judge→C/D→저장 연결은 미구현이다.
 
 ## 평가 계약과 보류
@@ -38,14 +39,14 @@ Judge 32 / Start 17 / Safety 15. Judge boundary는 J-SHIFT-04 하나이며 pendi
 
 [보관·휴지통 API](reviews/2026-09-13-retention-api.md)를 추가했다. 로그인 사용자는 진행 중·생각더미·휴지통 기록과 남겨둔 질문을 조회하고, 완료 기록 보관 확정·휴지통 이동·복원·질문 영구 삭제를 요청할 수 있다. Route Handler는 Supabase secret key 없이 인증 쿠키와 RLS/RPC를 사용한다. 입력 크기·UUID·페이지 범위를 검증하고 DB 내부 오류는 공개하지 않는다.
 
-계약 테스트 5개를 포함해 단위 테스트 34개가 통과했다. 실제 익명 로그인·Google/Kakao identity linking·배포 환경 HTTP 검증과 화면 연결은 남았다.
+계약 테스트 5개를 포함해 단위 테스트 38개가 통과했다. 실제 익명 로그인·Google/Kakao identity linking·배포 환경 HTTP 검증과 화면 연결은 남았다.
 
 ## 다음 업무
 
 1. 익명 로그인 초기화와 Google/Kakao identity linking·OAuth callback 구현.
 2. 보관·휴지통·복원 API를 실제 화면에 연결하고 배포 환경에서 HTTP/RLS 왕복 검증.
 3. 삭제 예약 적용 준비. 만료 경계 테스트는 완료했다.
-4. Judge 핵심 2개 실제 평가 결과를 확인하고, 통과하면 32개로 확장한 뒤 프롬프트를 개선.
+4. 명시 승인 후 Judge 32개 전체 평가를 실행하고 결과별로 프롬프트를 개선.
 5. Claude Prompt C 검토, Safety 계약 해결, 검증된 변경을 순차 병합.
 
 협업 역할과 최소 전달 방식은 [HANDOFF.md](HANDOFF.md)를 따른다. 오래된 체크포인트보다 이 문서의 현재 상태를 우선한다.

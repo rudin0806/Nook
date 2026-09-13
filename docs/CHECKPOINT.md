@@ -13,10 +13,10 @@ node tools/db-replay/replay.mjs
 npm run validate
 ```
 
-위 검증은 통과했다: 단위 테스트 34개, 기본 Judge dry 2개, migration 5개 재현과 삭제 연쇄·만료 경계·RLS SQL 3개, typecheck/lint/build. 만료 경계 검사는 독립 빈 테스트 DB에서만 실행한다.
+위 검증은 통과했다: 단위 테스트 38개, 기본 Judge dry 2개, migration 5개 재현과 삭제 연쇄·만료 경계·RLS SQL 3개, typecheck/lint/build. 만료 경계 검사는 독립 빈 테스트 DB에서만 실행한다.
 
 보관·휴지통 Route Handler는 [구현 기록](reviews/2026-09-13-retention-api.md)을 따른다. 다음 시작점은 익명 로그인과 Google/Kakao identity linking이며, 실제 Supabase 인증 쿠키를 사용한 HTTP 왕복 검증은 아직 하지 않았다.
 
-`npm run eval:validate`의 Safety category 불일치 8건은 미해결로 유지한다. 자동 삭제 예약은 실행하지 않는다. 유료 모델 호출은 아래 첫 Judge 2건부터 제한적으로 실행한다.
+`npm run eval:validate`의 Safety category 불일치 8건은 미해결로 유지한다. 자동 삭제 예약은 실행하지 않는다.
 
-Judge 유료 평가는 `.github/workflows/judge-eval.yml`에서 repository secret `AI_API_KEY`를 사용한다. 첫 trigger는 Sol로 J-CLOSE-01/J-EDGE-01 두 건만 요청한다. 실행 결과를 확인하기 전에는 전체 32건으로 늘리지 않는다.
+Judge 유료 평가는 `.github/workflows/judge-eval.yml`에서 repository secret `AI_API_KEY`를 사용한다. Sol 핵심 관문 J-CLOSE-01/J-EDGE-01은 2/2 통과했다([run 34757408510](https://github.com/rudin0806/Nook/actions/runs/34757408510)). 전체 32건은 비공개 fixture 전송과 최대 32회 유료 호출에 대한 명시 승인 후 `.github/eval-trigger.json`을 변경해 실행한다.
