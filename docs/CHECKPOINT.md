@@ -19,4 +19,4 @@ npm run validate
 
 `npm run eval:validate`의 Safety category 불일치 8건은 미해결로 유지한다. 자동 삭제 예약은 실행하지 않는다.
 
-Judge 유료 평가는 `.github/workflows/judge-eval.yml`에서 repository secret `AI_API_KEY`를 사용한다. Sol 핵심 관문 J-CLOSE-01/J-EDGE-01은 2/2 통과했다([run 34757408510](https://github.com/rudin0806/Nook/actions/runs/34757408510)). 전체 32건은 비공개 fixture 전송과 최대 32회 유료 호출에 대한 명시 승인 후 `.github/eval-trigger.json`을 변경해 실행한다.
+Judge 유료 평가는 `.github/workflows/judge-eval.yml`에서 repository secret `AI_API_KEY`를 사용한다. Sol 핵심 관문 J-CLOSE-01/J-EDGE-01은 2/2 통과했다([run 34757408510](https://github.com/rudin0806/Nook/actions/runs/34757408510)). 승인된 전체 실행도 API 오류 없이 32/32 완료했고 strict 20/31(64.5%)이었다([run 34758414672](https://github.com/rudin0806/Nook/actions/runs/34758414672), [분석](reviews/2026-09-13-judge-sol-baseline.md)). 다음은 실패 11건 subset의 Prompt B 조정이며 전체 재실행부터 하지 않는다.

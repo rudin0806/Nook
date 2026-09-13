@@ -39,6 +39,6 @@ npm run eval -- --model YOUR_MODEL_ID --ids J-MED-01,J-HEDGE-01a,J-HEDGE-01b --m
 - J-EDGE-01: `SHIFT/HIGH`, 실패 0
 - 총 입력 6,009토큰, 총 출력 636토큰. 실행 시점 공개 단가 기준 약 $0.037.
 - 앞선 HTTP 400 진단 실행은 응답 사용량이 0이었다. 입력 메시지 구조와 JSON 출력 지시를 보완한 뒤 성공했다.
-- 전체 32건은 비공개 fixture 전송과 유료 호출 범위가 늘어나므로 명시 승인 전에는 실행하지 않는다.
+- 명시 승인 후 전체 32건을 실행했다. 결과와 다음 튜닝 원칙은 [Sol 32건 기준선](2026-09-13-judge-sol-baseline.md)에 기록했다.
 
 공식 API 참고: https://developers.openai.com/api/reference/resources/responses/methods/create
