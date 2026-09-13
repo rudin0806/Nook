@@ -1,0 +1,26 @@
+import { readFileSync } from "node:fs";
+import { z } from "zod";
+
+const triggerSchema = z
+  .strictObject({
+    requestedAt: z.iso.datetime({ offset: true }),
+    model: z.string().regex(/^[a-zA-Z0-9._:-]{1,100}$/),
+    ids: z
+      .array(z.string().regex(/^J-[a-zA-Z0-9-]+$/))
+      .min(1)
+      .max(32)
+      .refine((ids) => new Set(ids).size === ids.length),
+    maxCases: z.number().int().min(1).max(32),
+    maxOutputTokens: z.number().int().min(256).max(4096),
+  })
+  .refine((trigger) => trigger.ids.length <= trigger.maxCases);
+
+export type EvalTrigger = z.infer<typeof triggerSchema>;
+
+export function parseEvalTrigger(raw: string): EvalTrigger {
+  return triggerSchema.parse(JSON.parse(raw));
+}
+
+export function loadEvalTrigger(path: string): EvalTrigger {
+  return parseEvalTrigger(readFileSync(path, "utf8"));
+}

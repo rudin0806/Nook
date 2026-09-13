@@ -7,12 +7,14 @@ import {
   evaluateJudge,
   formatProviderDiagnostic,
 } from "./judge-model.mts";
+import { loadEvalTrigger } from "./eval-trigger.mts";
 import { type Fixture, run } from "./eval-core.mts";
 
 async function main() {
   const { values } = parseArgs({
     options: {
       dry: { type: "boolean" },
+      trigger: { type: "string" },
       model: { type: "string" },
       ids: { type: "string", default: "J-CLOSE-01,J-EDGE-01" },
       "max-cases": { type: "string", default: "2" },
@@ -25,21 +27,27 @@ async function main() {
     .trim()
     .split("\n")
     .map((l) => JSON.parse(l)) as Fixture[];
-  const ids = values.ids.split(",");
-  const fixtures = selectFixtures(all, ids, Number(values["max-cases"]));
+  const trigger = values.trigger
+    ? loadEvalTrigger(resolve(values.trigger))
+    : null;
+  const ids = trigger?.ids ?? values.ids.split(",");
+  const maxCases = trigger?.maxCases ?? Number(values["max-cases"]);
+  const maxOutputTokens =
+    trigger?.maxOutputTokens ?? Number(values["max-output-tokens"]);
+  const fixtures = selectFixtures(all, ids, maxCases);
   if (values.dry) {
     await run(path, null, ids);
     return;
   }
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) throw new Error("OPENAI_API_KEY_REQUIRED");
-  const model = values.model ?? process.env.NOOK_EVAL_MODEL;
+  const model = trigger?.model ?? values.model ?? process.env.NOOK_EVAL_MODEL;
   if (!model?.trim()) throw new Error("MODEL_REQUIRED");
   const client = new OpenAI({ apiKey, timeout: 30_000, maxRetries: 0 });
   const report = await evaluateJudge(
     fixtures,
     model,
-    Number(values["max-output-tokens"]),
+    maxOutputTokens,
     (request) => client.responses.create(request),
     (error) => console.error(formatProviderDiagnostic(error)),
   );

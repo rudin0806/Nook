@@ -71,9 +71,14 @@ jobs:
         run: npm ci
 
       - name: Verify the model runner
-        run: npm run test:judge-model
+        run: npm run test:judge-model && npm run test:eval-trigger
 
-      - name: Evaluate selected Judge fixtures
+      - name: Evaluate push trigger
+        if: github.event_name == 'push'
+        run: npm run eval -- --trigger .github/eval-trigger.json
+
+      - name: Evaluate manually selected Judge fixtures
+        if: github.event_name == 'workflow_dispatch'
         run: >-
           npm run eval --
           --model "$EVAL_MODEL"
