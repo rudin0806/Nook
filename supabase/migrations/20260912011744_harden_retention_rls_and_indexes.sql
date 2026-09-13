@@ -116,8 +116,16 @@ $$;
 comment on function public.finalize_session_retention(uuid, boolean, uuid[])
 is 'Finalizes completed-session retention. Anonymous users must link an identity to keep any content; anonymous discard deletes immediately.';
 
-revoke all privileges on function public.rls_auto_enable()
-from public, anon, authenticated;
+-- Dashboard-created helper is optional on a fresh Supabase installation.
+-- Replay-only compatibility fix: existing remote permissions stay unchanged.
+do $$
+begin
+  if to_regprocedure('public.rls_auto_enable()') is not null then
+    revoke all privileges on function public.rls_auto_enable()
+    from public, anon, authenticated;
+  end if;
+end;
+$$;
 
 drop policy if exists branch_questions_select_own_kept
 on public.branch_questions;

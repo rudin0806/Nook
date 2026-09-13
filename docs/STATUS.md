@@ -1,70 +1,44 @@
 # 작업 상태
 
-기준일: 2026-09-12
+기준일: 2026-09-13. PR #2 작업 브랜치에 main `65f9e63`을 동기화한 상태다. 동기화는 main에 PR #2 전체를 병합했다는 뜻이 아니다.
 
-## STEP 1 — 초기화 / 첫 배포 (완료)
+## 제품과 첫 배포
 
-- Next.js 16.3.4 / React 19.3.0 / TypeScript strict / npm
-- SEED React, Supabase, OpenAI, Zod 기반 초기화
-- 한국어 첫 화면과 `/api/health` 구현
-- 운영 주소: `https://nook-nine-eta.vercel.app`
-- 초기 배포에서 HTTP 200·format·validate·audit 검증 기록 있음
+Next.js 16.3.4 / React 19.3.0 / TypeScript strict / npm. SEED React, Supabase, OpenAI, Zod 기반 초기화 및 첫 화면·`/api/health` 구현. 운영 주소는 https://nook-nine-eta.vercel.app 이다. 최초 배포 검증 기록이 있으며 이번 동기화에서 운영 화면을 재검증하지 않았다.
 
-## 확정된 문서와 구현 상태
+PRD v2.3의 홈 `지나온 생각`, 익명 미보관 즉시 폐기, HANDOFF Message 저장 규칙을 유지한다. HANDOFF 상태는 기존 `HANDOFF_STOPPED`이며 제공 문서의 `COMPLETED`와 차이는 별도 검토 대상이다. `focus_required` 확인 질문 담당은 사용자 요청으로 보류한다.
 
-- PRD v2.3: 홈 `지나온 생각`, 익명 미보관 즉시 폐기, HANDOFF Message 저장을 반영했다.
-- RULES와 ERD의 같은 저장 규칙도 함께 정리했다.
-- 상태는 기존 main의 `HANDOFF_STOPPED`를 유지했다. 첨부 원본의 `COMPLETED`로 변경한 것이 아니다.
-- 이번 변경은 문서다. 저장 API·인증 화면·AI 엔진을 구현하거나 운영 배포를 검증했다는 뜻이 아니다.
+## DB — main·운영 적용 완료 범위
 
-## STEP 2 — DB 설계 / 후속 보완 검토
+main에는 migration 5개가 있다. PR #4의 신규 환경 REVOKE 보완, PR #5의 지연 Branch 출처 검사 수정이 병합됐다. Nook 원격에도 삭제 수정까지 적용됐으며 원격 삭제 연쇄·RLS 재검증은 통과했다. 이번 동기화에서 운영 DB를 변경하지 않았다.
 
-main에는 초기 migration 2개와 ERD가 있다. [PR #2](https://github.com/rudin0806/Nook/pull/2)에 원격 DB 적용·RLS 테스트 기록 및 후속 migration 2개가 있다. 이번 문서 작업에서 원격 DB를 다시 조회하거나 적용하지 않았다.
+- [DB 재현 기록](reviews/2026-09-12-db-replay.md): 독립 PGlite에서 초기 적용, 보조 함수 유무 검사 및 보관/RLS 검증.
+- [삭제 연쇄 기록](reviews/2026-09-13-deletion-chain.md): 원본·질문·계정 삭제, 새 세션 2개 보존, Anchor 보호. 원격 적용 후 결과는 [PR #5](https://github.com/rudin0806/Nook/pull/5)에 기록됐다.
+- 저장소/원격 migration 버전은 일부 다르다. 새로 적용하거나 버전을 바꾸기 전에 대응 이력을 확인한다. 삭제 수정 파일 `20260913001728`의 원격 버전은 `20260913003147`이다.
+- 기존 authenticated SECURITY DEFINER 경고 9건은 유지된다. 소유권 테스트 통과가 모든 보안 검증 완료를 뜻하지 않는다.
+- 만료 경계 SQL 테스트 통과: 만료 시각 이전 보호·정각 삭제, SAVED 보호, SAFETY_STOPPED 만료, 일반 사용자 호출 거절, 반복 실행 안전성을 독립 PGlite에서 확인했다. **자동 삭제 예약은 가동하지 않는다.** 예약 설정·실행 이력 검증은 남았다.
+- 전체 Supabase reset, 실제 Auth/HTTP API·동시성 검증은 남았다.
 
-- 원격 이력과 main의 migration 파일 개수는 같다고 가정하지 않는다.
-- 후속 보완을 병합하기 전에 원격 이력·파일·재현 검증을 맞춘다.
-- 이미 적용된 migration을 이름만 바꿔 다시 적용하지 않는다.
-- 로컬 Supabase reset 기반 재현 테스트와 실제 저장 API는 아직 남아 있다.
+## AI — PR #2에 구현, 실제 모델 평가 미실행
 
-## 평가 파일
+- 공통 hedge 계산: 전체 사용자 발화로 비율 계산, 최소 5턴·0.7 기준, 중복 ID 거절, 일치 패턴 반환.
+- C-03-pre: Prompt B, Judge Zod 출력 검증, MEDIUM 사유와 결정론적 채점기.
+- [C-02 통합](reviews/2026-09-13-C-02-integration.md): Prompt D의 REFLECT 전용 요청 준비, MEDIUM 사유 전달, PAST 제한·출력 검증.
+- [모델 평가기](reviews/2026-09-13-judge-model-runner.md): Responses API 연결, 기본 핵심 2개 사례·출력 제한·에러 중단·원문 없는 보고서.
+- API 키와 모델 설정이 없어 실제 모델 정확도는 측정하지 않았다. 추천 모델은 Sol이며 가격/접근 가능 여부 확인 후 명시적으로 지정한다.
+- Prompt C는 Claude 산출물 대기. 실제 사용자 대화에 대한 Safety/종료/상한→Judge→C/D→저장 연결은 미구현이다.
 
-원본 RULES·Judge 32·Start 17·Safety 15는 PR #2에 보존돼 있다. main에는 아직 JSONL과 정적 검증 스크립트를 합치지 않았다.
+## 평가 계약과 보류
 
-[파일별 검증 기록](https://github.com/rudin0806/Nook/blob/8cfb144a69d30352d429207992f9cd411f855a43/docs/reviews/2026-09-12-document-validation.md):
+Judge 32 / Start 17 / Safety 15. Judge boundary는 J-SHIFT-04 하나이며 pending은 0이다. 정적 fixture 오류는 해결했지만 Safety category 계약 불일치 8건은 남아 있다. `npm run eval:validate`는 이 불일치 때문에 실패하며 숨기거나 임의로 정답을 바꾸지 않는다.
 
-- 패치 누락으로 발생한 정적 검사 오류 8개 수정
-- C-03-pre 반영 후 계약 호환성 오류 8개 잔여: Safety category 8개
-- 별도로 HANDOFF 상태·문구 및 확장 규칙 차이 검토 필요
-- 실제 모델 평가기와 실제 모델 정확도는 아직 없음
+[이전 파일 검증 기록](reviews/2026-09-12-document-validation.md)의 carryover 사유 누락 2건은 C-03-pre에서 해결됐다. examples/reference 의미 검토, Safety HANDOFF 상태·문구 및 분류 계약, hedge 임계값 적정성과 새 경계 사례 검토는 남았다.
 
-## 다음 개발 순서
+## 다음 업무
 
-1. 원본과 저장소의 계약 차이를 검토하고 필요한 제품 결정을 확정한다.
-2. PR #2의 DB 보완·평가 파일을 분리 검증해 순차 병합한다.
-3. 서버 입출력 스키마와 평가기를 구현한다.
-4. 인증·소유권 검증과 Safety-first 저장 API를 연결한다.
-5. 프롬프트 초안으로 실제 평가 → 오답 수정 → 세션 UI 연결을 진행한다.
+1. 키 없이: 삭제 예약 적용 준비 및 인증·API 구현 범위 확인. 만료 경계 테스트는 완료했다.
+2. 인증·계정 연결과 소유권 검증, 보관/복원 API 및 실제 데이터 UI 연결.
+3. 키 설정 후 Judge 핵심 2개→32개 실제 평가, 결과에 따른 프롬프트 개선.
+4. Claude Prompt C 검토, Safety 계약 해결, 검증된 변경을 순차 병합.
 
-병행 작업의 역할·첫 과제·전달 형식은 [HANDOFF.md](HANDOFF.md)를 따른다. Codex는 개발·평가 실행·통합, Claude는 프롬프트·분석 제안을 담당한다.
-
-## 이번 문서 변경 검증
-
-확정된 PRD·RULES·ERD의 저장 규칙과 문서 링크를 교차 확인한다. 코드 검사 결과는 문서 PR의 검증란에 기록한다.
-
-## 개발 체크포인트 — 완화형 계산기
-
-공통 완화형 비율 계산기와 경계 테스트를 PR #2에 추가했다. 실제 저장 API와 LLM 호출에는 아직 연결하지 않았다. 재개 순서와 미결은 [CHECKPOINT.md](CHECKPOINT.md)를 먼저 확인한다.
-
-## C-03-pre 구현
-
-Prompt B 확정본, Judge Zod 출력 검증, 결정론적 채점기, 공통 hedge 계산기 통합. 상세와 다음 작업은 [CHECKPOINT.md](CHECKPOINT.md), 평가 범위는 [EVALSET.md](EVALSET.md)를 따른다. 실제 모델 호출은 아직 없다.
-
-## C-02 수령·통합 — 2026-09-13
-
-Prompt D 및 REFLECT 전용 요청 준비/출력 검증 코드를 추가했다. medium_reason 전달, PAST 상한, 증거 ID 확인 테스트 8개와 타입·린트·빌드 통과. 원본·검토 내용은 [C-02 통합 기록](reviews/2026-09-13-C-02-integration.md)을 따른다. 실제 모델/API/DB 배선과 focus_required 담당 결정은 남아 있다.
-
-별도 DB 작업은 PR #4/#5가 main에 병합됐고 #5의 운영 적용·삭제/RLS 회귀도 완료됐다. 이 AI 브랜치는 해당 main과 아직 동기화하지 않았으며 PR 전체 병합 전 충돌 정리가 필요하다. 자동 삭제 예약은 가동하지 않았다.
-
-## Judge 모델 runner — 2026-09-13
-
-Responses API → Judge Zod 검증 → 결정론적 채점 연결을 구현했다. 기본 두 사례, 요청 수·출력 토큰 상한, API 오류 시 중단, 원문 없는 보고서를 제공한다. 단위 테스트 7개와 dry-run/타입/린트/빌드 통과. 실행 환경에 API 키·평가 모델이 없어 실제 호출은 미실행이다. [설정과 제한](reviews/2026-09-13-judge-model-runner.md). PR #2의 main 동기화 및 병합은 별도다.
+협업 역할과 최소 전달 방식은 [HANDOFF.md](HANDOFF.md)를 따른다. 오래된 체크포인트보다 이 문서의 현재 상태를 우선한다.

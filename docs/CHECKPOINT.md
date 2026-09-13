@@ -1,9 +1,18 @@
-# C-03-pre 체크포인트
+# 재개 체크포인트
 
-2026-09-12, 기준 브랜치 codex/rules-v3-retention-hardening, 부모 7ef308c.
+현재 상태와 미결은 [STATUS.md](STATUS.md)가 기준이다.
 
-사용자 확정 첨부 4개를 검토하고 Prompt B, 공통 완화형 계산, Judge Zod 검증과 결정론적 채점기를 통합했다. 기존 fixture의 AI 대사 수정과 참조 정리는 유지했다. MEDIUM 사유 6건, carryover 사유 2건을 근거 대조 후 명시했다.
+PR #2에 최신 main `65f9e63`을 동기화했다. DB migration/삭제 회귀는 main 버전을 유지하고, Judge·Prompt D·실제 평가 runner는 작업 브랜치 버전을 유지한다. main 자체와 운영 DB는 이번 작업에서 변경하지 않는다.
 
-검증: Judge fixture 32개, hedge 테스트 6개, Judge 테스트 8개. 전체 fixture 검사에는 Safety category 계약 불일치 8건이 남는다. 실제 모델 평가와 DB 변경은 이번 범위가 아니다.
+API 키 없이 실행할 검증:
 
-다음: 남은 Claude 문서와 Safety 계약을 대조하고 서버 모델 runner를 연결한다. examples/reference의 의미적 평가와 실제 모델 회귀도 남아 있다. 첨부 hedge 패턴은 말끝뿐 아니라 아마/혹시 등 문장 내 패턴도 포함한다. 패턴 적정성과 0.70~0.80 모델 회귀 사례는 후속 검토한다.
+```sh
+node --experimental-strip-types --test tests/*.test.mts
+npm run eval -- --dry
+node tools/db-replay/replay.mjs
+npm run validate
+```
+
+위 검증은 통과했다: 단위 테스트 29개, 기본 Judge dry 2개, migration 5개 재현과 삭제 연쇄·만료 경계·RLS SQL 3개, typecheck/lint/build. 만료 경계 검사는 독립 빈 테스트 DB에서만 실행한다.
+
+`npm run eval:validate`의 Safety category 불일치 8건은 미해결로 유지한다. 유료 모델 호출·자동 삭제 예약은 실행하지 않는다.
