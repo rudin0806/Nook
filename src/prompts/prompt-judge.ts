@@ -315,6 +315,6 @@ export function buildJudgeUser(
   for (const t of input.turns)
     L.push(`  ${t.id}  ${t.role === "user" ? "사용자" : "AI"}: ${t.text}`);
 
-  L.push(`\n판정하라.`);
+  L.push(`\n판정하고 JSON 객체만 출력하라.`);
   return L.join("\n");
 }

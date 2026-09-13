@@ -45,6 +45,7 @@ test("history and gold data do not leak; no persistence and output cap", () => {
   assert.ok(!serializedInput.includes("GOLD_MARKER"));
   assert.ok(!serializedInput.includes("SECRET_HISTORY"));
   assert.ok(serializedInput.includes("hedge_speaker: true"));
+  assert.ok(serializedInput.includes("JSON"));
   assert.equal(r.store, false);
   assert.equal(r.max_output_tokens, 1024);
 });
