@@ -24,6 +24,7 @@ export type ModelResponse = {
   usage?: { input_tokens: number; output_tokens: number };
 };
 export type Transport = (request: ModelRequest) => Promise<ModelResponse>;
+export type TransportErrorObserver = (error: unknown) => void;
 export type CaseResult = {
   id: string;
   mode: Fixture["mode"];
@@ -35,6 +36,32 @@ export type CaseResult = {
   outputTokens: number;
   resolvedModel: string | null;
 };
+
+function safeErrorMetadata(value: unknown) {
+  if (typeof value !== "string" || !/^[a-zA-Z0-9_.-]{1,64}$/.test(value)) {
+    return null;
+  }
+  return value;
+}
+
+export function formatProviderDiagnostic(error: unknown) {
+  if (typeof error !== "object" || error === null) return "OPENAI_API_ERROR";
+  const record = error as Record<string, unknown>;
+  const parts = ["OPENAI_API_ERROR"];
+  if (
+    typeof record.status === "number" &&
+    Number.isInteger(record.status) &&
+    record.status >= 400 &&
+    record.status <= 599
+  ) {
+    parts.push(`status=${record.status}`);
+  }
+  for (const field of ["code", "type", "param"] as const) {
+    const value = safeErrorMetadata(record[field]);
+    if (value) parts.push(`${field}=${value}`);
+  }
+  return parts.join(" ");
+}
 
 export function selectFixtures(
   fixtures: Fixture[],
@@ -97,6 +124,7 @@ export async function evaluateJudge(
   model: string,
   maxOutputTokens: number,
   transport: Transport,
+  onTransportError?: TransportErrorObserver,
 ) {
   // Validate the whole selected batch before the first billable request.
   const selected = selectFixtures(
@@ -125,7 +153,8 @@ export async function evaluateJudge(
     let response: ModelResponse;
     try {
       response = await transport(requests[i]);
-    } catch {
+    } catch (error) {
+      onTransportError?.(error);
       result.failures.push("API_ERROR");
       break;
     } // no retry or raw SDK error leakage

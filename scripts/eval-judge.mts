@@ -2,7 +2,11 @@ import OpenAI from "openai";
 import { readFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { resolve } from "node:path";
-import { selectFixtures, evaluateJudge } from "./judge-model.mts";
+import {
+  selectFixtures,
+  evaluateJudge,
+  formatProviderDiagnostic,
+} from "./judge-model.mts";
 import { type Fixture, run } from "./eval-core.mts";
 
 async function main() {
@@ -37,6 +41,7 @@ async function main() {
     model,
     Number(values["max-output-tokens"]),
     (request) => client.responses.create(request),
+    (error) => console.error(formatProviderDiagnostic(error)),
   );
   const dir = resolve(import.meta.dirname, "../eval/reports");
   mkdirSync(dir, { recursive: true });

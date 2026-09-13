@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import {
   evaluateJudge,
+  formatProviderDiagnostic,
   makeJudgeRequest,
   selectFixtures,
   type ModelResponse,
@@ -87,6 +88,7 @@ test("malformed or incomplete outputs fail rather than count as a pass", async (
 });
 test("provider failure stops further requests and never leaks the error", async () => {
   let calls = 0;
+  const diagnostics: string[] = [];
   const r = await evaluateJudge(
     [get("J-CLOSE-01"), get("J-EDGE-01")],
     "test",
@@ -95,10 +97,30 @@ test("provider failure stops further requests and never leaks the error", async 
       calls++;
       throw Error("SECRET_PROVIDER_DATA");
     },
+    (error) => diagnostics.push(formatProviderDiagnostic(error)),
   );
   assert.equal(calls, 1);
   assert.equal(r.complete, false);
   assert.ok(!JSON.stringify(r).includes("SECRET_PROVIDER_DATA"));
+  assert.deepEqual(diagnostics, ["OPENAI_API_ERROR"]);
+});
+test("provider diagnostics expose allowlisted metadata but never messages", () => {
+  const diagnostic = formatProviderDiagnostic({
+    status: 400,
+    code: "invalid_request_error",
+    type: "invalid_request_error",
+    param: "text.format",
+    message: "SECRET_PROVIDER_DATA",
+  });
+  assert.equal(
+    diagnostic,
+    "OPENAI_API_ERROR status=400 code=invalid_request_error type=invalid_request_error param=text.format",
+  );
+  assert.ok(!diagnostic.includes("SECRET_PROVIDER_DATA"));
+  assert.equal(
+    formatProviderDiagnostic({ code: "unsafe value with spaces" }),
+    "OPENAI_API_ERROR",
+  );
 });
 test("boundary cases do not enter strict denominator", async () => {
   const r = await evaluateJudge([get("J-SHIFT-04")], "test", 1024, async () =>
