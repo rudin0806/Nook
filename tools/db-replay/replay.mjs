@@ -33,13 +33,20 @@ for (const f of readdirSync(dir).sort()) {
   }
 }
 if (!process.exitCode) {
-  await db.exec(
-    readFileSync(
-      new URL("../../supabase/tests/retention_rls.sql", import.meta.url),
-      "utf8",
-    ),
-  );
-  console.log("PASS RLS/retention assertions; rollback complete");
+  const tests = new URL("../../supabase/tests/", import.meta.url);
+  for (const test of readdirSync(tests)
+    .filter((name) => name.endsWith(".sql"))
+    .sort()) {
+    try {
+      await db.exec(readFileSync(new URL(test, tests), "utf8"));
+      console.log("PASS", test);
+    } catch (error) {
+      console.error("FAIL", test, error.message);
+      await db.exec("rollback");
+      process.exitCode = 1;
+      break;
+    }
+  }
 }
 if (!process.exitCode && process.argv.includes("--helper")) {
   const r = await db.query(

@@ -56,3 +56,9 @@ main에는 초기 migration 2개와 후속 보완 2개, ERD가 있다. [PR #2](h
 원격 4개 migration 대조 및 동일 RLS SQL 재검증을 마쳤다. 보조 함수가 없는 새 환경에서 마지막 migration이 실패하는 문제를 조건부 REVOKE로 수정했다. 독립 PostgreSQL 엔진의 처음부터 적용 검사도 통과했다. 원격에는 재적용하지 않았다.
 
 전체 Supabase reset, Branch/Anchor 삭제 연쇄와 실제 Auth/API 테스트는 남았다. **pg_cron은 아직 미설치**라 자동 만료 정리는 가동 중이 아니다. 상세 범위·재현법·버전 대응은 [DB 검증 기록](reviews/2026-09-12-db-replay.md)을 따른다.
+
+## 삭제 연쇄 검증 — 2026-09-13
+
+독립 테스트에서 원본 세션 삭제가 지연 Branch 출처 검증의 중간 상태 검사로 실패하는 결함을 재현했다. 새 migration으로 최종 행 상태를 검사하도록 수정했다. 세션/질문/계정 삭제 순서, 새 세션 2개 보존, Anchor 보호와 자식 근거 삭제 테스트 및 기존 RLS 회귀가 통과했다.
+
+[검증 기록](reviews/2026-09-13-deletion-chain.md). **운영 DB에는 아직 적용하지 않았다.** Supabase 전체 환경과 자동 정리 예약 검증은 계속 남아 있다.
