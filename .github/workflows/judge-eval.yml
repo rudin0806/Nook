@@ -1,0 +1,82 @@
+name: Judge model evaluation
+
+on:
+  workflow_dispatch:
+    inputs:
+      model:
+        description: OpenAI API model ID
+        required: true
+        default: gpt-5.6-sol
+        type: string
+      ids:
+        description: Comma-separated Judge fixture IDs
+        required: true
+        default: J-CLOSE-01,J-EDGE-01
+        type: string
+      max_cases:
+        description: Maximum paid requests
+        required: true
+        default: "2"
+        type: string
+      max_output_tokens:
+        description: Maximum output tokens per request
+        required: true
+        default: "1024"
+        type: string
+  push:
+    branches:
+      - codex/rules-v3-retention-hardening
+    paths:
+      - .github/eval-trigger.json
+
+permissions:
+  contents: read
+
+concurrency:
+  group: judge-model-evaluation
+  cancel-in-progress: false
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      OPENAI_API_KEY: ${{ secrets.AI_API_KEY }}
+      EVAL_MODEL: ${{ inputs.model || 'gpt-5.6-sol' }}
+      EVAL_IDS: ${{ inputs.ids || 'J-CLOSE-01,J-EDGE-01' }}
+      MAX_CASES: ${{ inputs.max_cases || '2' }}
+      MAX_OUTPUT_TOKENS: ${{ inputs.max_output_tokens || '1024' }}
+
+    steps:
+      - name: Check evaluation secret
+        shell: bash
+        run: |
+          if [[ -z "$OPENAI_API_KEY" ]]; then
+            echo "::error::AI_API_KEY repository secret is missing"
+            exit 1
+          fi
+
+      - name: Check out the requested revision
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Use Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Verify the model runner
+        run: npm run test:judge-model
+
+      - name: Evaluate selected Judge fixtures
+        run: >-
+          npm run eval --
+          --model "$EVAL_MODEL"
+          --ids "$EVAL_IDS"
+          --max-cases "$MAX_CASES"
+          --max-output-tokens "$MAX_OUTPUT_TOKENS"

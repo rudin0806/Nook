@@ -1,0 +1,7 @@
+{
+  "requestedAt": "2026-09-13T00:00:00Z",
+  "model": "gpt-5.6-sol",
+  "ids": ["J-CLOSE-01", "J-EDGE-01"],
+  "maxCases": 2,
+  "maxOutputTokens": 1024
+}

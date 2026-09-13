@@ -6,6 +6,8 @@
 
 실행 환경의 `.env.local`에 `OPENAI_API_KEY`와 `NOOK_EVAL_MODEL`을 설정한다. 키는 채팅이나 GitHub에 넣지 않는다. Vercel에만 등록된 환경변수는 로컬 명령에 자동 전달되지 않는다. 모델은 기본값 없이 명시하며 계정의 가용성과 가격을 확인한다.
 
+GitHub Actions에서는 repository secret `AI_API_KEY`를 workflow 내부의 `OPENAI_API_KEY`로만 연결한다. `.github/workflows/judge-eval.yml`은 수동 실행 또는 작업 브랜치의 `.github/eval-trigger.json` 변경으로만 실행한다. 기본 실행은 `gpt-5.6-sol`과 J-CLOSE-01/J-EDGE-01 두 사례이며, workflow 권한은 저장소 읽기로 제한한다.
+
 ```sh
 npm run eval -- --dry
 npm run eval -- --model YOUR_MODEL_ID
@@ -28,6 +30,6 @@ npm run eval -- --model YOUR_MODEL_ID --ids J-MED-01,J-HEDGE-01a,J-HEDGE-01b --m
 
 주입형 transport 테스트 7개 통과: 입력 정보 분리, 호출 상한, fixture 오류 사전 중단, 오류 중복 집계, 잘못된 응답, API 실패 중단, boundary 제외. 실제 모델의 성공 응답을 측정한 결과가 아니다.
 
-기본 두 fixture dry-run과 타입·린트·빌드 통과. 실제 명령은 OPENAI_API_KEY_REQUIRED로 호출 전에 중단됐다. 현재 환경에는 키와 평가 모델 설정이 없다. 실제 모델 평가·과금·정확도 측정은 수행하지 않았다.
+기본 두 fixture dry-run과 타입·린트·빌드 통과. 로컬 환경에는 키를 저장하지 않는다. GitHub Actions secret을 이용한 첫 실제 모델 평가는 별도 실행 결과로 기록한다.
 
 공식 API 참고: https://developers.openai.com/api/reference/resources/responses/methods/create

@@ -19,13 +19,13 @@ main에는 migration 5개가 있다. PR #4의 신규 환경 REVOKE 보완, PR #5
 - 만료 경계 SQL 테스트 통과: 만료 시각 이전 보호·정각 삭제, SAVED 보호, SAFETY_STOPPED 만료, 일반 사용자 호출 거절, 반복 실행 안전성을 독립 PGlite에서 확인했다. **자동 삭제 예약은 가동하지 않는다.** 예약 설정·실행 이력 검증은 남았다.
 - 전체 Supabase reset, 실제 Auth/HTTP API·동시성 검증은 남았다.
 
-## AI — PR #2에 구현, 실제 모델 평가 미실행
+## AI — PR #2에 구현, 첫 실제 모델 평가 실행 준비
 
 - 공통 hedge 계산: 전체 사용자 발화로 비율 계산, 최소 5턴·0.7 기준, 중복 ID 거절, 일치 패턴 반환.
 - C-03-pre: Prompt B, Judge Zod 출력 검증, MEDIUM 사유와 결정론적 채점기.
 - [C-02 통합](reviews/2026-09-13-C-02-integration.md): Prompt D의 REFLECT 전용 요청 준비, MEDIUM 사유 전달, PAST 제한·출력 검증.
 - [모델 평가기](reviews/2026-09-13-judge-model-runner.md): Responses API 연결, 기본 핵심 2개 사례·출력 제한·에러 중단·원문 없는 보고서.
-- API 키와 모델 설정이 없어 실제 모델 정확도는 측정하지 않았다. 추천 모델은 Sol이며 가격/접근 가능 여부 확인 후 명시적으로 지정한다.
+- GitHub Actions의 `AI_API_KEY` secret을 평가 실행 때만 `OPENAI_API_KEY`로 전달하는 수동 workflow를 추가했다. 첫 범위는 `gpt-5.6-sol`의 J-CLOSE-01/J-EDGE-01 두 건이며 실행 결과 확인 전이다.
 - Prompt C는 Claude 산출물 대기. 실제 사용자 대화에 대한 Safety/종료/상한→Judge→C/D→저장 연결은 미구현이다.
 
 ## 평가 계약과 보류
@@ -45,7 +45,7 @@ Judge 32 / Start 17 / Safety 15. Judge boundary는 J-SHIFT-04 하나이며 pendi
 1. 익명 로그인 초기화와 Google/Kakao identity linking·OAuth callback 구현.
 2. 보관·휴지통·복원 API를 실제 화면에 연결하고 배포 환경에서 HTTP/RLS 왕복 검증.
 3. 삭제 예약 적용 준비. 만료 경계 테스트는 완료했다.
-4. 키 설정 후 Judge 핵심 2개→32개 실제 평가, 결과에 따른 프롬프트 개선.
+4. Judge 핵심 2개 실제 평가 결과를 확인하고, 통과하면 32개로 확장한 뒤 프롬프트를 개선.
 5. Claude Prompt C 검토, Safety 계약 해결, 검증된 변경을 순차 병합.
 
 협업 역할과 최소 전달 방식은 [HANDOFF.md](HANDOFF.md)를 따른다. 오래된 체크포인트보다 이 문서의 현재 상태를 우선한다.
