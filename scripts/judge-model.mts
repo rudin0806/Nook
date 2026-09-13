@@ -12,7 +12,12 @@ import {
 export type ModelRequest = {
   model: string;
   instructions: string;
-  input: string;
+  input: [
+    {
+      role: "user";
+      content: [{ type: "input_text"; text: string }];
+    },
+  ];
   max_output_tokens: number;
   store: false;
   text: { format: { type: "json_object" } };
@@ -44,6 +49,20 @@ function safeErrorMetadata(value: unknown) {
   return value;
 }
 
+function classifyProviderMessage(value: unknown) {
+  if (typeof value !== "string") return null;
+  if (/safety|policy|unsafe|flagged|moderation/i.test(value))
+    return "INPUT_POLICY";
+  if (/json|response.?format|text\.format/i.test(value)) return "OUTPUT_FORMAT";
+  if (/context|too long|maximum context|token limit/i.test(value))
+    return "CONTEXT_LIMIT";
+  if (/quota|billing|credit|spend/i.test(value)) return "BILLING";
+  if (/model|access|permission/i.test(value)) return "MODEL_ACCESS";
+  if (/input.*(type|format)|must be.*input|expected.*input/i.test(value))
+    return "INPUT_SHAPE";
+  return null;
+}
+
 export function formatProviderDiagnostic(error: unknown) {
   if (typeof error !== "object" || error === null) return "OPENAI_API_ERROR";
   const record = error as Record<string, unknown>;
@@ -60,6 +79,8 @@ export function formatProviderDiagnostic(error: unknown) {
     const value = safeErrorMetadata(record[field]);
     if (value) parts.push(`${field}=${value}`);
   }
+  const category = classifyProviderMessage(record.message);
+  if (category) parts.push(`category=${category}`);
   return parts.join(" ");
 }
 
@@ -112,7 +133,19 @@ export function makeJudgeRequest(
   return {
     model,
     instructions: JUDGE_SYSTEM,
-    input: buildJudgeUser(input, hedge.hedgeSpeaker),
+    // Use an explicit Responses API message/content shape. This is semantically
+    // identical to a bare string, but avoids provider-side ambiguity about input.
+    input: [
+      {
+        role: "user",
+        content: [
+          {
+            type: "input_text",
+            text: buildJudgeUser(input, hedge.hedgeSpeaker),
+          },
+        ],
+      },
+    ],
     max_output_tokens: maxOutputTokens,
     store: false,
     text: { format: { type: "json_object" } },

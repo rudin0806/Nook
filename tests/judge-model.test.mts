@@ -39,9 +39,12 @@ test("history and gold data do not leak; no persistence and output cap", () => {
   f.fixture_meta.history[0].text =
     "SECRET_HISTORY " + f.fixture_meta.history[0].text;
   const r = makeJudgeRequest(f, "test-model", 1024);
-  assert.ok(!r.input.includes("GOLD_MARKER"));
-  assert.ok(!r.input.includes("SECRET_HISTORY"));
-  assert.ok(r.input.includes("hedge_speaker: true"));
+  const serializedInput = JSON.stringify(r.input);
+  assert.deepEqual(r.input[0].role, "user");
+  assert.deepEqual(r.input[0].content[0].type, "input_text");
+  assert.ok(!serializedInput.includes("GOLD_MARKER"));
+  assert.ok(!serializedInput.includes("SECRET_HISTORY"));
+  assert.ok(serializedInput.includes("hedge_speaker: true"));
   assert.equal(r.store, false);
   assert.equal(r.max_output_tokens, 1024);
 });
@@ -121,6 +124,19 @@ test("provider diagnostics expose allowlisted metadata but never messages", () =
     formatProviderDiagnostic({ code: "unsafe value with spaces" }),
     "OPENAI_API_ERROR",
   );
+});
+test("provider diagnostics classify messages without exposing them", () => {
+  const diagnostic = formatProviderDiagnostic({
+    status: 400,
+    type: "invalid_request_error",
+    param: "input",
+    message: "Input content was flagged by the safety policy: SECRET_DETAIL",
+  });
+  assert.equal(
+    diagnostic,
+    "OPENAI_API_ERROR status=400 type=invalid_request_error param=input category=INPUT_POLICY",
+  );
+  assert.ok(!diagnostic.includes("SECRET_DETAIL"));
 });
 test("boundary cases do not enter strict denominator", async () => {
   const r = await evaluateJudge([get("J-SHIFT-04")], "test", 1024, async () =>
