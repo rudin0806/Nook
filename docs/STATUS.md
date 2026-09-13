@@ -34,11 +34,18 @@ Judge 32 / Start 17 / Safety 15. Judge boundary는 J-SHIFT-04 하나이며 pendi
 
 [이전 파일 검증 기록](reviews/2026-09-12-document-validation.md)의 carryover 사유 누락 2건은 C-03-pre에서 해결됐다. examples/reference 의미 검토, Safety HANDOFF 상태·문구 및 분류 계약, hedge 임계값 적정성과 새 경계 사례 검토는 남았다.
 
+## 앱 API — PR #2에 구현, 실제 인증 왕복 검증 전
+
+[보관·휴지통 API](reviews/2026-09-13-retention-api.md)를 추가했다. 로그인 사용자는 진행 중·생각더미·휴지통 기록과 남겨둔 질문을 조회하고, 완료 기록 보관 확정·휴지통 이동·복원·질문 영구 삭제를 요청할 수 있다. Route Handler는 Supabase secret key 없이 인증 쿠키와 RLS/RPC를 사용한다. 입력 크기·UUID·페이지 범위를 검증하고 DB 내부 오류는 공개하지 않는다.
+
+계약 테스트 5개를 포함해 단위 테스트 34개가 통과했다. 실제 익명 로그인·Google/Kakao identity linking·배포 환경 HTTP 검증과 화면 연결은 남았다.
+
 ## 다음 업무
 
-1. 키 없이: 삭제 예약 적용 준비 및 인증·API 구현 범위 확인. 만료 경계 테스트는 완료했다.
-2. 인증·계정 연결과 소유권 검증, 보관/복원 API 및 실제 데이터 UI 연결.
-3. 키 설정 후 Judge 핵심 2개→32개 실제 평가, 결과에 따른 프롬프트 개선.
-4. Claude Prompt C 검토, Safety 계약 해결, 검증된 변경을 순차 병합.
+1. 익명 로그인 초기화와 Google/Kakao identity linking·OAuth callback 구현.
+2. 보관·휴지통·복원 API를 실제 화면에 연결하고 배포 환경에서 HTTP/RLS 왕복 검증.
+3. 삭제 예약 적용 준비. 만료 경계 테스트는 완료했다.
+4. 키 설정 후 Judge 핵심 2개→32개 실제 평가, 결과에 따른 프롬프트 개선.
+5. Claude Prompt C 검토, Safety 계약 해결, 검증된 변경을 순차 병합.
 
 협업 역할과 최소 전달 방식은 [HANDOFF.md](HANDOFF.md)를 따른다. 오래된 체크포인트보다 이 문서의 현재 상태를 우선한다.
