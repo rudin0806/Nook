@@ -1,19 +1,15 @@
 {
-  "requestedAt": "2026-09-14T00:52:00Z",
+  "requestedAt": "2026-09-14T01:00:00Z",
   "model": "gpt-5.6-sol",
   "reasoningEffort": "high",
   "ids": [
     "J-AI-01",
     "J-CARRY-02",
-    "J-OVER-01",
-    "J-OVER-02",
-    "J-SHIFT-02",
-    "J-NOT-02",
     "J-CLOSE-01",
     "J-CLOSE-02",
     "J-CLOSE-03",
     "J-CLOSE-TRAP-01"
   ],
-  "maxCases": 10,
+  "maxCases": 6,
   "maxOutputTokens": 2048
 }

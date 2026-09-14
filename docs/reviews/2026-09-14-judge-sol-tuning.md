@@ -122,3 +122,16 @@
 맞지만 금지 Branch를 하나 만들었다. 동일 규칙의 결과가 실행 사이에 바뀌었으므로 프롬프트 문구를
 더 늘리지 않는다. 같은 프롬프트·같은 10건을 `gpt-5.6-sol`의 reasoning high로 실행해 판정 안정성과
 추가 비용을 비교한다. high에서는 reasoning token을 포함한 출력 상한을 2,048로 올린다.
+
+## 시도 7 — Sol high 비교
+
+- 커밋: [`e095349`](https://github.com/rudin0806/Nook/commit/e0953495bba3928af3bb02f27d89be76f9452991)
+- 실행: [GitHub Actions 34794104756](https://github.com/rudin0806/Nook/actions/runs/34794104756)
+- 모델: `gpt-5.6-sol`, reasoning effort `high`
+- 결과: **9/10 통과**, action 9/10
+- 토큰: 입력 52,599 / 출력 3,783
+- 공개 uncached 단가 기준 상한: 약 $0.286
+
+medium에서 흔들렸던 `J-CARRY-02` Branch는 high에서 다시 통과했지만 `J-CLOSE-03`은 여전히
+REFLECT/LOW였다. reasoning 수준이 주원인은 아니다. CLOSE를 결론 도출이나 강제 종료로 해석하지 않도록,
+정리 제안 뒤 실제 종료는 사용자가 고른다는 제품 의미를 명시하고 CLOSE 보호군 6건만 다시 확인한다.
