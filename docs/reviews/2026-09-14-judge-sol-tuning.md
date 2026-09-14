@@ -135,3 +135,17 @@
 medium에서 흔들렸던 `J-CARRY-02` Branch는 high에서 다시 통과했지만 `J-CLOSE-03`은 여전히
 REFLECT/LOW였다. reasoning 수준이 주원인은 아니다. CLOSE를 결론 도출이나 강제 종료로 해석하지 않도록,
 정리 제안 뒤 실제 종료는 사용자가 고른다는 제품 의미를 명시하고 CLOSE 보호군 6건만 다시 확인한다.
+
+## 시도 8 — CLOSE의 제품 의미 명시
+
+- 커밋: [`f0a458b`](https://github.com/rudin0806/Nook/commit/f0a458b00f8bc61ea7dd73f27fcc55293dd0441a)
+- 실행: [GitHub Actions 34794360792](https://github.com/rudin0806/Nook/actions/runs/34794360792)
+- 모델: `gpt-5.6-sol`, reasoning effort `high`
+- 결과: **5/6 통과**, action 5/6
+- 토큰: 입력 32,474 / 출력 2,865
+- 공개 uncached 단가 기준 상한: 약 $0.187
+
+보호 케이스는 모두 통과했지만 `J-CLOSE-03`은 다시 REFLECT/LOW였다. fixture와 규칙을 대조하니
+U4에는 새 재료가 있고 U5·U6에서 반복이 시작되는 반면, 프롬프트의 "현재 창에 새 정보 없음"은
+창 전체에 새 정보가 한 번도 없어야 한다는 뜻으로 읽힐 수 있었다. Close의 새 정보 판정 시점을
+마지막 사용자 응답으로 RULES와 프롬프트에 함께 명시한다.
