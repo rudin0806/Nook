@@ -21,6 +21,7 @@ main에는 migration 5개가 있다. PR #4의 신규 환경 REVOKE 보완, PR #5
 
 ## AI — PR #2에 구현, Sol 32건 기준선 확보
 
+- 사용자 결정에 따라 모델 후보는 `gpt-5.6-luna / terra / sol`로 제한하고 Astra는 평가·운영 후보에서 제외한다. Sol 기준선만으로 운영 모델을 확정하지 않으며 역할별 품질 관문을 통과한 최저 비용 구성을 선택한다.
 - 공통 hedge 계산: 전체 사용자 발화로 비율 계산, 최소 5턴·0.7 기준, 중복 ID 거절, 일치 패턴 반환.
 - C-03-pre: Prompt B, Judge Zod 출력 검증, MEDIUM 사유와 결정론적 채점기.
 - [C-02 통합](reviews/2026-09-13-C-02-integration.md): Prompt D의 REFLECT 전용 요청 준비, MEDIUM 사유 전달, PAST 제한·출력 검증.

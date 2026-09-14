@@ -1,10 +1,11 @@
 import { readFileSync } from "node:fs";
 import { z } from "zod";
+import { NOOK_MODEL_IDS } from "../src/lib/openai/models.ts";
 
 const triggerSchema = z
   .strictObject({
     requestedAt: z.iso.datetime({ offset: true }),
-    model: z.string().regex(/^[a-zA-Z0-9._:-]{1,100}$/),
+    model: z.enum(NOOK_MODEL_IDS),
     ids: z
       .array(z.string().regex(/^J-[a-zA-Z0-9-]+$/))
       .min(1)

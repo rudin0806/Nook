@@ -9,6 +9,7 @@ import {
 } from "./judge-model.mts";
 import { loadEvalTrigger } from "./eval-trigger.mts";
 import { type Fixture, run } from "./eval-core.mts";
+import { requireNookModelId } from "../src/lib/openai/models.ts";
 
 async function main() {
   const { values } = parseArgs({
@@ -41,8 +42,10 @@ async function main() {
   }
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) throw new Error("OPENAI_API_KEY_REQUIRED");
-  const model = trigger?.model ?? values.model ?? process.env.NOOK_EVAL_MODEL;
-  if (!model?.trim()) throw new Error("MODEL_REQUIRED");
+  const requestedModel =
+    trigger?.model ?? values.model ?? process.env.NOOK_EVAL_MODEL;
+  if (!requestedModel?.trim()) throw new Error("MODEL_REQUIRED");
+  const model = requireNookModelId(requestedModel);
   const client = new OpenAI({ apiKey, timeout: 30_000, maxRetries: 0 });
   const report = await evaluateJudge(
     fixtures,
@@ -67,6 +70,7 @@ main().catch((error) => {
   const safe = new Set([
     "OPENAI_API_KEY_REQUIRED",
     "MODEL_REQUIRED",
+    "MODEL_NOT_ALLOWED",
     "INVALID_CASE_LIMIT",
     "INVALID_CASE_IDS",
     "CASE_LIMIT_EXCEEDED",

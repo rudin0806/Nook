@@ -598,14 +598,20 @@ AI            OpenAI
 코드          GitHub
 ```
 
-**모델은 두 단계로 쓴다.**
+**모델은 역할과 품질 관문에 따라 나눠 쓴다.**
 
-| 작업 | 모델 |
+사용 후보는 `GPT-5.6 Luna / Terra / Sol` 세 종류로 제한한다. Astra는 Nook의 비용 최적화 후보에서 제외한다.
+한 모델을 모든 단계에 고정하지 않고, 동일 평가셋에서 품질 하한을 통과한 가장 저렴한 구성을 역할별로 고른다.
+
+| 작업 | 선택 원칙 |
 |---|---|
-| Turn Judge, Reflection, Branch/Clarification 추출 | 저가 모델 |
-| Node 0 Reframe, Shift Reframe | 고성능 모델 |
+| 완화형 계산·상한·보관·매핑 | 결정론적 코드, LLM 미사용 |
+| Turn Judge, Reflection, Branch/Clarification 추출 | Luna/Terra/Sol 중 Core 품질 관문을 통과한 최저 비용 구성 |
+| Node 0 Reframe, Shift Reframe | Terra/Sol 중 생성 품질 관문을 통과한 구성 |
+| Safety Classifier | Core와 분리 평가한 뒤 Luna/Terra/Sol 중 선택 |
 
-비싼 모델이 필요한 순간은 **사용자의 지도에 영구히 남을 문장을 만드는 때**뿐이다.
+상대적으로 비싼 모델을 검토할 우선순위는 **사용자의 지도에 영구히 남을 문장을 만드는 때**다.
+현재 Sol 32건 결과는 Judge 프롬프트의 기준선이지 운영 모델 확정 결과가 아니다.
 
 **비용 안전장치**
 

@@ -4,7 +4,7 @@
 
 ## 설정
 
-실행 환경의 `.env.local`에 `OPENAI_API_KEY`와 `NOOK_EVAL_MODEL`을 설정한다. 키는 채팅이나 GitHub에 넣지 않는다. Vercel에만 등록된 환경변수는 로컬 명령에 자동 전달되지 않는다. 모델은 기본값 없이 명시하며 계정의 가용성과 가격을 확인한다.
+실행 환경의 `.env.local`에 `OPENAI_API_KEY`와 `NOOK_EVAL_MODEL`을 설정한다. 키는 채팅이나 GitHub에 넣지 않는다. Vercel에만 등록된 환경변수는 로컬 명령에 자동 전달되지 않는다. 모델은 기본값 없이 명시하며 계정의 가용성과 가격을 확인한다. 사용자 결정에 따라 평가 허용 모델은 `gpt-5.6-luna`, `gpt-5.6-terra`, `gpt-5.6-sol`뿐이며 다른 모델은 호출 전에 거절한다.
 
 GitHub Actions에서는 repository secret `AI_API_KEY`를 workflow 내부의 `OPENAI_API_KEY`로만 연결한다. `.github/workflows/judge-eval.yml`은 수동 실행 또는 작업 브랜치의 `.github/eval-trigger.json` 변경으로만 실행한다. push 실행은 trigger 파일의 strict schema를 읽고 중복·형식·상한을 검사한다. 기본 실행은 `gpt-5.6-sol`과 J-CLOSE-01/J-EDGE-01 두 사례이며, workflow 권한은 저장소 읽기로 제한한다.
 
