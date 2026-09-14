@@ -1,49 +1,78 @@
 "use client";
 import { useState } from "react";
-import Link from "next/link";
 import { ActionButton, TextField } from "@seed-design/react";
 export function ThoughtInput() {
   const [thought, setThought] = useState("");
+  const [expanded, setExpanded] = useState(false);
+  const [light, setLight] = useState(true);
   return (
-    <section aria-label="생각 적기">
-      <div className="thought-composer">
-        <TextField.Root className="thought-field">
+    <div
+      className="writing-room"
+      data-light={light ? "on" : "dim"}
+      data-expanded={expanded}
+    >
+      <div className="desk-illumination" aria-hidden="true" />
+      <button
+        className="desk-lamp"
+        onClick={() => setLight(!light)}
+        aria-label="책상 조명"
+        aria-pressed={light}
+      >
+        <span className="lamp-shade" aria-hidden="true" />
+        <span className="lamp-stem" aria-hidden="true" />
+        <span className="lamp-foot" aria-hidden="true" />
+        <span className="lamp-label">조명 {light ? "켜짐" : "낮춤"}</span>
+      </button>
+      <section
+        className="writing-surface"
+        aria-label="내 생각 쓰기"
+        onKeyDown={(e) => {
+          if (e.key === "Escape") setExpanded(false);
+        }}
+      >
+        <div className="paper-top">
+          <span className="paper-dot" aria-hidden="true" />
+          <span>나만의 생각 자리</span>
+          <ActionButton
+            variant="ghost"
+            size="small"
+            aria-expanded={expanded}
+            onClick={() => setExpanded(!expanded)}
+          >
+            {expanded ? "접어두기 ↙" : "넓게 쓰기 ↗"}
+          </ActionButton>
+        </div>
+        <h1>생각나는 대로.</h1>
+        <TextField.Root className="writing-field">
           <TextField.Textarea
             id="raw-thought"
+            className="writing-textarea"
             name="rawThought"
-            className="thought-textarea"
-            placeholder="오늘 문득 든 생각은…"
             aria-label="생각 적기"
-            aria-describedby="thought-privacy"
-            maxLength={5000}
+            aria-describedby="writing-availability"
+            placeholder="지금 떠오르는 이야기를 적어볼까요?"
             value={thought}
             onChange={(e) => setThought(e.target.value)}
+            maxLength={5000}
             autoComplete="off"
           />
         </TextField.Root>
-        <div className="preview-composer-bottom">
-          <p id="thought-privacy" className="input-note">
-            아직 전송·저장되지 않아요.
+        <div className="paper-bottom">
+          <p id="writing-availability">
+            대화 연결 준비 중 · 입력은 저장되지 않아요.
           </p>
-          <Link className="desk-link" href="/preview">
-            예시 화면 체험 ↗
-          </Link>
+          <ActionButton
+            variant="neutralWeak"
+            size="medium"
+            disabled
+            aria-label="대화 시작, 아직 준비 중"
+          >
+            시작하기 <span aria-hidden="true">↗</span>
+          </ActionButton>
         </div>
-      </div>
-      <div className="preview-examples">
-        {["이직을 할까, 말까", "자꾸 마음에 남는 말", "그냥 복잡한 날"].map(
-          (t) => (
-            <ActionButton
-              key={t}
-              variant="ghost"
-              size="small"
-              onClick={() => setThought(t)}
-            >
-              {t}
-            </ActionButton>
-          ),
-        )}
-      </div>
-    </section>
+      </section>
+      <div className="desk-front" aria-hidden="true" />
+      <p className="desk-signature">답보다, 내 질문에 가까워지는 시간.</p>
+    </div>
   );
 }

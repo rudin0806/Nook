@@ -12,7 +12,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="ko" data-seed data-seed-color-mode="light-only">
+    <html lang="ko" data-seed data-seed-color-mode="dark-only">
       <body>{children}</body>
     </html>
   );

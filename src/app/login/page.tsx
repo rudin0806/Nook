@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AppNavigation } from "@/components/nook/app-navigation";
 import "../preview/preview.css";
 
 const messages: Record<string, string> = {
@@ -26,7 +27,8 @@ export default async function LoginPage({
           nook<span>.</span>
         </Link>
       </header>
-      <main className="preview-summary">
+      <AppNavigation current="account" />
+      <main id="main-content" className="preview-summary">
         <p className="preview-kicker">다시 꺼내 보고 싶을 때</p>
         <h1>내 이야기를 연결해 둘까요?</h1>
         <p className="preview-description">

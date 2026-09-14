@@ -1,6 +1,5 @@
-import { NookPreview } from "@/components/nook/nook-preview";
-import "./preview.css";
-
+import { redirect } from "next/navigation";
+/** Retired example experience: users begin with their own input. */
 export default function PreviewPage() {
-  return <NookPreview />;
+  redirect("/");
 }

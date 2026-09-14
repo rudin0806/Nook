@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AppNavigation } from "@/components/nook/app-navigation";
 import { DrawerContents } from "@/components/nook/drawer-contents";
 import "../preview/preview.css";
 
@@ -9,14 +10,9 @@ export default function DrawerPage() {
         <Link href="/" className="wordmark">
           nook<span>.</span>
         </Link>
-        <nav className="home-nav" aria-label="주 메뉴">
-          <Link href="/">이야기 나누기</Link>
-          <Link href="/drawer" aria-current="page">
-            생각더미
-          </Link>
-        </nav>
       </header>
-      <main className="preview-summary">
+      <AppNavigation current="saved" />
+      <main id="main-content" className="preview-summary">
         <div className="drawer-object" aria-hidden="true">
           <span />
         </div>
