@@ -1,0 +1,53 @@
+{
+  "commit": "6fc8bd3b7cca1018f261021780bad05a647e6f66",
+  "model": "gpt-5.6-sol",
+  "reasoning": "high",
+  "hashes": {
+    "eval/judge.jsonl": "828b49a11aae701e593aeda18afe1c9eb55c40a31c0d153fee2c2ee0308a6c0d",
+    "src/prompts/prompt-reframe.ts": "984a79b5fac9d57ed7525c46eccb01e88939d320f32c1530a67b97501f59282e",
+    "src/prompts/prompt-reflect.ts": "d4d76ad380dfd42e95fd15ccd811604a30bb0e5982747a8de321207d8f7c3691",
+    "src/engine/reframe.ts": "4a89a4c9144329e971f1fa17c262054dee2c6667d2403138c4ce012c4a44a7cc",
+    "src/engine/reflect-runtime.ts": "65180f713464bb7ded683bb3ca2bf19c465ce271e823ae88059a12df179a8672"
+  },
+  "usage": {
+    "calls": 7,
+    "inputTokens": 28997,
+    "outputTokens": 2381
+  },
+  "complete": false,
+  "semanticReview": "PENDING",
+  "scope": "Six existing fixture contexts. Actual Judge then C/D; no DB or live user input. Not a whole-dialogue quality score.",
+  "rows": [
+    {
+      "id": "J-SHIFT-01",
+      "classification": "SHIFT/HIGH",
+      "output": {
+        "question": "나는 여기서 더 배울 게 있는지가 걸리는 걸까?",
+        "evidence_sentence": "3년째 하는 일이 거의 똑같고, 새로 배우는 게 없으며 여기 더 있어도 뭘 더 할 수 있을지 모르겠다고 말했어요."
+      },
+      "evidence": ["U2", "U3"]
+    },
+    {
+      "id": "J-SHIFT-03",
+      "classification": "SHIFT/HIGH",
+      "output": {
+        "question": "내가 원하는 건 들고 다닐 때 디자인과 무게가 괜찮은 노트북일까?",
+        "evidence_sentence": "지금 노트북으로도 작업은 다 되지만, 디자인과 무게가 괜찮아 들고 다니기 좋은 노트북을 갖고 싶다고 했어요."
+      },
+      "evidence": ["U2", "U3"]
+    },
+    {
+      "id": "J-EDGE-01",
+      "classification": "SHIFT/HIGH",
+      "output": {
+        "question": "내가 친구에게 원하는 건 다음에는 같이 가자는 말을 듣는 걸까?",
+        "evidence_sentence": "사과를 받고 싶은 게 아니라 다음에는 같이 가자는 말을 듣고 싶다고 했어요."
+      },
+      "evidence": ["U3"]
+    },
+    {
+      "id": "J-NOT-01",
+      "error": "GENERATION_FAILED"
+    }
+  ]
+}
