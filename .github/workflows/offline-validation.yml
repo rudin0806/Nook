@@ -1,0 +1,45 @@
+name: Offline validation
+
+on:
+  push:
+    branches:
+      - codex/rules-v3-retention-hardening
+    paths:
+      - "src/**"
+      - "tests/**"
+      - "eval/**"
+      - "scripts/**"
+      - "package*.json"
+      - "tsconfig.json"
+      - ".github/workflows/offline-validation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: offline-validation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Validate all fixture contracts
+        run: npm run eval:validate
+      - name: Validate Judge contracts
+        run: npm run eval:judge:validate
+      - name: Test Safety and start flow
+        run: node --experimental-strip-types --test tests/safety-gate.test.mts tests/start-flow.test.mts
+      - name: Typecheck lint and production build
+        run: npm run validate
