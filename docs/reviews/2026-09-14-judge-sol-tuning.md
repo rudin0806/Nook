@@ -162,3 +162,15 @@ U4에는 새 재료가 있고 U5·U6에서 반복이 시작되는 반면, 프롬
 목표였던 `J-CLOSE-03`은 처음으로 통과했다. 새 실패는 `J-AI-01`의 과잉 CLOSE다. 사용자가 자기
 표현을 반복하는 것과 AI가 먼저 만든 해석어에 동의만 반복하는 것을 CLOSE가 구분하지 못했다.
 후자는 사용자 생각의 수렴이 아니므로 REFLECT/LOW로 유지한다는 예외를 RULES와 프롬프트에 명시한다.
+
+## 시도 10 — CLOSE/AI 유도 최종 관문
+
+- 커밋: [`ff5b47e`](https://github.com/rudin0806/Nook/commit/ff5b47ebab8ff375945cdcb222e42611238ef5ab)
+- 실행: [GitHub Actions 34794939142](https://github.com/rudin0806/Nook/actions/runs/34794939142)
+- 모델: `gpt-5.6-sol`, reasoning effort `high`
+- 결과: **6/6 통과**, action 6/6, 오류 0
+- 토큰: 입력 33,530 / 출력 1,773
+- 공개 uncached 단가 기준 상한: 약 $0.170
+
+세 CLOSE positive와 `J-CLOSE-TRAP-01`, AI 유도, carryover negative control이 모두 통과했다.
+같은 프롬프트와 Sol high 설정으로 Judge 32건 전체 최종 회귀를 실행한다.
