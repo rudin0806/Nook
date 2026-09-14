@@ -23,7 +23,12 @@ export function prepareJsonRequest(
     input: [
       {
         role: "user",
-        content: [{ type: "input_text", text: JSON.stringify(input) }],
+        content: [
+          {
+            type: "input_text",
+            text: "Return only a JSON object.\n" + JSON.stringify(input),
+          },
+        ],
       },
     ],
     max_output_tokens: limit,

@@ -1,4 +1,4 @@
 {
-  "requestedAt": "2026-09-14T13:05:00Z",
-  "purpose": "Diagnose first-request provider failure with sanitized metadata"
+  "requestedAt": "2026-09-14T13:07:00Z",
+  "purpose": "Evaluate after fixing provider JSON input contract"
 }

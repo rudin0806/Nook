@@ -29,7 +29,9 @@ test("scores misrouting separately and never includes raw text in report", async
     moderate: async () => moderation,
     classify: async (request) => {
       calls++;
-      const input = JSON.parse(request.input[0].content[0].text);
+      const sent = request.input[0].content[0].text;
+      assert.ok(sent.startsWith("Return only a JSON object.\n"));
+      const input = JSON.parse(sent.slice(sent.indexOf("\n") + 1));
       if ("utterance" in input) {
         const row = fixtures.safety.find((row) => row.input.utterance === input.utterance)!;
         const result = row.id === "S-07"
