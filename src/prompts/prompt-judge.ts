@@ -48,6 +48,15 @@ SHIFT    중심 질문이 이동했다
 REFLECT  아직 이동하지 않았다. 더 물어야 한다
 CLOSE    지금 정리할 시점이다
 
+action은 다음 순서로 확정한다.
+
+1. HIGH인 새 중심 방향이 있으면 SHIFT
+2. SHIFT가 아니면 4장의 CLOSE 조건을 확인하고, 맞으면 CLOSE
+3. 둘 다 아니면 MEDIUM 또는 LOW에 따라 REFLECT
+
+LOW는 "Shift 증거가 없음"이지 자동으로 REFLECT라는 뜻이 아니다. 새 정보도 없고 같은 내용만
+반복됐다면 LOW/REFLECT로 멈추지 말고 반드시 CLOSE 조건을 확인한다.
+
 ---
 
 ## 1. SHIFT 판정
@@ -136,7 +145,8 @@ MEDIUM  자발 1턴 · 또는 자발 2턴이지만 전부 완화형
         · 또는 AI가 연 방향에 동의하며 자기 재료를 덧붙임
 LOW     AI가 연 방향에 재료 없이 동의만 함 · 그 외
 
-HIGH면 action은 SHIFT. MEDIUM과 LOW는 모두 REFLECT다.
+HIGH면 action은 SHIFT다. HIGH가 아니면 먼저 4장의 CLOSE 조건을 확인한다.
+CLOSE가 아니라고 확인된 경우에만 MEDIUM과 LOW를 REFLECT로 낸다.
 
 다음 순서로 **최저 confidence를 먼저 보장**한 뒤 HIGH 여부를 본다.
 

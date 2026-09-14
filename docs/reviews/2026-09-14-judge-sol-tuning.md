@@ -94,3 +94,17 @@
 
 `J-SHIFT-04`는 boundary라 통과율에서 제외했고 `REFLECT/MEDIUM` 분포만 기록한다. False Positive가
 1건 남았으므로 최종 채택하지 않는다. 다음 관문에서는 위 다섯 케이스와 각각의 회귀 보호 케이스만 실행한다.
+
+## 시도 5 — carryover·Branch·CLOSE 경계 관문
+
+- 커밋: [`a9832dd`](https://github.com/rudin0806/Nook/commit/a9832dd1002ab56153d2dfa70af7b3655f9eeec2)
+- 실행: [GitHub Actions 34793377430](https://github.com/rudin0806/Nook/actions/runs/34793377430)
+- 모델: `gpt-5.6-sol`, reasoning effort 미지정(모델 기본값)
+- 결과: **9/10 통과**, action 9/10
+- 토큰: 입력 51,338 / 출력 3,947
+- 공개 uncached 단가 기준 상한: 약 $0.284
+
+`J-SHIFT-02`, `J-NOT-02`, `J-AI-01`, `J-CARRY-02`와 보호 케이스는 모두 통과했다.
+남은 실패는 `J-CLOSE-03`의 CLOSE 누락 한 건이다. 확인 결과 confidence 절의 "MEDIUM과 LOW는
+모두 REFLECT"라는 문장이 뒤의 CLOSE 절과 충돌했다. action 순서를 SHIFT → CLOSE → REFLECT로
+고쳐 충돌을 제거하고 CLOSE 및 과잉 CLOSE 보호군만 다시 검증한다.
