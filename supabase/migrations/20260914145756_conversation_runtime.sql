@@ -83,7 +83,7 @@ begin
   select id into mid from public.messages where session_id=p_session and sequence_no=seq-1 and role='USER';
   if mid is null then raise exception 'CONVERSATION_USER_MESSAGE_REQUIRED'; end if;
   if j is not null and j<>'null'::jsonb then
-   if j->>'action' is distinct from case when kind='REFLECT' then 'REFLECT' when kind='SHIFT' then 'SHIFT' when kind='CLOSE' then 'CLOSE' else null end then raise exception 'CONVERSATION_JUDGE_INVALID'; end if;
+   if j->>'action' is distinct from (case when kind='REFLECT' then 'REFLECT' when kind='SHIFT' then 'SHIFT' when kind='CLOSE' then 'CLOSE' else null end) then raise exception 'CONVERSATION_JUDGE_INVALID'; end if;
    insert into public.judge_logs(session_id,segment_id,user_message_id,action,shift_confidence,medium_reason,validated_output,model_name,prompt_version,latency_ms,input_tokens,output_tokens)
     values(p_session,g.id,mid,(j->>'action')::public.judge_action,(j->>'shift_confidence')::public.shift_confidence,(j->>'medium_reason')::public.medium_reason,j,
      p_payload#>>'{metadata,configuredModel}',p_payload#>>'{metadata,promptVersion}',(p_payload#>>'{metadata,latencyMs}')::integer,(p_payload#>>'{metadata,inputTokens}')::integer,(p_payload#>>'{metadata,outputTokens}')::integer);

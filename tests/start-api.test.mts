@@ -175,7 +175,7 @@ test("HTTP rejects cross-origin and supplied user IDs before executing", async (
   );
   assert.equal(calls, 0);
 });
-test("HTTP allows 5000 Korean characters and a signed approval, caps streamed bytes", async () => {
+test("HTTP accepts 5000-character input and caps confirmed questions to Judge limit", async () => {
   const text = "가".repeat(5000);
   const receipt = proposalResponse(
     owner(),
@@ -188,7 +188,37 @@ test("HTTP allows 5000 Korean characters and a signed approval, caps streamed by
   assert.equal(
     (
       await handleAIRequest(
-        request({ requestId, receipt: receipt.receipt, finalText: text }),
+        request({ requestId, thought: text }),
+        startRequestSchema,
+        run,
+        env,
+      )
+    ).status,
+    200,
+  );
+  assert.equal(
+    (
+      await handleAIRequest(
+        request({
+          requestId,
+          receipt: receipt.receipt,
+          finalText: text.slice(0, 1001),
+        }),
+        approvalRequestSchema,
+        run,
+        env,
+      )
+    ).status,
+    400,
+  );
+  assert.equal(
+    (
+      await handleAIRequest(
+        request({
+          requestId,
+          receipt: receipt.receipt,
+          finalText: text.slice(0, 1000),
+        }),
         approvalRequestSchema,
         run,
         env,

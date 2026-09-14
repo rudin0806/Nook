@@ -1,0 +1,41 @@
+name: Conversation generation evaluation
+
+on:
+  push:
+    branches:
+      - codex/rules-v3-retention-hardening
+    paths:
+      - ".github/conversation-eval-trigger.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: conversation-generation-evaluation
+  cancel-in-progress: false
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Validate fixtures and all offline tests
+        run: |
+          npm run eval:validate
+          node --experimental-strip-types --test tests/*.test.mts
+      - name: Typecheck lint and build before paid calls
+        run: npm run validate
+      - name: Evaluate six Judge to C/D contexts
+        env:
+          OPENAI_API_KEY: ${{ secrets.AI_API_KEY }}
+        run: node --experimental-strip-types scripts/eval-conversation.mts
