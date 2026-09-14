@@ -149,3 +149,16 @@ REFLECT/LOW였다. reasoning 수준이 주원인은 아니다. CLOSE를 결론 �
 U4에는 새 재료가 있고 U5·U6에서 반복이 시작되는 반면, 프롬프트의 "현재 창에 새 정보 없음"은
 창 전체에 새 정보가 한 번도 없어야 한다는 뜻으로 읽힐 수 있었다. Close의 새 정보 판정 시점을
 마지막 사용자 응답으로 RULES와 프롬프트에 함께 명시한다.
+
+## 시도 9 — 마지막 사용자 응답 기준
+
+- 커밋: [`46ea00b`](https://github.com/rudin0806/Nook/commit/46ea00b8dc6e70ad5f239612604ac16a84fce468)
+- 실행: [GitHub Actions 34794659061](https://github.com/rudin0806/Nook/actions/runs/34794659061)
+- 모델: `gpt-5.6-sol`, reasoning effort `high`
+- 결과: **5/6 통과**, action 5/6
+- 토큰: 입력 33,080 / 출력 2,947
+- 공개 uncached 단가 기준 상한: 약 $0.191
+
+목표였던 `J-CLOSE-03`은 처음으로 통과했다. 새 실패는 `J-AI-01`의 과잉 CLOSE다. 사용자가 자기
+표현을 반복하는 것과 AI가 먼저 만든 해석어에 동의만 반복하는 것을 CLOSE가 구분하지 못했다.
+후자는 사용자 생각의 수렴이 아니므로 REFLECT/LOW로 유지한다는 예외를 RULES와 프롬프트에 명시한다.
