@@ -7,6 +7,7 @@ on:
     paths:
       - "src/**"
       - "supabase/migrations/**"
+      - "supabase/tests/**"
       - "tests/**"
       - "eval/**"
       - "scripts/**"
@@ -41,7 +42,7 @@ jobs:
       - name: Validate Judge contracts
         run: npm run eval:judge:validate
       - name: Test Safety and start flow
-        run: node --experimental-strip-types --test tests/safety-gate.test.mts tests/start-flow.test.mts tests/admission.test.mts
+        run: node --experimental-strip-types --test tests/safety-gate.test.mts tests/start-flow.test.mts tests/admission.test.mts tests/start-approval.test.mts
       - name: Typecheck lint and production build
         run: npm run validate
 
@@ -87,3 +88,55 @@ jobs:
           test "$(grep -h '^CLAIMED$' /tmp/nook-admission/* | wc -l)" -eq 1
           test "$(grep -h '^RUNNING$' /tmp/nook-admission/* | wc -l)" -eq 11
           test "$(psql -XAt -c "select minute_count from public.ai_request_limits where user_id='10000000-0000-4000-8000-000000000002'")" -eq 1
+
+  start-approval-db:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: ci-only-password
+          POSTGRES_DB: approval_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: ci-only-password
+      PGDATABASE: approval_test
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Apply all migrations and test ownership rollback and retention
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql -X -v ON_ERROR_STOP=1 -f tests/start-approval-db-bootstrap.sql
+          for file in supabase/migrations/*.sql; do psql -X -v ON_ERROR_STOP=1 -f "$file"; done
+          for file in supabase/tests/*.sql; do psql -X -v ON_ERROR_STOP=1 -f "$file"; done
+      - name: Concurrent approvals return the same single Node
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql -X -v ON_ERROR_STOP=1 -f tests/start-approval-concurrent.sql
+          lease=$(psql -XAtq -v ON_ERROR_STOP=1 -c "set role service_role; select public.claim_ai_request('10000000-0000-4000-8000-000000000010','50000000-0000-4000-8000-000000000010',repeat('b',64))->>'token';")
+          mkdir -p /tmp/nook-approval
+          pids=()
+          for i in $(seq 1 12); do
+            psql -XAtq -v ON_ERROR_STOP=1 -c "set role service_role; select public.approve_start_question('10000000-0000-4000-8000-000000000010','50000000-0000-4000-8000-000000000010','$lease',repeat('b',64),'20000000-0000-4000-8000-000000000010','40000000-0000-4000-8000-000000000010','회사를 옮길까?','회사를 옮길까?','2099-01-01');" > "/tmp/nook-approval/$i" &
+            pids+=("$!")
+          done
+          for pid in "${pids[@]}"; do wait "$pid"; done
+          test "$(cat /tmp/nook-approval/* | sort -u | wc -l)" -eq 1
+          test "$(cat /tmp/nook-approval/* | wc -l)" -eq 12
+          test "$(psql -XAtq -c 'select count(*) from public.question_nodes')" -eq 1
+          test "$(psql -XAtq -c 'select node_count from public.segments')" -eq 1
+          test "$(psql -XAtq -c 'select state from public.ai_requests')" = SUCCEEDED

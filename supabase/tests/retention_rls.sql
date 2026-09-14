@@ -73,7 +73,8 @@ begin
   exception when insufficient_privilege then null; end;
   reset role;
   select count(*) into n from pg_tables where schemaname='public' and rowsecurity;
-  if n<>13 then raise exception 'FAIL table RLS count'; end if;
+  if n<13 or exists(select 1 from pg_tables where schemaname='public' and not rowsecurity)
+    then raise exception 'FAIL public table RLS coverage'; end if;
   if exists(select 1 from pg_class c join pg_namespace ns on ns.oid=c.relnamespace where ns.nspname='public' and c.relkind='v' and c.relname in ('active_thought_sessions','saved_thought_sessions','trashed_thought_sessions','kept_branch_questions') and not coalesce(c.reloptions @> array['security_invoker=true'],false)) then raise exception 'FAIL view security'; end if;
 end;
 $$;
