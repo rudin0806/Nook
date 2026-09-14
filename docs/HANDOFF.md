@@ -16,28 +16,22 @@
 
 - main: 확정된 PRD 및 저장 규칙. HANDOFF 상태는 기존 main의 `HANDOFF_STOPPED`를 유지한다.
 - [PR #2](https://github.com/rudin0806/Nook/pull/2): 문서·평가·AI 엔진·API 보완 작업 브랜치. 전체 병합 전이다.
-- Judge 32 / Start 17 / Safety 15. Safety category 계약 불일치 8건은 미해결이다.
+- Judge 32 / Start 17 / Safety 15. Safety category 불일치 8건은 현행 RULES 기준으로 정리했다. 독립 매핑 검사 15/15 일치, npm 전체 검증 재실행과 실제 Safety 모델 평가는 남았다.
 - Prompt B는 `gpt-5.6-sol` reasoning high의 Judge strict 31/31 회귀를 통과했다. 한 번의 fixture 결과이며 실사용 정확도나 운영 모델 확정을 뜻하지 않는다.
 - Prompt D는 통합됐고 Judge 서버 전용 어댑터도 구현됐다. Prompt C 내부 어댑터도 통합됐고, 전체 Safety→Judge→C/D 저장 배선은 남았다.
 
 ## 작업 이력과 다음 위임
 
-### C-01 — 충돌 항목 검토 (Safety 계약 미결)
+### C-01 — Safety 명칭 정합 수정 완료, 경계 평가 남음
 
-HANDOFF 상태는 `HANDOFF_STOPPED`, carryover의 `medium_reason`은 세 enum으로 확정됐다. 남은 범위는
-Safety뿐이다. 필요한 입력은 PRD·RULES·EVALSET의 Safety 절과 S-01~S-15,
-`eval/safety_mapping.json`이다.
+2026-09-14 사용자 요청으로 기존 RULES §9와 EVALSET §6의 명시된 계약을 적용했다.
+S-01~S-06은 category NONE, S-14는 NONE/SUICIDE_SELF_HARM, S-15는 NONE/GENERAL_MENTAL_HEALTH다.
+S-14의 전달 책임 문구를 제거하고 기존 매핑의 기본/긴급 번호에 맞췄다.
+입력·위험 label·behavior는 변경하지 않았다. 상세 변경과 검증 한계는 [EVALSET](EVALSET.md)의 Safety fixture 정합 수정 절에 있다.
 
-산출물: `항목 / 두 문서의 차이 / 추천안 / 영향 받는 필드·케이스 / 사용자 결정 필요 여부` 표 하나.
-
-검토할 차이:
-
-1. Safety category의 `null/NONE`, `THIRD_PARTY_RISK/SUICIDE_SELF_HARM`, `MENTAL_HEALTH_CARE/GENERAL_MENTAL_HEALTH`.
-2. fixture contact 표시 문자열과 mapping의 `primary/urgent` 객체 비교 방식.
-3. S-14 제3자 도움 안내와 전달 요청 문구.
-4. Safety Classifier 입력·출력과 STOP/HANDOFF 처리 경계 사례.
-
-추천을 결정 완료로 바꾸거나 정답 JSONL의 라벨을 수정하지 않는다.
+Claude의 다음 범위는 제3자 즉시 위험·표현 변형 등 별도 경계 사례와 도움 안내 문구 검토다.
+기존 정답 JSONL을 다시 바꾸기보다 사례 제안과 근거를 별도 문서로 전달한다.
+현재 파일의 npm 전체 검증과 실제 Safety 모델 회귀는 아직 완료하지 않았다.
 
 ### C-02 — Prompt D 초안과 말투 검토 (완료)
 

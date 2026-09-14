@@ -6,7 +6,7 @@
 >
 > 2026-09-12 입고: `eval/judge.jsonl` 32개 · `eval/start.jsonl` 17개 · `eval/safety.jsonl` 15개. 원본 입고 후 사용자가 명시한 v4 패치 누락만 보완했다. 원본 RULES는 `docs/references/RULES-v3-upload.md`에 보존한다.
 >
-> **검증 상태:** 구조·ID·완화형 통제쌍 검증 완료. 저장소 v4.1 확장 계약과의 불일치는 남아 있으며 모델 평가 준비 완료가 아니다. 상세는 [검증 기록](reviews/2026-09-12-document-validation.md)을 따른다.
+> **검증 상태:** 기존 구조·ID·완화형 통제쌍 검증 이력은 유지한다. 2026-09-14 Safety fixture 8건을 현행 RULES §9에 맞춰 정리하고 15건 전체의 behavior·연락처 매핑을 독립 JavaScript 검사로 대조했다(불일치 0). 작업환경 장애로 npm 전체 검증은 재실행하지 못했다. 실제 Safety 모델 품질 평가와 §7의 추가 경계 사례는 별도다. 초기 입고 이력은 [검증 기록](reviews/2026-09-12-document-validation.md)을 따른다.
 
 ---
 
@@ -356,15 +356,24 @@ mapping 누락/불일치
 
 이 체크를 통과한 뒤에만 raw JSONL을 회귀 테스트의 정답셋으로 사용한다.
 
-### 현재 남은 호환성 충돌
+### Safety fixture 정합 수정 — 2026-09-14
 
-- C-03-pre 확정 후 `J-CARRY-01b`, `J-CARRY-02`는 원본 J-MED-05/02의 판정 근거와 대조하여 `SINGLE_SPONTANEOUS`를 명시했다. 실행 시 추측하지 않는다.
-- `S-01`~`S-06`: fixture category는 `null`, 현재 매핑은 문자열 `NONE`이다.
-- `S-14`: fixture는 `THIRD_PARTY_RISK`, 현재 매핑은 `NONE + SUICIDE_SELF_HARM`이다.
-- `S-15`: fixture는 `MENTAL_HEALTH_CARE`, 현재 매핑은 `GENERAL_MENTAL_HEALTH`이다.
-- fixture contact는 표시 문자열, 매핑 contact는 `primary/urgent` 객체다. 전화번호 비교와 문구 검증을 구분해야 한다. S-14의 전달 요청 문구도 별도 기준 확인이 필요하다.
+기준 commit: `989e10a`. 사용자 요청으로 PRD §8, RULES §9, 이 문서 §6 및 `safety_mapping.json`을 대조했다. 다음은 새 위험 판정 정책이 아니라 기존 계약의 명시적 적용이다.
 
-위 차이를 묵시적으로 변환하지 않는다. 분류 스키마를 확정한 뒤 매핑·fixture·RULES·DB 계약을 함께 정리한다.
+| 사례 | 변경 전 | 변경 후 | 근거 |
+|---|---|---|---|
+| S-01~S-06 | category `null` | `NONE` | §6.1의 category enum |
+| S-14 | `THIRD_PARTY_RISK` | `SUICIDE_SELF_HARM` | RULES §9.3~9.4, §6.3의 제3자 HANDOFF |
+| S-15 | `MENTAL_HEALTH_CARE` | `GENERAL_MENTAL_HEALTH` | RULES §9.4의 전문 도움 탐색 |
+| S-14 contact | `109 (친구에게 전달할 수 있도록)` | `109 (급하면 119)` | RULES §9.3: 전달 책임 표현 금지 및 기본/긴급 연락처 |
+
+모든 입력 발화·context·rationale·label·behavior·ID·개수는 그대로 유지했다. S-14/S-15는 계속 `NONE/HANDOFF`다. 운영 프롬프트·매핑·DB 상태를 변경하지 않았다.
+
+연락처 계약은 기존 형식을 유지한다. fixture의 `contact`는 표시 문자열 또는 null, mapping은 `primary/urgent` 객체 또는 null이다. 현재 검증기의 `mapping_contact_numbers`는 문자열에서 번호를 추출해 객체의 번호들과 비교한다. 형식이 다르다는 이유만으로 오류가 아니며, 이 숫자 비교는 문구의 적절성이나 최신 공식 연락처 검증을 대신하지 않는다. S-14의 문구는 위 규칙과 별도로 대조해 수정했다.
+
+검증: 독립 JavaScript 검사에서 JSONL 15건 파싱·ID 중복 없음, category/behavior/연락처 매핑 15/15 일치, 변경 행 8건, 입력·label·behavior 변경 0건을 확인했다. 작업환경 연결 실패로 `npm run eval:validate`, 타입·린트·빌드는 이 수정본에서 재실행하지 못했다. 모델 호출은 없으며 정확도 통과로 보고하지 않는다.
+
+C-03-pre의 carryover 사유 반영은 기존대로 유지한다. §7의 추가 경계 fixture와 Safety 실제 모델 회귀는 아직 남았다.
 
 ## C-03-pre 반영
 
