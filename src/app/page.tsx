@@ -3,6 +3,7 @@ import { AppNavigation } from "@/components/nook/app-navigation";
 import { ThoughtInput } from "@/components/nook/thought-input";
 import { ScrollStage } from "@/components/nook/scroll-stage";
 import { PaperArt } from "@/components/nook/paper-art";
+export const dynamic = "force-dynamic";
 export default function HomePage() {
   return (
     <div className="night-app">
@@ -24,7 +25,9 @@ export default function HomePage() {
               <p>답을 서두르지 않는 곳.</p>
             </div>
             <div className="hero-composition">
-              <ThoughtInput />
+              <ThoughtInput
+                enabled={process.env.NOOK_START_API_ENABLED === "true"}
+              />
               <PaperArt />
             </div>
             <a className="scroll-cue" href="#nook-approach">
