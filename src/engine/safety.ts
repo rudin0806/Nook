@@ -6,6 +6,7 @@ import {
   executeJson,
   type JsonTransport,
 } from "./json-model.ts";
+import { moderationSignalSchema, type ModerationSignal } from "./moderation.ts";
 import type { PrepareJudgeOptions } from "./judge.ts";
 export function mapSafety(raw: unknown) {
   const parsed = safetyOutputSchema.safeParse(raw);
@@ -29,11 +30,20 @@ export async function executeSafety(
   raw: unknown,
   options: PrepareJudgeOptions,
   transport: JsonTransport,
+  moderation?: ModerationSignal,
 ) {
   const parsed = safetyInputSchema.safeParse(raw);
   if (!parsed.success) throw new Error("SAFETY_INPUT_INVALID");
+  const signal =
+    moderation === undefined
+      ? undefined
+      : moderationSignalSchema.parse(moderation);
   return executeJson(
-    prepareJsonRequest(SAFETY_SYSTEM, parsed.data, options),
+    prepareJsonRequest(
+      SAFETY_SYSTEM,
+      { ...parsed.data, ...(signal ? { moderation: signal } : {}) },
+      options,
+    ),
     mapSafety,
     transport,
     "SAFETY",
