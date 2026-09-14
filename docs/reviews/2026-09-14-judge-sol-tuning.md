@@ -73,3 +73,24 @@
 발화를 같은 방향으로 묶도록 명시한 것이 효과가 있었다. `J-HEDGE-01a/01b`는 동일한 현재 창에서
 각각 `SHIFT/HIGH`와 `REFLECT/MEDIUM + ALL_HEDGED`로 갈렸고, 네 보호 케이스도 회귀하지 않았다.
 이 프롬프트로 Judge 32건 전체 회귀를 실행한다.
+
+## 시도 4 — Judge 32건 전체 회귀
+
+- 커밋: [`6f74461`](https://github.com/rudin0806/Nook/commit/6f7446186ec3585d365befe7f474c5e2c096255e)
+- 실행: [GitHub Actions 34792907882](https://github.com/rudin0806/Nook/actions/runs/34792907882)
+- 모델: `gpt-5.6-sol`, reasoning effort 미지정(모델 기본값)
+- 결과: strict **26/31(83.9%)**, action 28/31, boundary 1건 별도
+- 토큰: 입력 146,122 / 출력 12,147
+- 공개 uncached 단가 기준 상한: 약 $0.827
+- API·JSON·Zod schema 오류: 0
+
+| 실패                 | fixture      |
+| -------------------- | ------------ |
+| missed SHIFT         | `J-SHIFT-02` |
+| Branch 과잉 생성     | `J-NOT-02`   |
+| AI 해석어 저장       | `J-AI-01`    |
+| False Positive Shift | `J-CARRY-02` |
+| CLOSE 누락           | `J-CLOSE-03` |
+
+`J-SHIFT-04`는 boundary라 통과율에서 제외했고 `REFLECT/MEDIUM` 분포만 기록한다. False Positive가
+1건 남았으므로 최종 채택하지 않는다. 다음 관문에서는 위 다섯 케이스와 각각의 회귀 보호 케이스만 실행한다.
