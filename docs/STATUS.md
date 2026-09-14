@@ -36,9 +36,9 @@ main에는 migration 5개가 있다. PR #4의 신규 환경 REVOKE 보완, PR #5
 
 ## 평가 계약과 보류
 
-Judge 32 / Start 17 / Safety 15. Judge boundary는 J-SHIFT-04 하나이며 pending은 0이다. 정적 fixture 오류는 해결했지만 Safety category 계약 불일치 8건은 남아 있다. `npm run eval:validate`는 이 불일치 때문에 실패하며 숨기거나 임의로 정답을 바꾸지 않는다.
+Judge 32 / Start 17 / Safety 15. Judge boundary는 J-SHIFT-04 하나이며 pending은 0이다. carryover 사유 2건과 Safety category 계약 8건은 해결됐다. 2026-09-14의 최신 GitHub 검증에서 `npm run eval:validate`는 issues 0으로 통과했다. 이전 PR 본문의 불일치 10건 실패 기록은 과거 상태다.
 
-[이전 파일 검증 기록](reviews/2026-09-12-document-validation.md)의 carryover 사유 누락 2건은 C-03-pre에서 해결됐다. examples/reference 의미 검토, Safety HANDOFF 상태·문구 및 분류 계약, hedge 임계값 적정성과 새 경계 사례 검토는 남았다.
+[이전 파일 검증 기록](reviews/2026-09-12-document-validation.md)의 carryover 사유 누락 2건은 C-03-pre에서 해결됐고, Safety HANDOFF 상태·문구 및 분류 계약도 후속 구현에 반영됐다. examples/reference 의미 검토, hedge 임계값 적정성과 새 경계 사례 검토는 남았다.
 
 ## 앱 API — PR #2에 구현, 실제 인증 왕복 검증 전
 
@@ -91,3 +91,14 @@ Judge 32 / Start 17 / Safety 15. Judge boundary는 J-SHIFT-04 하나이며 pendi
 ## 2026-09-14 첫 입력 화면 연결
 
 [화면 연결 기록](reviews/2026-09-14-start-ui.md). 기존 입력 화면을 첫 입력·초점 선택·질문 승인 API에 연결했다. 질문 수정, 승인 확인, Safety 안내, 로그인 필요, 횟수 제한 및 동일 요청 재확인을 표시한다. API 공개 설정이 꺼져 있으면 시작 버튼은 비활성화된다. 전체 테스트 110개 및 타입·린트·빌드 통과. 브라우저 설치 오류로 실제 클릭/시각 검증은 미완료이며, 실제 모델 평가·로그인 전체 왕복·운영 활성화·배포도 남아 있다. 이번 작업은 디자인 전면 개편이나 DB 변경을 포함하지 않는다.
+
+
+## 2026-09-14 실제 Safety·Start 평가
+
+[실행·수정·운영 확인 기록](reviews/2026-09-14-start-safety-baseline.md). 실제 호출에서 발견한 JSON 요청 형식 오류를 공통 어댑터에서 수정했다. 최초 완주 기준선은 Safety label 14/15·Start 14/17이었으며, 기존 정답은 유지한 채 프롬프트의 구분을 보완했다.
+
+Sol high 최종 회귀는 Safety label/category/behavior 각각 **15/15**, Start label **17/17**. provider 오류·위험 미탐·잘못된 STOP/HANDOFF·mapping 불일치·자동 금지어 위반 0건. 전체 테스트 **113/113**, 타입·린트·빌드·정적 fixture 검사 및 독립 DB 회귀 통과. 이 결과는 기존 fixture의 분류 평가이며 Node 0 생성·문구 의미·추가 경계·실사용 정확도까지 보장하지 않는다.
+
+운영 브라우저는 이전 홈의 비활성 시작 버튼과 비로그인 생각더미의 계정 연결 안내를 확인했다. Google 로그인 완료·identity linking·입력에서 실제 저장까지의 왕복은 아직 미검증이다. 운영 배포·환경변수 변경·기능 활성화·PR 병합은 하지 않았다.
+
+바로 진행할 후속 개발은 Node 0 생성 평가와 최신 코드 preview 배포 준비·필수 환경변수 확인이다. 실제 Google 로그인에는 사용자 참여가 필요하다. 운영 모델/reasoning과 익명 시작 공개 여부는 이번 품질 기준선만으로 확정하지 않는다. 위 검증 공백을 해소하기 전에는 병합·운영 공개를 보류한다.
