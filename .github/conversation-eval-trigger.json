@@ -1,4 +1,4 @@
 {
-  "purpose": "Identify Judge schema violation using structural diagnostics only; at most 12 calls",
-  "attempt": 3
+  "purpose": "Verify explicit existing Judge output cardinality contract before C/D generation; at most 12 calls",
+  "attempt": 4
 }

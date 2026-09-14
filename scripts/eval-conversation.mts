@@ -172,6 +172,9 @@ async function main() {
   const hashes = Object.fromEntries(
     [
       "eval/judge.jsonl",
+      "src/prompts/prompt-judge.ts",
+      "src/schemas/judge.ts",
+      "src/engine/judge.ts",
       "src/prompts/prompt-reframe.ts",
       "src/prompts/prompt-reflect.ts",
       "src/engine/reframe.ts",

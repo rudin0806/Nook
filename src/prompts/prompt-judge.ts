@@ -395,6 +395,8 @@ JSON만 출력한다. 설명이나 코드펜스를 붙이지 않는다.
   "promote_pile_item": null
 }
 
+- clarifications는 한 응답에 최대 3개다. 핵심적인 새 사실을 우선하고 중복은 합친다. 생략한 사실을 보충하려고 새로운 의미를 만들지 않는다.
+- branches는 최대 5개, 각 evidence_turns는 중복 없이 최대 10개다.
 - action이 CLOSE면 shift_confidence는 생략한다.
 - medium_reason은 REFLECT/MEDIUM일 때만 값을 넣고, 그 외에는 null이다.
 - 없으면 빈 배열, promote_pile_item은 null.
