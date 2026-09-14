@@ -174,3 +174,24 @@ U4에는 새 재료가 있고 U5·U6에서 반복이 시작되는 반면, 프롬
 
 세 CLOSE positive와 `J-CLOSE-TRAP-01`, AI 유도, carryover negative control이 모두 통과했다.
 같은 프롬프트와 Sol high 설정으로 Judge 32건 전체 최종 회귀를 실행한다.
+
+## 시도 11 — Sol high 최종 32건 회귀
+
+- 커밋: [`23ccc08`](https://github.com/rudin0806/Nook/commit/23ccc08b0894287ac7a3b7348a54cdda66f7952f)
+- 실행: [GitHub Actions 34795136112](https://github.com/rudin0806/Nook/actions/runs/34795136112)
+- 모델: `gpt-5.6-sol`, reasoning effort `high`
+- 결과: strict **31/31 통과**, action 31/31, 오류 0
+- boundary: `J-SHIFT-04` 1건은 통과율에서 제외하고 `REFLECT/MEDIUM` 분포로 기록
+- action 분포: SHIFT 7 / REFLECT 22 / CLOSE 3
+- 토큰: 입력 178,602 / 출력 13,945
+- 공개 uncached 단가 기준 상한: 약 **$0.993**
+- API·JSON·Zod schema 오류: 0
+- prompt SHA-256: `7633f56972fbea5af348250240dccd268d6e339344473fb8d08d8b8e5b2d3830`
+- fixture SHA-256: `6ed719663fbb01695ba69511730f186ea22186e604ca7c29b7a86cc341ea9f9a`
+
+### 채택 결론
+
+Prompt B와 Sol high 조합은 현재 Judge strict fixture의 결정론적 채점 관문을 통과했다.
+False Positive Shift, MEDIUM→HIGH, 금지어, Branch, carryover, CLOSE 오류가 모두 0이었다.
+다만 이는 31개 strict fixture에 대한 한 번의 모델 실행 결과이며 실사용 정확도 보증은 아니다.
+reference/examples의 의미 동등성 사람 검토, 실제 대화 회귀, Terra/Luna 비용 비교는 별도 단계로 남긴다.

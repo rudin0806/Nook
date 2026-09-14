@@ -19,16 +19,17 @@ main에는 migration 5개가 있다. PR #4의 신규 환경 REVOKE 보완, PR #5
 - 만료 경계 SQL 테스트 통과: 만료 시각 이전 보호·정각 삭제, SAVED 보호, SAFETY_STOPPED 만료, 일반 사용자 호출 거절, 반복 실행 안전성을 독립 PGlite에서 확인했다. **자동 삭제 예약은 가동하지 않는다.** 예약 설정·실행 이력 검증은 남았다.
 - 전체 Supabase reset, 실제 Auth/HTTP API·동시성 검증은 남았다.
 
-## AI — PR #2에 구현, Sol 32건 기준선 확보
+## AI — PR #2에 구현, Sol high Judge strict 31/31
 
-- 사용자 결정에 따라 모델 후보는 `gpt-5.6-luna / terra / sol`로 제한하고 Astra는 평가·운영 후보에서 제외한다. Sol 기준선만으로 운영 모델을 확정하지 않으며 역할별 품질 관문을 통과한 최저 비용 구성을 선택한다.
+- 사용자 결정에 따라 모델 후보는 `gpt-5.6-luna / terra / sol`로 제한하고 Astra는 평가·운영 후보에서 제외한다. 코드와 평가 trigger가 이 allowlist를 강제한다. reasoning effort도 `low / medium / high`만 허용하고 실행 보고서에 기록한다.
 - 공통 hedge 계산: 전체 사용자 발화로 비율 계산, 최소 5턴·0.7 기준, 중복 ID 거절, 일치 패턴 반환.
 - C-03-pre: Prompt B, Judge Zod 출력 검증, MEDIUM 사유와 결정론적 채점기.
 - [C-02 통합](reviews/2026-09-13-C-02-integration.md): Prompt D의 REFLECT 전용 요청 준비, MEDIUM 사유 전달, PAST 제한·출력 검증.
-- [모델 평가기](reviews/2026-09-13-judge-model-runner.md): Responses API 연결, 기본 핵심 2개 사례·출력 제한·에러 중단·원문 없는 보고서.
+- [모델 평가기](reviews/2026-09-13-judge-model-runner.md): Responses API 연결, 출력·호출 수 제한, 에러 중단, 원문 없는 구조 보고서. GitHub Actions와 JSON trigger 모두 모델·reasoning·최대 호출·출력 상한을 검증한다.
 - GitHub Actions의 `AI_API_KEY` secret을 평가 실행 때만 `OPENAI_API_KEY`로 전달한다. `gpt-5.6-sol` 핵심 관문은 J-CLOSE-01=`CLOSE`, J-EDGE-01=`SHIFT/HIGH`로 2/2 통과했다([run 34757408510](https://github.com/rudin0806/Nook/actions/runs/34757408510)). 입력 6,009·출력 636토큰이었고 실행 시점 공개 단가 기준 약 $0.037이다.
 - Responses API 입력은 명시적 `user`/`input_text` 배열이며, JSON mode 검증을 위해 사용자 입력에도 JSON 출력 요구를 넣었다. 유료 push trigger는 strict schema, 중복 ID 거절, 최대 32호출·호출당 4096 출력토큰 상한을 거친다.
-- [Sol 32건 기준선](reviews/2026-09-13-judge-sol-baseline.md): API 오류 없이 32/32 완료, strict 20/31 통과(64.5%). False Positive Shift·MEDIUM→HIGH·금지어 위반은 0이지만, 놓친 SHIFT 4·MEDIUM→LOW 6·Branch 실패 1이 있어 보수성 조정이 필요하다. 입력 95,434·출력 10,405토큰, uncached 단가 상한 약 $0.590.
+- [Sol 32건 기준선](reviews/2026-09-13-judge-sol-baseline.md)은 strict 20/31(64.5%)이었다. [보수성 조정과 최종 회귀](reviews/2026-09-14-judge-sol-tuning.md) 후 `gpt-5.6-sol` reasoning high에서 strict **31/31**, action 31/31, 오류 0을 기록했다([run 34795136112](https://github.com/rudin0806/Nook/actions/runs/34795136112)). boundary `J-SHIFT-04`는 `REFLECT/MEDIUM` 분포로 별도 기록했다. 입력 178,602·출력 13,945토큰, uncached 단가 상한 약 $0.993이다.
+- 최종 결과는 결정론적 fixture 채점 1회 통과다. reference/examples 의미 동등성 사람 검토와 실제 대화 회귀 전까지 실사용 정확도를 보장하지 않는다. Sol high를 Judge 품질 기준 후보로 두되 Terra/Luna 동일 조건 비교 전에는 최저 비용 운영 모델을 확정하지 않는다.
 - Prompt C는 Claude 산출물 대기. 실제 사용자 대화에 대한 Safety/종료/상한→Judge→C/D→저장 연결은 미구현이다.
 
 ## 평가 계약과 보류
@@ -41,14 +42,14 @@ Judge 32 / Start 17 / Safety 15. Judge boundary는 J-SHIFT-04 하나이며 pendi
 
 [보관·휴지통 API](reviews/2026-09-13-retention-api.md)를 추가했다. 로그인 사용자는 진행 중·생각더미·휴지통 기록과 남겨둔 질문을 조회하고, 완료 기록 보관 확정·휴지통 이동·복원·질문 영구 삭제를 요청할 수 있다. Route Handler는 Supabase secret key 없이 인증 쿠키와 RLS/RPC를 사용한다. 입력 크기·UUID·페이지 범위를 검증하고 DB 내부 오류는 공개하지 않는다.
 
-계약 테스트 5개를 포함해 단위 테스트 38개가 통과했다. 실제 익명 로그인·Google/Kakao identity linking·배포 환경 HTTP 검증과 화면 연결은 남았다.
+계약 테스트 5개를 포함해 단위 테스트 41개가 통과했다. 실제 익명 로그인·Google/Kakao identity linking·배포 환경 HTTP 검증과 화면 연결은 남았다.
 
 ## 다음 업무
 
 1. 익명 로그인 초기화와 Google/Kakao identity linking·OAuth callback 구현.
 2. 보관·휴지통·복원 API를 실제 화면에 연결하고 배포 환경에서 HTTP/RLS 왕복 검증.
 3. 삭제 예약 적용 준비. 만료 경계 테스트는 완료했다.
-4. Judge 실패 11건 subset으로 Prompt B의 보수성을 조정하고 핵심 대조쌍 회귀 후 32건을 재평가.
-5. Claude Prompt C 검토, Safety 계약 해결, 검증된 변경을 순차 병합.
+4. Prompt B/Judge를 실제 세션 처리 흐름에 연결하고 원문 미저장·구조 로그·호출 상한을 통합 검증.
+5. Claude Prompt C 검토, Safety 계약 해결, Terra/Luna 비용 비교 후 검증된 변경을 순차 병합.
 
 협업 역할과 최소 전달 방식은 [HANDOFF.md](HANDOFF.md)를 따른다. 오래된 체크포인트보다 이 문서의 현재 상태를 우선한다.
