@@ -1,4 +1,4 @@
 {
-  "requestedAt": "2026-09-14T13:07:00Z",
-  "purpose": "Evaluate after fixing provider JSON input contract"
+  "requestedAt": "2026-09-14T13:12:00Z",
+  "purpose": "Regress all existing fixtures after clarifying established classification boundaries"
 }
