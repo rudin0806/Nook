@@ -1,4 +1,4 @@
 {
-  "purpose": "Diagnose the first failed C/D batch with bounded stage/error codes; no automatic retries; at most 12 calls",
-  "attempt": 2
+  "purpose": "Identify Judge schema violation using structural diagnostics only; at most 12 calls",
+  "attempt": 3
 }

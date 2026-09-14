@@ -6,7 +6,7 @@ import { executeJson } from "../src/engine/json-model.ts";
 import { executeReframe } from "../src/engine/reframe.ts";
 import { executeReflection } from "../src/engine/reflect-runtime.ts";
 import { formatProviderDiagnostic } from "./judge-model.mts";
-import { judgeInputSchema } from "../src/schemas/judge.ts";
+import { judgeInputSchema, judgeOutputSchema } from "../src/schemas/judge.ts";
 import { z } from "zod";
 
 const ids = [
@@ -54,6 +54,7 @@ async function main() {
     timeout: 60000,
   });
   const usage = { calls: 0, inputTokens: 0, outputTokens: 0 };
+  const diagnostics: unknown[] = [];
   const transport = async (
     request: Parameters<typeof client.responses.create>[0],
   ) => {
@@ -66,6 +67,29 @@ async function main() {
       });
     usage.inputTokens += r.usage?.input_tokens ?? 0;
     usage.outputTokens += r.usage?.output_tokens ?? 0;
+    try {
+      const raw: unknown = JSON.parse(r.output_text);
+      if (typeof raw === "object" && raw !== null && "action" in raw) {
+        const parsed = judgeOutputSchema.safeParse(raw);
+        if (!parsed.success)
+          diagnostics.push({
+            call: usage.calls,
+            issues: parsed.error.issues.map((i) => ({
+              code: i.code,
+              path: i.path.map((p) =>
+                typeof p === "number"
+                  ? p
+                  : String(p)
+                      .replace(/[^a-z_]/g, "")
+                      .slice(0, 40),
+              ),
+              rule: i.code === "custom" ? i.message : undefined,
+            })),
+          });
+      }
+    } catch {
+      diagnostics.push({ call: usage.calls, error: "NON_JSON_OUTPUT" });
+    }
     return r;
   };
   const rows: unknown[] = [];
@@ -165,6 +189,7 @@ async function main() {
         reasoning: options.reasoningEffort,
         hashes,
         usage,
+        diagnostics,
         complete,
         semanticReview: "PENDING",
         scope:
