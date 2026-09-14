@@ -41,8 +41,8 @@ jobs:
         run: npm run eval:validate
       - name: Validate Judge contracts
         run: npm run eval:judge:validate
-      - name: Test Safety and start flow
-        run: node --experimental-strip-types --test tests/safety-gate.test.mts tests/start-flow.test.mts tests/admission.test.mts tests/start-approval.test.mts
+      - name: Run all offline unit tests
+        run: node --experimental-strip-types --test tests/*.test.mts
       - name: Typecheck lint and production build
         run: npm run validate
 

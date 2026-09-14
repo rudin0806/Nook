@@ -259,6 +259,13 @@ export function DrawerContents() {
                       </p>
                     )}
                     <div>
+                      {collection === "sessions" && (
+                        <p>
+                          <Link href={`/drawer/${item.id}`}>
+                            이야기 펼쳐보기
+                          </Link>
+                        </p>
+                      )}
                       <ActionButton
                         variant="neutralWeak"
                         disabled={busy}

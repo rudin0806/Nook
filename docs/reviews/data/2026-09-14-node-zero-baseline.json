@@ -1,0 +1,125 @@
+{
+  "commit": "85741090ea06d673533814d0612b5f1484f732d5",
+  "hashes": {
+    "eval/start.jsonl": "2fb33bd7a44506dce1ee8a5f28bcc622ffa62ccb8d5549592958daa1a6aa3017",
+    "src/prompts/prompt-node-zero.ts": "0d7d2ae289f4fad83975de816fa05b3af02203d45bef3ba8f75e1a4c917f2918",
+    "src/engine/start.ts": "7283d81d043230b7b397be902d06ac7bfe4116ceda0ee1a768f943f506d63da7",
+    "src/engine/json-model.ts": "2a0e0653d48ba90f90ab7fadb80bea037bccc338a1916b345e19300cd7578f2e"
+  },
+  "usage": {
+    "calls": 11,
+    "inputTokens": 6125,
+    "outputTokens": 2423
+  },
+  "model": "gpt-5.6-sol",
+  "reasoningEffort": "high",
+  "maxOutputTokens": 2048,
+  "planned": 11,
+  "complete": true,
+  "automaticPass": true,
+  "semanticReview": "PENDING",
+  "cases": [
+    {
+      "id": "ST-06",
+      "question": "치킨을 먹을지 말지 결정할 때 지금 가장 망설여지는 건 뭘까?",
+      "evidence_sentence": "치킨을 먹을지 말지 30분째 고민하고 있다고 표현해 이 질문을 제안했다.",
+      "evidence_quotes": [
+        "치킨 먹을까 말까 30분째 고민 중"
+      ],
+      "forbiddenKeywords": []
+    },
+    {
+      "id": "ST-07",
+      "question": "요즘 자꾸 시켜 먹는 것에 대해 어떤 점에서 이래도 되나 싶나요?",
+      "evidence_sentence": "요즘 자꾸 시켜 먹으면서 이래도 되는지 망설이는 표현을 바탕으로 제안한 질문입니다.",
+      "evidence_quotes": [
+        "요즘 자꾸 시켜 먹는데 이래도 되나"
+      ],
+      "forbiddenKeywords": []
+    },
+    {
+      "id": "ST-08",
+      "question": "요즘 커피를 줄이려는데도 계속 마셔도 될지 고민되는 건 어떤 점 때문일까요?",
+      "evidence_sentence": "커피를 줄이려 하면서도 계속 마셔도 될지 묻고 있어 이 질문을 제안했습니다.",
+      "evidence_quotes": [
+        "요즘 커피를 줄이려는데 계속 마셔도 될까?"
+      ],
+      "forbiddenKeywords": []
+    },
+    {
+      "id": "ST-09",
+      "question": "노트북을 살까 말까부터 모르겠는 이유는 무엇일까?",
+      "evidence_sentence": "노트북을 고르기 전에 구매할지부터 모르겠다고 표현해 이 질문을 제안했다.",
+      "evidence_quotes": [
+        "사실 살까 말까부터 모르겠어"
+      ],
+      "forbiddenKeywords": []
+    },
+    {
+      "id": "ST-10",
+      "question": "팀장에게 퇴사한다고 쓴 메일을 진짜 보내도 될지 어떻게 판단하면 좋을까요?",
+      "evidence_sentence": "퇴사 메일을 써 달라고 하면서도 진짜 보내도 될지는 모르겠다고 표현했습니다.",
+      "evidence_quotes": [
+        "팀장한테 퇴사한다고 보낼 메일 써줘",
+        "진짜 보내도 되나 모르겠어"
+      ],
+      "forbiddenKeywords": []
+    },
+    {
+      "id": "ST-11",
+      "question": "연봉 500을 더 준다는 조건으로 옮기려는데, 이게 맞는 선택일까?",
+      "evidence_sentence": "연봉을 500 더 준다는 제안으로 옮기려 하면서 그 선택이 맞는지 확신하지 못하고 있다고 표현했다.",
+      "evidence_quotes": [
+        "연봉 500 더 준대서 옮기려는데",
+        "이게 맞나 싶어"
+      ],
+      "forbiddenKeywords": []
+    },
+    {
+      "id": "ST-12",
+      "question": "지금 머릿속을 복잡하게 하는 것은 무엇일까요?",
+      "evidence_sentence": "사용자가 머릿속이 복잡하다고 표현해, 지금 무엇이 복잡하게 느껴지는지 살펴보는 질문을 제안했습니다.",
+      "evidence_quotes": [
+        "그냥 머릿속이 복잡해"
+      ],
+      "forbiddenKeywords": []
+    },
+    {
+      "id": "ST-13",
+      "question": "요즘 다 귀찮다고 느끼는 건 어떤 때인가요?",
+      "evidence_sentence": "요즘 모든 것이 귀찮게 느껴진다는 표현을 바탕으로 제안한 질문입니다.",
+      "evidence_quotes": [
+        "요즘 다 귀찮아"
+      ],
+      "forbiddenKeywords": []
+    },
+    {
+      "id": "ST-14",
+      "question": "이직하고 싶은데, 왜 그런 마음이 드는지 모르겠다고 느끼는 이유는 무엇일까요?",
+      "evidence_sentence": "이직하고 싶지만 그 이유를 모르겠다고 표현해 이 질문을 제안했습니다.",
+      "evidence_quotes": [
+        "이직하고 싶은데 이유를 모르겠어"
+      ],
+      "forbiddenKeywords": []
+    },
+    {
+      "id": "ST-15",
+      "question": "계속 만나는 게 맞는지 모르겠는 이유는 무엇일까요?",
+      "evidence_sentence": "계속 만나는 게 맞는지 모르겠다고 표현해 그 이유를 함께 살펴보는 질문을 제안했습니다.",
+      "evidence_quotes": [
+        "계속 만나는 게 맞는지 모르겠어"
+      ],
+      "forbiddenKeywords": []
+    },
+    {
+      "id": "ST-16",
+      "question": "사고 싶은데 계속 망설여지는 건 무엇 때문일까?",
+      "evidence_sentence": "사고 싶으면서도 계속 망설여진다고 표현해 이 질문을 제안했다.",
+      "evidence_quotes": [
+        "사고 싶은데 계속 망설여져"
+      ],
+      "forbiddenKeywords": []
+    }
+  ],
+  "error": null
+}
