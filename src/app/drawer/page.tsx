@@ -12,7 +12,7 @@ export default function DrawerPage() {
         <nav className="home-nav" aria-label="주 메뉴">
           <Link href="/">이야기 나누기</Link>
           <Link href="/drawer" aria-current="page">
-            서랍
+            생각더미
           </Link>
         </nav>
       </header>
@@ -21,7 +21,7 @@ export default function DrawerPage() {
           <span />
         </div>
         <p className="preview-kicker">내가 남겨둔 이야기</p>
-        <h1>서랍</h1>
+        <h1>생각더미</h1>
         <p className="preview-description">
           다시 펼쳐보고 싶은 이야기를 여기 모아두어요.
         </p>

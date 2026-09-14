@@ -56,10 +56,10 @@ export function DrawerContents() {
         if (!response.ok) {
           const message =
             response.status === 401
-              ? "서랍을 보려면 로그인이 필요해요. 로그인 기능은 준비 중이에요."
+              ? "생각더미을 보려면 로그인이 필요해요. 로그인 기능은 준비 중이에요."
               : response.status === 503
-                ? "지금은 서랍을 연결할 수 없어요. 잠시 후 다시 확인해 주세요."
-                : "서랍을 불러오지 못했어요. 다시 시도해 주세요.";
+                ? "지금은 생각더미을 연결할 수 없어요. 잠시 후 다시 확인해 주세요."
+                : "생각더미을 불러오지 못했어요. 다시 시도해 주세요.";
           if (!controller.signal.aborted) setState({ kind: "error", message });
           return;
         }
@@ -84,7 +84,7 @@ export function DrawerContents() {
           setState({
             kind: "error",
             message:
-              "서랍을 불러오지 못했어요. 연결을 확인하고 다시 시도해 주세요.",
+              "생각더미을 불러오지 못했어요. 연결을 확인하고 다시 시도해 주세요.",
           });
       }
     }
@@ -103,7 +103,7 @@ export function DrawerContents() {
     setOffset(next);
   }
   return (
-    <section aria-label="서랍 내용">
+    <section aria-label="생각더미 내용">
       <div className="preview-actions" role="group" aria-label="보관 종류">
         <ActionButton
           variant={collection === "sessions" ? "neutralSolid" : "neutralWeak"}
@@ -122,7 +122,7 @@ export function DrawerContents() {
       </div>
       <div aria-live="polite" aria-busy={state.kind === "loading"}>
         {state.kind === "loading" && (
-          <p className="preview-status">서랍을 열고 있어요…</p>
+          <p className="preview-status">생각더미을 열고 있어요…</p>
         )}
         {state.kind === "error" && (
           <div className="preview-summary-card">

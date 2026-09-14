@@ -12,7 +12,7 @@ export default function HomePage() {
           <Link href="/" aria-current="page">
             이야기 나누기
           </Link>
-          <Link href="/drawer">서랍</Link>
+          <Link href="/drawer">생각더미</Link>
           <Link href="/preview">화면 시안</Link>
         </nav>
       </header>

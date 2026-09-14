@@ -6,7 +6,7 @@ import { ActionButton, TextField } from "@seed-design/react";
 type Screen = "start" | "conversation" | "path" | "drawer";
 const screens: { id: Screen; label: string }[] = [
   { id: "start", label: "이야기 나누기" },
-  { id: "drawer", label: "서랍" },
+  { id: "drawer", label: "생각더미" },
 ];
 const initialQuestion = "지금 회사를 떠나고 싶은 걸까?";
 const nextQuestion = "지금 회사에서 새로운 일을 해볼 수 있을까?";
@@ -55,7 +55,7 @@ export function NookPreview({
   }
 
   return (
-    <div className="nook-preview">
+    <div className={`nook-preview nook-screen-${screen}`}>
       <div className="preview-ribbon">
         <span>DESIGN PREVIEW</span>예시 데이터로 살펴보는 화면 · 입력은
         전송·저장되지 않아요
@@ -87,18 +87,28 @@ export function NookPreview({
       </header>
       {screen === "start" ? (
         <main className="preview-start">
-          <div className="preview-flower" aria-hidden="true">
-            ✳
+          <div className="preview-welcome">
+            <div className="preview-welcome-copy">
+              <p className="preview-kicker">잘 왔어요, 여기는 nook이에요</p>
+              <h1>
+                무슨 생각
+                <br />
+                하고 있었어요?
+              </h1>
+              <p className="preview-description">
+                두서없어도 괜찮아요. 편하게 들려주세요.
+              </p>
+            </div>
+            <div className="puff-scene" aria-hidden="true">
+              <div className="puff-halo" />
+              <div className="puff-friend">
+                <i />
+                <i />
+                <span />
+              </div>
+              <div className="puff-pebble" />
+            </div>
           </div>
-          <p className="preview-kicker">생각이 머무는 작은 자리</p>
-          <h1>
-            무슨 생각
-            <br />
-            하고 있었어요?
-          </h1>
-          <p className="preview-description">
-            두서없어도 괜찮아요. 편하게 들려주세요.
-          </p>
           <div className="preview-composer">
             <TextField.Root>
               <TextField.Textarea
@@ -137,26 +147,47 @@ export function NookPreview({
               </ActionButton>
             ))}
           </div>
-          <div className="preview-recent">
-            <div>
-              <p className="preview-kicker">서랍에 넣어둔 이야기 · 예시</p>
-              <h2>
-                떠나고 싶은 마음에서,
-                <br />
-                새로운 일을 해보고 싶은 마음으로.
-              </h2>
-              <span>9월 14일 · 질문의 경로</span>
+          <div className="preview-collection-title">
+            <h2>생각더미</h2>
+            <button onClick={() => navigate("drawer")}>모두 보기 ↗</button>
+          </div>
+          <div className="preview-home-grid">
+            <div className="preview-recent">
+              <div>
+                <p className="preview-kicker">
+                  생각더미에 넣어둔 이야기 · 예시
+                </p>
+                <h2>
+                  떠나고 싶은 마음에서,
+                  <br />
+                  새로운 일을 해보고 싶은 마음으로.
+                </h2>
+                <span>9월 14일 · 질문의 경로</span>
+              </div>
+              <ActionButton
+                variant="ghost"
+                size="small"
+                onClick={() => {
+                  setApproved(true);
+                  navigate("path");
+                }}
+              >
+                펼쳐보기 ↗
+              </ActionButton>
             </div>
-            <ActionButton
-              variant="ghost"
-              size="small"
-              onClick={() => {
-                setApproved(true);
-                navigate("path");
-              }}
+            <button
+              className="preview-soft-card"
+              onClick={() => navigate("conversation")}
             >
-              펼쳐보기 ↗
-            </ActionButton>
+              <span className="puff-mini" aria-hidden="true" />
+              <small>처음이라면</small>
+              <h2>
+                어떤 이야기를
+                <br />
+                나누게 될까요?
+              </h2>
+              <span>예시 대화 둘러보기 ↗</span>
+            </button>
           </div>
         </main>
       ) : screen === "drawer" ? (
@@ -165,7 +196,7 @@ export function NookPreview({
             <span />
           </div>
           <p className="preview-kicker">내가 남겨둔 이야기</p>
-          <h1>서랍</h1>
+          <h1>생각더미</h1>
           <p className="preview-description">
             다시 펼쳐보고 싶은 이야기를 여기 모아두어요.
           </p>
@@ -282,7 +313,7 @@ export function NookPreview({
         </main>
       ) : (
         <main className="preview-summary">
-          <p className="preview-kicker">서랍에 넣어둔 이야기 · 예시</p>
+          <p className="preview-kicker">생각더미에 넣어둔 이야기 · 예시</p>
           <h1>
             오늘 지나온 질문을
             <br />
