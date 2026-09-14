@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { formatProviderDiagnostic } from "./judge-model.mts";
 import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { pathToFileURL } from "node:url";
@@ -153,7 +154,10 @@ async function main() {
   const report = await evaluate(fixtures, {
     classify: async (request) => {
       if (++usage.modelCalls > 32) throw new Error("CALL_LIMIT");
-      const response = await client.responses.create(request);
+      const response = await client.responses.create(request).catch((error: unknown) => {
+        console.error(formatProviderDiagnostic(error));
+        throw error;
+      });
       usage.inputTokens += response.usage?.input_tokens ?? 0;
       usage.outputTokens += response.usage?.output_tokens ?? 0;
       return response;
