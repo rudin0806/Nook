@@ -6,6 +6,7 @@ on:
       - codex/rules-v3-retention-hardening
     paths:
       - "src/**"
+      - "supabase/migrations/**"
       - "tests/**"
       - "eval/**"
       - "scripts/**"
@@ -40,6 +41,49 @@ jobs:
       - name: Validate Judge contracts
         run: npm run eval:judge:validate
       - name: Test Safety and start flow
-        run: node --experimental-strip-types --test tests/safety-gate.test.mts tests/start-flow.test.mts
+        run: node --experimental-strip-types --test tests/safety-gate.test.mts tests/start-flow.test.mts tests/admission.test.mts
       - name: Typecheck lint and production build
         run: npm run validate
+
+  admission-db:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: ci-only-password
+          POSTGRES_DB: admission_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: ci-only-password
+      PGDATABASE: admission_test
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Test limits replay ownership and expiry in isolated PostgreSQL
+        run: psql -v ON_ERROR_STOP=1 -f tests/admission-db.sql
+      - name: Concurrent requests from separate database connections
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/nook-admission
+          pids=()
+          for i in $(seq 1 12); do
+            psql -XAt -v ON_ERROR_STOP=1 -c "set role service_role; select public.claim_ai_request('10000000-0000-4000-8000-000000000002','20000000-0000-4000-8000-000000000001',repeat('a',64))->>'status';" > "/tmp/nook-admission/$i" &
+            pids+=("$!")
+          done
+          for pid in "${pids[@]}"; do wait "$pid"; done
+          test "$(grep -h '^CLAIMED$' /tmp/nook-admission/* | wc -l)" -eq 1
+          test "$(grep -h '^RUNNING$' /tmp/nook-admission/* | wc -l)" -eq 11
+          test "$(psql -XAt -c "select minute_count from public.ai_request_limits where user_id='10000000-0000-4000-8000-000000000002'")" -eq 1
