@@ -1,7 +1,13 @@
 import "server-only";
 import { z } from "zod";
+import { NOOK_MODEL_IDS, NOOK_REASONING_EFFORTS } from "@/lib/openai/models";
 
 const openAIEnvironmentSchema = z.object({ apiKey: z.string().min(1) });
+const judgeEnvironmentSchema = z.object({
+  model: z.enum(NOOK_MODEL_IDS),
+  reasoningEffort: z.enum(NOOK_REASONING_EFFORTS),
+  maxOutputTokens: z.coerce.number().int().min(256).max(2_048),
+});
 
 export function getOpenAIEnvironment() {
   const result = openAIEnvironmentSchema.safeParse({
@@ -12,5 +18,16 @@ export function getOpenAIEnvironment() {
     throw new Error("OpenAI 연결에 필요한 서버 환경변수를 설정해 주세요.");
   }
 
+  return result.data;
+}
+
+export function getJudgeEnvironment() {
+  const result = judgeEnvironmentSchema.safeParse({
+    model: process.env.NOOK_JUDGE_MODEL,
+    reasoningEffort: process.env.NOOK_JUDGE_REASONING_EFFORT,
+    maxOutputTokens: process.env.NOOK_JUDGE_MAX_OUTPUT_TOKENS,
+  });
+  if (!result.success)
+    throw new Error("Judge 실행에 필요한 서버 환경변수를 설정해 주세요.");
   return result.data;
 }

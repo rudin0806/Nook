@@ -34,11 +34,18 @@ npm run dev
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | 브라우저 공개 가능 | Supabase publishable key. RLS 적용 필수                                       |
 | `SUPABASE_SECRET_KEY`                  | 서버 전용          | 검증된 메시지·AI 기록 저장. RLS 우회 키이므로 사용자 소유권을 서버에서 재검증 |
 | `OPENAI_API_KEY`                       | 서버 전용          | OpenAI API 인증                                                               |
+| `NOOK_JUDGE_MODEL`                     | 서버 전용          | Judge 허용 모델 3종 중 하나                                                   |
+| `NOOK_JUDGE_REASONING_EFFORT`          | 서버 전용          | Judge 추론 강도 `low / medium / high`                                         |
+| `NOOK_JUDGE_MAX_OUTPUT_TOKENS`         | 서버 전용          | Judge 출력 상한, 256~2048                                                     |
 
 실제 키를 채팅, PR, 소스 코드에 넣지 않습니다. Supabase secret key를 `NEXT_PUBLIC_` 변수에 넣지 않습니다.
 SDK 사용 시 설정이 없거나 유효하지 않으면 값 자체를 출력하지 않는 오류를 발생시킵니다.
 데이터 접근 전 RLS, 익명 인증, OAuth 연결·기존 계정 예외·세션 갱신을 구현해야 합니다.
 모델 호출 전 Safety Gate, 입력 제한, 요청량 제한, 비용 설정과 평가기를 준비해야 합니다.
+
+GitHub Actions의 저장소 secret 이름은 `AI_API_KEY`이며 평가 workflow 안에서만
+`OPENAI_API_KEY`로 전달합니다. 로컬·Vercel 런타임은 `OPENAI_API_KEY`를 별도로 설정해야 하며,
+세 종류의 Judge 설정도 빈 값 없이 명시해야 합니다.
 
 로그인 사용자의 기록 보관·휴지통·복원 API 계약과 현재 검증 범위는 [구현 기록](docs/reviews/2026-09-13-retention-api.md)을 참고합니다.
 
@@ -52,7 +59,7 @@ npm run validate
 `validate`는 `typecheck` → `lint` → `build` 순서입니다.
 `typecheck`는 깨끗한 체크아웃에서도 동작하도록 Next.js 라우트 타입 생성 후 TypeScript를 검사합니다.
 
-[`docs/EVALSET.md`](docs/EVALSET.md)는 평가 계약을 정의합니다. 사용자 제공 JSONL은 `eval/`에 있으며 `npm run eval:validate`로 구조·참조·패치·현재 매핑 호환성을 검사합니다. 확인된 계약 충돌이 남아 있으면 이 명령은 실패로 종료합니다. `npm run eval`로 Judge 모델 평가를 실행할 수 있습니다. API 키와 모델 지정이 필요하며, 실제 모델 평가는 아직 실행하지 않았습니다. [파일별 검증 기록](docs/reviews/2026-09-12-document-validation.md)에서 범위와 미해결 항목을 확인합니다.
+[`docs/EVALSET.md`](docs/EVALSET.md)는 평가 계약을 정의합니다. 사용자 제공 JSONL은 `eval/`에 있으며 `npm run eval:validate`로 구조·참조·패치·현재 매핑 호환성을 검사합니다. 확인된 계약 충돌이 남아 있으면 이 명령은 실패로 종료합니다. `npm run eval`로 Judge 모델 평가를 실행할 수 있습니다. `gpt-5.6-sol` reasoning high의 최종 Judge 회귀는 strict 31/31을 통과했으며, 실행 범위와 한계는 [조정 기록](docs/reviews/2026-09-14-judge-sol-tuning.md)에 남겼습니다. 이 결과는 Start·Safety·Prompt C/D나 실사용 정확도까지 보장하지 않습니다.
 
 ## Vercel 배포
 
@@ -119,3 +126,5 @@ npm run validate
 ### Judge 모델 평가
 
 `npm run eval -- --dry`로 기본 경계쌍을 검사합니다. 실제 호출 설정·비용 제한·보고서 범위는 [평가기 실행 안내](docs/reviews/2026-09-13-judge-model-runner.md)를 따릅니다.
+
+실서비스용 Judge 호출 경계는 [런타임 어댑터 기록](docs/reviews/2026-09-14-judge-runtime-adapter.md)을 따릅니다. 아직 공개 API Route에는 연결하지 않았으며 Safety·사용자 종료 의사·구조 상한을 먼저 통과한 서버 흐름에서만 호출해야 합니다.

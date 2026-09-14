@@ -368,13 +368,19 @@ mapping 누락/불일치
 
 ## C-03-pre 반영
 
-`npm run eval:judge:validate`는 Judge fixture 검증과 완화형 분포만 출력한다. 실제 모델 runner는 아직 연결하지 않았다. `scripts/eval-core.mts`는 제공된 출력의 Zod 스키마·판정·증거·키워드·무효화·승격을 채점한다. CLOSE confidence는 금지하고 MEDIUM 사유 enum과 조건을 검증한다.
+`npm run eval:judge:validate`는 모델 호출 없이 Judge fixture 검증과 완화형 분포만 출력한다. `scripts/eval-core.mts`는 제공된 출력의 Zod 스키마·판정·증거·키워드·무효화·승격을 채점한다. CLOSE confidence는 금지하고 MEDIUM 사유 enum과 조건을 검증한다.
 
 - 확정 사유: J-MED-01/02/05 SINGLE_SPONTANEOUS, J-MED-03 AI_LED_WITH_USER_MATERIAL, J-MED-04/J-HEDGE-01b ALL_HEDGED.
 - reference, forbidden_examples, high_only_examples 및 must_not의 의미적 동등성은 자동 키워드 검사로 대체하지 않는다. 별도 의미 검토 대상이며 코드 통과가 의미 평가 통과를 뜻하지 않는다.
-- 현재 채점 리포트는 결정론적 검사 결과다. 실제 모델 정확도는 아직 없다. boundary는 통과율에서 제외한다.
+- 정적 fixture 검증과 실제 모델 평가는 구분한다. boundary는 두 경우 모두 통과율에서 제외한다.
 - 0.70~0.80 fixture 공백을 확인했다. 합성 계산 경계 테스트는 임계값의 제품 적합성을 검증하지 않는다.
 
 ## Judge 모델 runner 추가 — 2026-09-13
 
-`npm run eval`에 Responses API 연결을 구현했다. 앞선 절의 runner 미연결 기록은 당시 상태다. 현재 실제 호출은 API 키와 모델 설정이 없어 미실행이며 정확도 결과도 없다. [실행 안내](reviews/2026-09-13-judge-model-runner.md)를 따른다. Core/Safety는 계속 분리하며 이 명령은 Judge만 평가한다.
+`npm run eval`에 Responses API 연결을 구현했다. [실행 안내](reviews/2026-09-13-judge-model-runner.md)를 따르며 Core/Safety는 계속 분리한다. 이 명령은 Judge만 평가한다.
+
+2026-09-14 최종 회귀에서 `gpt-5.6-sol` reasoning high는 strict 31/31, action 31/31,
+API·JSON·Zod 오류 0을 기록했다. boundary `J-SHIFT-04`는 정확도에서 제외하고
+`REFLECT/MEDIUM` 분포로 기록했다. 상세 실행 ID·토큰·프롬프트와 fixture SHA는
+[Sol 조정 기록](reviews/2026-09-14-judge-sol-tuning.md)에 있다. 한 번의 fixture 통과를 실사용
+정확도나 다른 모델·프롬프트의 통과로 확대 해석하지 않는다.

@@ -15,44 +15,51 @@
 ## 현재 기준
 
 - main: 확정된 PRD 및 저장 규칙. HANDOFF 상태는 기존 main의 `HANDOFF_STOPPED`를 유지한다.
-- [PR #2](https://github.com/rudin0806/Nook/pull/2): 원본·평가 파일·검증기·DB 보완이 남아 있는 작업. 전체 병합 전이다.
-- 검토용 고정 커밋: `8cfb144a69d30352d429207992f9cd411f855a43`.
-- [검증 기록](https://github.com/rudin0806/Nook/blob/8cfb144a69d30352d429207992f9cd411f855a43/docs/reviews/2026-09-12-document-validation.md) §4에 원본과 저장소의 차이가 있다.
-- Judge 32 / Start 17 / Safety 15. 실제 모델 평가기는 아직 없고 실제 정확도도 없다.
-- 프롬프트를 처음 작성하는 단계다. 기존 실행 결과가 없는 상황을 “최적화 검증 완료”로 표현하지 않는다.
+- [PR #2](https://github.com/rudin0806/Nook/pull/2): 문서·평가·AI 엔진·API 보완 작업 브랜치. 전체 병합 전이다.
+- Judge 32 / Start 17 / Safety 15. Safety category 계약 불일치 8건은 미해결이다.
+- Prompt B는 `gpt-5.6-sol` reasoning high의 Judge strict 31/31 회귀를 통과했다. 한 번의 fixture 결과이며 실사용 정확도나 운영 모델 확정을 뜻하지 않는다.
+- Prompt D는 통합됐고 Judge 서버 전용 어댑터도 구현됐다. Prompt C와 전체 Safety→Judge→C/D 저장 배선은 남았다.
 
-## 먼저 맡길 일
+## 작업 이력과 다음 위임
 
-### C-01 — 충돌 항목 검토
+### C-01 — 충돌 항목 검토 (Safety 계약 미결)
 
-필요한 입력: PRD의 Safety·보관 절, RULES의 Safety·carryover·Judge 스키마 절, 위 검증 기록 §4. 저장소 전체와 과거 대화 전체를 읽을 필요는 없다.
+HANDOFF 상태는 `HANDOFF_STOPPED`, carryover의 `medium_reason`은 세 enum으로 확정됐다. 남은 범위는
+Safety뿐이다. 필요한 입력은 PRD·RULES·EVALSET의 Safety 절과 S-01~S-15,
+`eval/safety_mapping.json`이다.
 
 산출물: `항목 / 두 문서의 차이 / 추천안 / 영향 받는 필드·케이스 / 사용자 결정 필요 여부` 표 하나.
 
 검토할 차이:
 
-1. 첨부의 HANDOFF `COMPLETED`와 기존 main의 `HANDOFF_STOPPED`.
-2. Safety category의 `null/NONE`, `THIRD_PARTY_RISK/SUICIDE_SELF_HARM`, `MENTAL_HEALTH_CARE/GENERAL_MENTAL_HEALTH`.
-3. 원본 carryover에 없는 `medium_reason`과 저장소의 확장 스키마.
-4. 제3자 도움 안내 문구, hedge 면제·1턴 선언·복수 고민 확장안의 미검증 부분.
+1. Safety category의 `null/NONE`, `THIRD_PARTY_RISK/SUICIDE_SELF_HARM`, `MENTAL_HEALTH_CARE/GENERAL_MENTAL_HEALTH`.
+2. fixture contact 표시 문자열과 mapping의 `primary/urgent` 객체 비교 방식.
+3. S-14 제3자 도움 안내와 전달 요청 문구.
+4. Safety Classifier 입력·출력과 STOP/HANDOFF 처리 경계 사례.
 
 추천을 결정 완료로 바꾸거나 정답 JSONL의 라벨을 수정하지 않는다.
 
-### C-02 — Prompt D 초안과 말투 검토
+### C-02 — Prompt D 초안과 말투 검토 (완료)
 
-C-01과 별도로 할 수 있는 일이다. 필요한 입력은 RULES의 Reframe·Prompt D·Depth Guard 절과 현재 승인된 질문의 정의다.
+Claude 산출물을 Codex가 스키마·근거 전달·PAST 제한과 함께 통합했다. 현재 기준은
+[`src/prompts/prompt-reflect.ts`](../src/prompts/prompt-reflect.ts)와
+[`통합 기록`](reviews/2026-09-13-C-02-integration.md)이다.
 
-산출물은 Prompt D 초안 한 개, 일반 대화 사례 8개의 `입력 / 제안 질문 / 지킨 규칙`, 금지 표현 점검표다. 사용자 말을 단정적으로 강화하지 않는지, 새 심리 해석·방향을 먼저 제시하지 않는지 살핀다.
+### C-03 — Judge 프롬프트와 오답 분석 (완료)
 
-모델 연동용 입력·출력 필드를 추가하지 않고 문안만 제안한다. 최종 호출 형식과 저장은 Codex가 구현한다.
+Prompt B 최소 수정과 실패 subset 재검증을 거쳐 Sol high strict 31/31을 기록했다. 현재 기준은
+[`src/prompts/prompt-judge.ts`](../src/prompts/prompt-judge.ts)와
+[`조정 기록`](reviews/2026-09-14-judge-sol-tuning.md)이다.
 
-### C-03 — Judge 프롬프트와 오답 분석
+### 다음 — Prompt C 초안과 생성 사례
 
-C-01의 필요한 결정이 끝나고 Codex가 입출력 스키마를 고정한 뒤 진행한다.
+Judge가 `SHIFT/HIGH`를 반환한 뒤 사용자 확인 전 보여줄 **새 중심 질문과 근거 한 줄**을 만든다.
+RULES의 Reframe 경계, PRD의 Shift Proposal·User Confirm, Judge 출력 스키마만 읽는다. Judge 판정을
+다시 판단하거나 Node를 확정 저장하지 않는다.
 
-처음에는 Prompt B 초안 한 개와 핵심 경계쌍의 예상 이유를 작성한다. Codex가 실제 모델로 평가한 다음, 실패한 사례만 받아 최소 수정안을 만든다.
-
-우선 사례: J-CLOSE-01 / J-EDGE-01, J-HEDGE-01a / 01b, J-CARRY-01a / 01b. 모델이 틀렸다는 이유로 정답 라벨을 바꾸지 않는다.
+산출물은 프롬프트 초안, 입력·출력 필드 제안, 일반/경계 사례 8개, 과잉해석 금지 점검표다.
+Codex가 최종 Zod 스키마·호출 형식·사용자 확인·DB 저장을 구현하므로 코드나 기준 문서를 직접
+수정하지 않는다.
 
 ### 이후 적합한 업무
 

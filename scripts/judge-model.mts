@@ -1,7 +1,11 @@
 import { createHash } from "node:crypto";
 import { computeHedge } from "../src/engine/hedge.ts";
 import { JUDGE_SYSTEM, buildJudgeUser } from "../src/prompts/prompt-judge.ts";
-import { judgeOutputSchema, mediumReasonSchema } from "../src/schemas/judge.ts";
+import {
+  judgeInputSchema,
+  judgeOutputSchema,
+  mediumReasonSchema,
+} from "../src/schemas/judge.ts";
 import type { NookReasoningEffort } from "../src/lib/openai/models.ts";
 import {
   score,
@@ -130,13 +134,13 @@ export function makeJudgeRequest(
     throw new Error("FIXTURE_INVALID");
   // Only fixture.input + computed flag reach the model. Gold answers, history,
   // source, rationale and expected values are never part of the model request.
-  const input = {
+  const input = judgeInputSchema.parse({
     ...fixture.input,
     carryover: fixture.input.carryover.map((c) => ({
       ...c,
       medium_reason: mediumReasonSchema.parse(c.medium_reason),
     })),
-  };
+  });
   return {
     model,
     instructions: JUDGE_SYSTEM,

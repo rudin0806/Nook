@@ -1,5 +1,4 @@
-import type { z } from "zod";
-import type { mediumReasonSchema } from "../schemas/judge.ts";
+import type { JudgeInput } from "../schemas/judge.ts";
 
 /**
  * Prompt B — Turn Judge
@@ -402,20 +401,6 @@ JSON만 출력한다. 설명이나 코드펜스를 붙이지 않는다.
 - evidence_turns는 SHIFT·MEDIUM 판정의 근거가 된 사용자 발화다. LOW나 CLOSE면 비워도 된다.`;
 
 // ─────────────────────────────────────────────
-
-export type JudgeInput = {
-  main_question: string;
-  main_path: string[];
-  pile: { id: string; text: string }[];
-  current_clarifications: { id: string; text: string; confidence?: string }[];
-  carryover: {
-    turn: string;
-    text: string;
-    judged: string;
-    medium_reason: z.infer<typeof mediumReasonSchema>;
-  }[];
-  turns: { id: string; role: "user" | "assistant"; text: string }[];
-};
 
 export function buildJudgeUser(
   input: JudgeInput,

@@ -17,6 +17,7 @@
     "eval:validate": "node --experimental-strip-types scripts/validate-fixtures.mts",
     "test:hedge": "node --experimental-strip-types --test tests/hedge.test.mts",
     "test:judge": "node --experimental-strip-types --test tests/judge.test.mts",
+    "test:judge-runtime": "node --experimental-strip-types --test tests/judge-runtime.test.mts",
     "test:retention-api": "node --experimental-strip-types --test tests/retention-api.test.mts",
     "eval:judge:validate": "node --experimental-strip-types scripts/eval-core.mts --dry",
     "eval": "node --env-file-if-exists=.env.local --experimental-strip-types scripts/eval-judge.mts",
