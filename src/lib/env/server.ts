@@ -31,3 +31,23 @@ export function getJudgeEnvironment() {
     throw new Error("Judge 실행에 필요한 서버 환경변수를 설정해 주세요.");
   return result.data;
 }
+
+/** Explicit settings only: do not silently select an operating model. */
+export function getStartEnvironment() {
+  function read(prefix: string) {
+    const result = judgeEnvironmentSchema.safeParse({
+      model: process.env[`${prefix}_MODEL`],
+      reasoningEffort: process.env[`${prefix}_REASONING_EFFORT`],
+      maxOutputTokens: process.env[`${prefix}_MAX_OUTPUT_TOKENS`],
+    });
+    if (!result.success) throw new Error("START_NOT_CONFIGURED");
+    return result.data;
+  }
+  const safety = read("NOOK_SAFETY"),
+    start = read("NOOK_START"),
+    nodeZero = read("NOOK_NODE_ZERO");
+  if (nodeZero.model === "gpt-5.6-luna")
+    throw new Error("NODE_ZERO_MODEL_NOT_ALLOWED");
+  getOpenAIEnvironment();
+  return { safety, start, nodeZero };
+}

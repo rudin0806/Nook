@@ -1,6 +1,7 @@
 import "server-only";
 import {
   approveStartQuestion,
+  readStartReceipt,
   type StartApprovalStore,
 } from "@/engine/start-approval";
 import { executeSafetyGate } from "@/engine/safety-gate";
@@ -16,6 +17,30 @@ export async function approveServerStartQuestion(
   const { auth, admin, userId, secret, store } = await createAdmissionContext();
   const approvalStore: StartApprovalStore = {
     ...store,
+    async terminate({
+      receipt,
+      requestId,
+      token,
+      fingerprint,
+      finalText,
+      safety,
+    }) {
+      const result = await admin.rpc("terminate_start_approval", {
+        p_user: userId,
+        p_request: requestId,
+        p_token: token,
+        p_fingerprint: fingerprint,
+        p_session: receipt.sessionId,
+        p_source: receipt.messageId,
+        p_text: safety.behavior === "STOP" ? null : finalText,
+        p_label: safety.label,
+        p_category: safety.category,
+        p_behavior: safety.behavior,
+        p_expires_at: new Date(receipt.expiresAt).toISOString(),
+      });
+      if (result.error) throw new Error("APPROVAL_TERMINATION_FAILED");
+      return result.data;
+    },
     async readSource(receipt) {
       // Cookie client enforces RLS; never retrieve source text with the admin client.
       const session = await auth
@@ -58,7 +83,7 @@ export async function approveServerStartQuestion(
       return result.data;
     },
   };
-  return approveStartQuestion(
+  const result = await approveStartQuestion(
     { ...input, userId },
     secret,
     approvalStore,
@@ -70,4 +95,16 @@ export async function approveServerStartQuestion(
       return { label: result.label, category: result.category };
     },
   );
+  // A replay after an edited question triggered Safety references the Session, not a Node.
+  if (
+    result.status === "SUCCEEDED" &&
+    result.result_id ===
+      readStartReceipt(input.receipt, userId, secret).sessionId
+  )
+    return {
+      status: "SAFETY_BLOCKED" as const,
+      result_id: result.result_id,
+      replayed: true,
+    };
+  return result;
 }

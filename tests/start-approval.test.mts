@@ -202,3 +202,26 @@ test("invalid receipt and input never consume a quota", async () => {
   );
   assert.deepEqual(calls, []);
 });
+
+test("public adapter termination is atomic and never followed by separate finish", async () => {
+  const { calls, store } = fixture();
+  store.terminate = async (input) => {
+    calls.push("terminate");
+    assert.equal(input.safety.behavior, "HANDOFF");
+    assert.equal(input.receipt.sessionId, sessionId);
+    return sessionId;
+  };
+  const result = await approveStartQuestion(
+    {
+      userId,
+      requestId,
+      receipt: receipt(),
+      finalText: "전문 도움을 찾고 싶어요",
+    },
+    secret,
+    store,
+    async () => ({ label: "NONE", category: "GENERAL_MENTAL_HEALTH" }),
+  );
+  assert.equal(result.status, "SAFETY_BLOCKED");
+  assert.deepEqual(calls, ["claim", "source", "terminate"]);
+});

@@ -78,6 +78,14 @@ export function readStartReceipt(
 }
 
 export interface StartApprovalStore extends AdmissionStore {
+  terminate?(input: {
+    receipt: StartReceipt;
+    requestId: string;
+    token: string;
+    fingerprint: string;
+    finalText: string;
+    safety: ReturnType<typeof mapSafety>;
+  }): Promise<unknown>;
   /** Ownership/state check before any paid edit Safety call. Commit repeats it under lock. */
   readSource(receipt: StartReceipt): Promise<string>;
   /** Must atomically insert Node + increment counter + finish request, not separate writes. */
@@ -129,6 +137,23 @@ export async function approveStartQuestion(
         await safetyGate({ context: [source], utterance: finalText }),
       );
       if (safety.behavior !== "CONTINUE") {
+        if (store.terminate) {
+          const sessionId = uuid.parse(
+            await store.terminate({
+              receipt,
+              requestId,
+              token: claim.token,
+              fingerprint,
+              finalText,
+              safety,
+            }),
+          );
+          return {
+            status: "SAFETY_BLOCKED" as const,
+            result_id: sessionId,
+            safety,
+          };
+        }
         await store.finish(input.userId, requestId, claim.token, false, null);
         // Caller must enter the existing STOP/HANDOFF flow; no Node or edited text is saved here.
         return { status: "SAFETY_BLOCKED" as const, safety };

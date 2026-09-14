@@ -79,3 +79,11 @@ Judge 32 / Start 17 / Safety 15. Judge boundary는 J-SHIFT-04 하나이며 pendi
 ## Google 우선 로그인 검증
 
 사용자가 Google 공급자 설정 완료를 알렸다. 카카오는 후반에 연결하기로 했으며 `/login`에서 카카오 버튼을 숨겼다. 카카오 어댑터 코드는 유지한다. Google 실제 OAuth 왕복·익명 identity linking 성공은 별도 검증 전이다. Vercel 조회에는 최초 운영 배포 1개만 있어 최신 로그인 코드는 아직 운영에 반영되지 않았다.
+
+## 2026-09-14 첫 입력·승인 공개 Route 연결
+
+[최신 구현·운영 적용·검증 기록](reviews/2026-09-14-start-api.md). `/api/start`, `/api/start/focus`, `/api/start/approve`를 인증·요청 제한·Safety·서명·원자적 저장에 연결했다. 기존 요청 제한/승인 migration은 운영 적용을 확인했으며 새 저장 함수 migration도 적용했다. 103개 테스트, 독립 DB 회귀, 운영 DB rollback 테스트, 타입·린트·빌드 및 비활성 HTTP 검증 통과.
+
+이번 직접 실행에서 `eval:validate`는 issues 0, Safety 15개 매핑으로 통과했다. 위의 Safety 8건 실패 표기는 과거 문서 기록이며 현재 실행 결과가 아니다. fixture/정답은 이번에 변경하지 않았다. 실제 Safety/Start 품질 평가와 제품 의미 검토 완료를 뜻하지 않는다.
+
+운영 API 활성화·새 Vercel 배포·입력 화면 버튼 연결은 아직 하지 않았다. `NOOK_START_API_ENABLED`와 모델/HMAC 설정, 실제 인증·모델·DB HTTP 왕복 검증이 남았다. 운영 환경변수의 실제 값/존재 여부는 이번 도구로 확인하지 못했다.

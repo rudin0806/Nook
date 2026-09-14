@@ -13,7 +13,11 @@ export class RequestInputError extends Error {
   }
 }
 
-export async function parseJson<T>(request: Request, schema: ZodType<T>) {
+export async function parseJson<T>(
+  request: Request,
+  schema: ZodType<T>,
+  maxBytes = MAX_JSON_BYTES,
+) {
   const contentType = request.headers.get("content-type") ?? "";
   if (!contentType.toLowerCase().startsWith("application/json")) {
     throw new RequestInputError(
@@ -22,13 +26,34 @@ export async function parseJson<T>(request: Request, schema: ZodType<T>) {
     );
   }
 
-  const body = await request.text();
-  if (new TextEncoder().encode(body).byteLength > MAX_JSON_BYTES) {
+  const reader = request.body?.getReader();
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  if (reader) {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      size += value.byteLength;
+      if (size > maxBytes) {
+        await reader.cancel();
+        break;
+      }
+      chunks.push(value);
+    }
+  }
+  if (size > maxBytes) {
     throw new RequestInputError(
       "REQUEST_BODY_TOO_LARGE",
       "요청 데이터가 너무 커요.",
     );
   }
+  const bytes = new Uint8Array(size);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  const body = new TextDecoder().decode(bytes);
 
   let value: unknown;
   try {

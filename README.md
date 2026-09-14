@@ -132,3 +132,7 @@ npm run validate
 ### 소셜 로그인 연결
 
 `/login`에서 Google/Kakao 연결을 시작합니다. 배포별 `NOOK_SITE_URL`, Supabase 공급자·Manual Linking·redirect 설정과 실제 검증 순서는 [인증 연결 안내](docs/reviews/2026-09-14-auth-flow.md)를 참고하세요. 익명 사용자 생성과 보관 선택 복귀는 아직 연결 전입니다.
+
+### 첫 입력과 질문 승인 API
+
+`/api/start`, `/api/start/focus`, `/api/start/approve`의 계약과 필요한 환경변수·공개 전 검증은 [구현 기록](docs/reviews/2026-09-14-start-api.md)을 따른다. 첫 입력과 승인을 내부 모듈·DB RPC까지 연결했으며 운영 공개는 별도 enable 설정으로 제어한다. 후보 서명은 응답/요청 본문에서만 전달하고 URL·로그·브라우저 영구 저장소에 보관하지 않는다.
