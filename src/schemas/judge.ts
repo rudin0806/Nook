@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const judgeTextSchema = z.string().trim().min(1).max(4_000);
+const judgeTextSchema = z.string().trim().min(1).max(5_000);
 const judgeReferenceIdSchema = z.string().regex(/^[A-Za-z0-9_-]{1,128}$/);
 
 export const mediumReasonSchema = z.enum([

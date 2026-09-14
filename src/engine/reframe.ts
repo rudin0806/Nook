@@ -44,6 +44,7 @@ export function prepareReframe(
   });
   // Promotion provenance stays on the server. Old saved wording isn't new evidence.
   const user = JSON.stringify({
+    response_format_instruction: "Return only a JSON object.",
     main_question: input.main_question,
     main_path: input.main_path,
     turns: input.turns,

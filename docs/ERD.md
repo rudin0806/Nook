@@ -346,3 +346,11 @@ stateDiagram-v2
 ```
 
 마이그레이션이 테이블 무결성과 접근 경계를 담당하고, 위 실행 순서는 Next.js API가 담당한다.
+
+## 2026-09-14 대화 연결 보완
+
+- `conversation_runtime`: 세션당 하나의 서버 관리 작업 상태. version, 승인 대기 제안, 다음 동작(READY/SHIFT/CLOSE/STRUCTURAL/FINISHED/STOP/HANDOFF), 직전 질문 타입, 최대 2개 carryover. 사용자 확정 전 제안은 여기에 있으며 Question Node가 아니다. 소유자 읽기 RLS와 서버 전용 변경 권한을 적용한다.
+- `conversation_receipts`: 사용자·요청 ID별 최소 완료 결과(version/mode와 Safety label/category). 모델·원문 결과를 복제하지 않는다. 서버 전용이며 세션 삭제에 CASCADE한다.
+- CLOSE Judge Log는 confidence가 NULL이다. 기존 로그를 덮어쓰지 않고 신규 행의 action/confidence 계약을 검사한다.
+- 구간에 새 Node가 없으면 다음 구간은 이전 구간이 이어받은 Anchor를 계속 사용한다. 기존 질문을 복제하거나 node_count에 더하지 않는다.
+- 대화용 RPC는 요청 lease·소유자·세션/구간 상태·version을 잠근 뒤 저장한다. 안전한 USER Message는 Judge 전에 저장하며, 생성 결과가 잘못되면 질문·근거·로그 묶음은 저장하지 않는다. 완료 결과와 요청 성공 표시는 같은 트랜잭션에서 기록한다.

@@ -114,7 +114,7 @@ export async function approveStartQuestion(
 ) {
   const receipt = readStartReceipt(input.receipt, input.userId, secret);
   const requestId = uuid.parse(input.requestId);
-  const finalText = rawThoughtSchema.parse(input.finalText);
+  const finalText = rawThoughtSchema.max(1000).parse(input.finalText);
   const fingerprint = createHmac("sha256", secret)
     .update(
       JSON.stringify([input.userId, "approve_start", input.receipt, finalText]),

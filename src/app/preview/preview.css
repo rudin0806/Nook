@@ -1,1 +1,6 @@
 /* Shared desk, shelf and session styles live in globals.css so routes stay consistent. */
+
+.conversation-message {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

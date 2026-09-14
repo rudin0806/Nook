@@ -8,7 +8,7 @@ export const startRequestSchema = z.strictObject({
 export const approvalRequestSchema = z.strictObject({
   requestId: z.uuid(),
   receipt: z.string().min(1).max(32000),
-  finalText: rawThoughtSchema,
+  finalText: rawThoughtSchema.max(1000),
 });
 export const focusRequestSchema = z.strictObject({
   requestId: z.uuid(),

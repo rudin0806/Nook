@@ -51,3 +51,25 @@ export function getStartEnvironment() {
   getOpenAIEnvironment();
   return { safety, start, nodeZero };
 }
+
+export function getConversationEnvironment() {
+  const read = (prefix: string) => {
+    const result = judgeEnvironmentSchema.safeParse({
+      model: process.env[`${prefix}_MODEL`],
+      reasoningEffort: process.env[`${prefix}_REASONING_EFFORT`],
+      maxOutputTokens: process.env[`${prefix}_MAX_OUTPUT_TOKENS`],
+    });
+    if (!result.success) throw new Error("CONVERSATION_NOT_CONFIGURED");
+    return result.data;
+  };
+  const config = {
+    safety: read("NOOK_SAFETY"),
+    judge: read("NOOK_JUDGE"),
+    reframe: read("NOOK_REFRAME"),
+    reflect: read("NOOK_REFLECT"),
+  };
+  if (config.reframe.model === "gpt-5.6-luna")
+    throw new Error("REFRAME_MODEL_NOT_ALLOWED");
+  getOpenAIEnvironment();
+  return config;
+}

@@ -133,7 +133,7 @@ export function ThoughtInput({ enabled = false }: { enabled?: boolean }) {
               className="writing-textarea"
               value={finalText}
               onChange={(e) => setEditedQuestion(e.target.value)}
-              maxLength={5000}
+              maxLength={1000}
               readOnly={locked}
               autoComplete="off"
             />
@@ -188,9 +188,11 @@ export function ThoughtInput({ enabled = false }: { enabled?: boolean }) {
       {view.kind === "approved" && (
         <div className="start-response">
           <p>
-            확인한 질문이 기록됐어요. 이 질문에서 이어지는 대화 기능은 준비
-            중이에요.
+            확인한 질문이 기록됐어요. 지금 떠오르는 이야기를 이어갈 수 있어요.
           </p>
+          <Link href={`/talk/${view.nodeId}`} className="editorial-link">
+            이 질문으로 이야기 이어가기 ↗
+          </Link>
         </div>
       )}
       <div className="start-status" role="status" aria-live="polite">
