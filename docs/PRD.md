@@ -688,9 +688,9 @@ AI            OpenAI
 
 ## 17. 프롬프트 네 개
 
-### Prompt A — Start Reframe
+### Prompt A — 시작 분류와 초점 확인
 
-Raw Thought → 시작 질문 또는 빠른 라우팅. 출력은 `NEEDS_INFO / CLEAR_AS_IS / REFRAME_NEEDED`.
+Raw Thought → 빠른 라우팅 또는 첫 질문 생성 준비. A는 `NEEDS_INFO / CLEAR_AS_IS / REFRAME_NEEDED` 분류와 필요한 초점 확인을 맡는다. 첫 질문은 별도 Node 0 생성기가 제안하며, 사용자 승인 전 기록으로 확정하지 않는다. 입출력 계약은 RULES §1.3을 따른다.
 
 - 사용자 발화 재료만 사용
 - 없는 원인·성향 추가 금지

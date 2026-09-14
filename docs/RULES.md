@@ -70,7 +70,11 @@ Nook이 다루는 것은 **정보로 바로 풀리지 않는 질문**이다. 주
 - 선택 뒤에만 Node 0를 제안한다.
 - 여러 고민을 하나의 심리 원인으로 합쳐 “사실은 ~가 문제”라고 만들지 않는다.
 
-이 경로는 start 평가셋의 다음 확장 항목으로 둔다.
+확인 질문은 **Prompt A**가 생성한다. A 출력은 `label`, `focus_required`, `focus_question`, `focus_candidates`, `info_guidance`이며 후보 표현은 원문의 연속 구절이어야 한다. NEEDS_INFO에만 info_guidance를 반환한다.
+
+첫 중심 질문은 별도 **Node 0 생성기**가 `question`, `evidence_quotes`, `evidence_sentence`로 제안한다. C는 SHIFT 전용, D는 REFLECT 전용을 유지한다. 확인 답변에도 Safety Gate를 선행하며, 사용자가 선택하지 않은 초점은 자동 확정하지 않는다. 생성 결과는 승인 전까지 후보이며 DB 저장·카운터 갱신을 하지 않는다.
+
+이 계약의 내부 어댑터와 오프라인 검증을 구현한다. 공개 시작 API는 Moderation 결합·소유권·요청량 제한·원자적 승인 저장을 갖춘 뒤 연결한다. 이 경로는 start 평가셋의 다음 확장 항목으로 둔다.
 
 ---
 
