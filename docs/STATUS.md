@@ -75,3 +75,7 @@ Judge 32 / Start 17 / Safety 15. Judge boundary는 J-SHIFT-04 하나이며 pendi
 ## 인증 연결 구현
 
 [인증 구현·설정·검증 기록](reviews/2026-09-14-auth-flow.md). 로그인 화면, Google/Kakao 시작, 익명 identity linking, PKCE callback, 이 기기 로그아웃 및 생각더미 로그인 안내를 연결했다. 인증 단위 테스트 6개·프로덕션 HTTP smoke 7개·타입·린트·빌드 통과. 실제 공급자 로그인과 운영 RLS 왕복은 미검증이며 익명 세션 생성 및 보관 선택 복귀 연결은 남았다. 운영 설정·DB 변경·유료 AI 호출은 없다.
+
+## Google 우선 로그인 검증
+
+사용자가 Google 공급자 설정 완료를 알렸다. 카카오는 후반에 연결하기로 했으며 `/login`에서 카카오 버튼을 숨겼다. 카카오 어댑터 코드는 유지한다. Google 실제 OAuth 왕복·익명 identity linking 성공은 별도 검증 전이다. Vercel 조회에는 최초 운영 배포 1개만 있어 최신 로그인 코드는 아직 운영에 반영되지 않았다.

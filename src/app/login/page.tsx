@@ -45,12 +45,6 @@ export default async function LoginPage({
               Google로 계속하기
             </button>
           </form>
-          <form action="/api/auth/start" method="post">
-            <input type="hidden" name="provider" value="kakao" />
-            <button className="login-button" type="submit">
-              카카오로 계속하기
-            </button>
-          </form>
         </div>
         <p>
           <Link href="/">지금은 이야기부터 할게요</Link>
