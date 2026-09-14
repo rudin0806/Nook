@@ -1,43 +1,70 @@
 "use client";
-
+import Link from "next/link";
 import { useState } from "react";
 import { ActionButton, TextField } from "@seed-design/react";
 
 type Screen = "start" | "conversation" | "path" | "drawer";
-const screens: { id: Screen; label: string }[] = [
-  { id: "start", label: "이야기 나누기" },
-  { id: "drawer", label: "생각더미" },
+const first = "지금 회사를 떠나고 싶은 걸까?";
+const next = "지금 회사에서 새로운 일을 해볼 수 있을까?";
+const books = [
+  { date: "08.21", question: "혼자 보내는 주말은 어떨까?" },
+  { date: "08.28", question: "다시 그림을 그려볼까?" },
+  { date: "09.03", question: "어떤 속도로 일하고 싶을까?" },
+  { date: "09.09", question: "서운한 마음을 말해볼까?" },
+  { date: "09.12", question: "쉬는 시간을 어떻게 보낼까?" },
+  { date: "09.14", question: first },
 ];
-const initialQuestion = "지금 회사를 떠나고 싶은 걸까?";
-const nextQuestion = "지금 회사에서 새로운 일을 해볼 수 있을까?";
-
-function ThoughtPath({
+function Path({
   approved,
   question,
+  origin = first,
 }: {
   approved: boolean;
   question: string;
+  origin?: string;
 }) {
   return (
-    <ol className="preview-path">
-      <li>
-        <span className="path-dot" />
-        <small>시작한 질문</small>
-        <h3>{initialQuestion}</h3>
-        <p>일 자체가 싫어진 건 아니에요.</p>
+    <ol className="thought-path">
+      <li className="past">
+        <h3>{origin}</h3>
+        {origin === first && <p>일 자체가 싫어진 건 아님</p>}
       </li>
       {approved && (
-        <li>
-          <span className="path-dot current" />
-          <small>이어진 질문</small>
+        <li className="confirmed">
           <h3>{question}</h3>
-          <p>“새로운 일을 해보고 싶은데, 계속 같은 일만 맡아요.”</p>
+          <p>새로운 일을 해보고 싶다고 말했어요.</p>
         </li>
       )}
+      <li className="position">
+        <span>지금 여기</span>
+      </li>
     </ol>
   );
 }
-
+function Shelf({ onOpen }: { onOpen: (index: number) => void }) {
+  return (
+    <div className="bookshelf" aria-label="예시로 보관한 생각">
+      <div className="book-row">
+        {books.map((b, i) => (
+          <button
+            key={b.date}
+            className={`book book-${i}`}
+            onClick={() => onOpen(i)}
+            aria-label={`${b.date} ${b.question} 펼치기`}
+          >
+            <span className="book-date">{b.date}</span>
+            <span className="book-title">{b.question}</span>
+            <span className="book-mark" aria-hidden="true">
+              n.
+            </span>
+          </button>
+        ))}
+        <div className="book-outline" aria-hidden="true" />
+      </div>
+      <div className="shelf-edge" />
+    </div>
+  );
+}
 export function NookPreview({
   initialScreen = "start",
 }: {
@@ -45,221 +72,235 @@ export function NookPreview({
 }) {
   const [screen, setScreen] = useState<Screen>(initialScreen);
   const [thought, setThought] = useState("");
-  const [approved, setApproved] = useState(initialScreen === "path");
+  const [question, setQuestion] = useState(next);
+  const [approved, setApproved] = useState(false);
   const [editing, setEditing] = useState(false);
-  const [question, setQuestion] = useState(nextQuestion);
+  const [aside, setAside] = useState(false);
+  const [cardsOpen, setCardsOpen] = useState(false);
+  const [cardSelected, setCardSelected] = useState(false);
+  const [cardDeleted, setCardDeleted] = useState(false);
+  const [selectedBook, setSelectedBook] = useState(5);
   const [notice, setNotice] = useState("");
-  function navigate(next: Screen) {
-    setScreen(next);
+  const openBook = (i: number) => {
+    setSelectedBook(i);
+    setScreen("path");
     setNotice("");
-  }
-
+  };
+  const begin = () => {
+    setApproved(false);
+    setAside(false);
+    setEditing(false);
+    setQuestion(next);
+    setScreen("conversation");
+    setNotice("");
+  };
+  const cards = (
+    <section className="desk-section">
+      <div className="section-heading">
+        <div>
+          <p className="eyebrow">한쪽에 놓아둔</p>
+          <h2>남겨둔 질문</h2>
+        </div>
+        {!cardDeleted && (
+          <button
+            className="text-button"
+            aria-expanded={cardsOpen}
+            onClick={() => setCardsOpen(!cardsOpen)}
+          >
+            {cardsOpen ? "접어두기 −" : "펼쳐보기 +"}
+          </button>
+        )}
+      </div>
+      {cardDeleted ? (
+        <p className="quiet-empty">지금은 남겨둔 질문이 없어요.</p>
+      ) : (
+        <div className={cardsOpen ? "question-board" : "card-stack"}>
+          <button
+            className="question-card"
+            onClick={() => {
+              setCardsOpen(true);
+              setCardSelected(!cardSelected);
+            }}
+            aria-expanded={cardSelected}
+          >
+            <span className="eyebrow">09.14 · 이직할까? 에서</span>
+            <h3>일 밖에서 새로운 걸 배워볼까?</h3>
+            <span className="card-corner" aria-hidden="true">
+              ↗
+            </span>
+          </button>
+          {cardsOpen && cardSelected && (
+            <div className="preview-actions">
+              <ActionButton
+                variant="neutralWeak"
+                onClick={() =>
+                  setNotice(
+                    "이 질문으로 시작하는 동작의 시안이에요. 질문은 계속 남아 있어요.",
+                  )
+                }
+              >
+                여기서 시작
+              </ActionButton>
+              <ActionButton
+                variant="ghost"
+                onClick={() => {
+                  if (window.confirm("예시 질문을 치울까요?"))
+                    setCardDeleted(true);
+                }}
+              >
+                치우기
+              </ActionButton>
+            </div>
+          )}
+        </div>
+      )}
+    </section>
+  );
   return (
-    <div className={`nook-preview nook-screen-${screen}`}>
+    <div className="nook-preview">
       <div className="preview-ribbon">
-        <span>DESIGN PREVIEW</span>예시 데이터로 살펴보는 화면 · 입력은
-        전송·저장되지 않아요
+        화면 체험 · 가상의 기록이며 입력은 전송·저장되지 않아요
       </div>
       <header className="preview-header">
-        <button
-          className="preview-logo"
-          onClick={() => navigate("start")}
-          aria-label="이야기 나누기 화면"
-        >
+        <button className="preview-logo" onClick={() => setScreen("start")}>
           nook<span>.</span>
         </button>
-        <nav aria-label="시안 화면 선택">
-          {screens.map(({ id, label }) => (
-            <button
-              key={id}
-              aria-current={
-                (id === "start" ? screen !== "drawer" : screen === "drawer")
-                  ? "page"
-                  : undefined
-              }
-              onClick={() => navigate(id)}
-            >
-              {label}
-            </button>
-          ))}
+        <nav aria-label="시안 화면">
+          <button
+            aria-current={screen === "start" ? "page" : undefined}
+            onClick={() => setScreen("start")}
+          >
+            책상
+          </button>
+          <button
+            aria-current={screen === "drawer" ? "page" : undefined}
+            onClick={() => setScreen("drawer")}
+          >
+            생각더미
+          </button>
         </nav>
-        <span className="preview-edition">A LITTLE ROOM FOR THOUGHT</span>
+        <span className="preview-edition">a little room for thought</span>
       </header>
       {screen === "start" ? (
-        <main className="preview-start">
-          <div className="preview-welcome">
-            <div className="preview-welcome-copy">
-              <p className="preview-kicker">잘 왔어요, 여기는 nook이에요</p>
-              <h1>
-                무슨 생각
-                <br />
-                하고 있었어요?
-              </h1>
-              <p className="preview-description">
-                두서없어도 괜찮아요. 편하게 들려주세요.
-              </p>
+        <main className="desk-main">
+          <section className="desk-intro">
+            <p className="eyebrow">잠깐, 내 생각에 머무는 시간</p>
+            <h1>
+              어떤 이야기부터
+              <br />
+              꺼내볼까요?
+            </h1>
+            <div className="desk-light" aria-hidden="true">
+              <span />
             </div>
-            <div className="puff-scene" aria-hidden="true">
-              <div className="puff-halo" />
-              <div className="puff-friend">
-                <i />
-                <i />
-                <span />
-              </div>
-              <div className="puff-pebble" />
-            </div>
-          </div>
+          </section>
           <div className="preview-composer">
             <TextField.Root>
               <TextField.Textarea
-                aria-label="지금 머릿속에 있는 생각"
-                placeholder="어디서부터 말해야 할지 모르겠다면, 그 말부터."
+                aria-label="생각 적기"
+                placeholder="오늘 문득 든 생각은…"
                 value={thought}
-                onChange={(event) => setThought(event.target.value)}
+                onChange={(e) => setThought(e.target.value)}
                 maxLength={5000}
               />
             </TextField.Root>
             <div className="preview-composer-bottom">
-              <span>{thought.length.toLocaleString()} / 5,000</span>
-              <ActionButton
-                variant="neutralSolid"
-                size="medium"
-                onClick={() => navigate("conversation")}
-              >
-                예시 대화 살펴보기 <span aria-hidden="true">↗</span>
+              <span>한 문장부터.</span>
+              <ActionButton variant="neutralWeak" onClick={begin}>
+                예시 대화 열기 ↗
               </ActionButton>
             </div>
           </div>
           <div className="preview-examples">
-            <span>이런 생각도 괜찮아요</span>
-            {[
-              "이직하고 싶은데 이유를 모르겠어",
-              "사고 싶은데 계속 망설여져",
-              "그냥 머릿속이 복잡해",
-            ].map((text) => (
-              <ActionButton
-                key={text}
-                variant="neutralWeak"
-                size="xsmall"
-                onClick={() => setThought(text)}
-              >
-                {text}
-              </ActionButton>
-            ))}
+            {["이직을 할까, 말까", "자꾸 마음에 남는 말", "그냥 복잡한 날"].map(
+              (t) => (
+                <ActionButton
+                  key={t}
+                  variant="ghost"
+                  size="small"
+                  onClick={() => setThought(t)}
+                >
+                  {t}
+                </ActionButton>
+              ),
+            )}
           </div>
-          <div className="preview-collection-title">
-            <h2>생각더미</h2>
-            <button onClick={() => navigate("drawer")}>모두 보기 ↗</button>
-          </div>
-          <div className="preview-home-grid">
-            <div className="preview-recent">
+          {cards}
+          <section className="desk-section">
+            <div className="section-heading">
               <div>
-                <p className="preview-kicker">
-                  생각더미에 넣어둔 이야기 · 예시
-                </p>
-                <h2>
-                  떠나고 싶은 마음에서,
-                  <br />
-                  새로운 일을 해보고 싶은 마음으로.
-                </h2>
-                <span>9월 14일 · 질문의 경로</span>
+                <p className="eyebrow">다시 펼쳐볼 수 있도록</p>
+                <h2>생각더미</h2>
               </div>
-              <ActionButton
-                variant="ghost"
-                size="small"
-                onClick={() => {
-                  setApproved(true);
-                  navigate("path");
-                }}
+              <button
+                className="text-button"
+                onClick={() => setScreen("drawer")}
               >
-                펼쳐보기 ↗
-              </ActionButton>
+                모두 보기 ↗
+              </button>
             </div>
-            <button
-              className="preview-soft-card"
-              onClick={() => navigate("conversation")}
-            >
-              <span className="puff-mini" aria-hidden="true" />
-              <small>처음이라면</small>
-              <h2>
-                어떤 이야기를
-                <br />
-                나누게 될까요?
-              </h2>
-              <span>예시 대화 둘러보기 ↗</span>
-            </button>
-          </div>
+            <Shelf onOpen={openBook} />
+          </section>
         </main>
       ) : screen === "drawer" ? (
-        <main className="preview-summary">
-          <div className="drawer-object" aria-hidden="true">
-            <span />
-          </div>
-          <p className="preview-kicker">내가 남겨둔 이야기</p>
+        <main className="desk-main">
+          <p className="eyebrow">끝난 이야기를 꽂아두는 곳</p>
           <h1>생각더미</h1>
-          <p className="preview-description">
-            다시 펼쳐보고 싶은 이야기를 여기 모아두어요.
-          </p>
-          <button
-            className="drawer-story"
-            onClick={() => {
-              setApproved(true);
-              setQuestion(nextQuestion);
-              navigate("path");
-            }}
-          >
-            <span className="preview-kicker">9월 14일 · 예시 기록</span>
-            <h2>새로운 일을 해보고 싶은 마음</h2>
-            <p>
-              {initialQuestion}
-              <br />
-              <span aria-hidden="true">↓</span>
-              <br />
-              {nextQuestion}
-            </p>
-            <span>이야기 펼쳐보기 ↗</span>
-          </button>
-          <p className="preview-status">
-            보관한 기록이 있을 때의 예시 화면이에요.
-          </p>
-          <ActionButton variant="ghost" onClick={() => navigate("start")}>
-            새 이야기 나누기
-          </ActionButton>
+          <p className="preview-description">지나온 생각 여섯 번 · 예시</p>
+          <Shelf onOpen={openBook} />
+          {cards}
         </main>
       ) : screen === "conversation" ? (
-        <main className="preview-session">
-          <section className="preview-chat" aria-label="예시 대화">
-            <div className="preview-section-title">
-              <span className="preview-kicker">지금 함께 보고 있는 질문</span>
-              <ActionButton
-                variant="ghost"
-                size="small"
-                onClick={() => navigate("path")}
-              >
-                여기까지 정리하기
-              </ActionButton>
-            </div>
-            <h1>{approved ? question : initialQuestion}</h1>
-            <p className="preview-caption">직장에 대한 가상의 대화 예시예요.</p>
-            <div className="preview-messages">
-              <p className="message-user">
-                이직을 해야 하나 싶어요. 그렇다고 일 자체가 싫어진 건 아닌데.
-              </p>
-              <div className="message-assistant">
-                <span className="small-logo">n.</span>
-                <p>지금 하는 일에서 바꾸고 싶은 건 어떤 부분이에요?</p>
-              </div>
-              <p className="message-user">
-                새로운 일을 해보고 싶은데, 계속 같은 일만 맡아요. 다른 곳에 가야
-                배울 수 있나 싶고요.
-              </p>
-            </div>
-            <section className="preview-proposal" aria-label="새 질문 제안">
-              <p className="preview-kicker">이 질문으로 이어가 볼까요?</p>
+        <main className="session-desk">
+          <div className="session-top">
+            <details className="folded-map">
+              <summary>
+                <span className="eyebrow">지금 질문</span>
+                <strong>{approved ? question : first}</strong>
+                <span
+                  className="node-indicators"
+                  aria-label={
+                    approved ? "확정된 질문 두 개" : "확정된 질문 한 개"
+                  }
+                >
+                  ● {approved && "●"} <span aria-hidden="true">⌄</span>
+                </span>
+              </summary>
+              <Path approved={approved} question={question} />
+            </details>
+            <button
+              className="text-button"
+              onClick={() => {
+                setSelectedBook(5);
+                setScreen("path");
+              }}
+            >
+              여기까지 정리하기
+            </button>
+          </div>
+          <section className="flowing-conversation" aria-label="가상의 대화">
+            <p className="voice-user">
+              이직을 해야 하나 싶어요.
+              <br />
+              그렇다고 일 자체가 싫어진 건 아닌데.
+            </p>
+            <p className="voice-nook">
+              지금 하는 일에서 바꾸고 싶은 건<br />
+              어떤 부분이에요?
+            </p>
+            <p className="voice-user">
+              새로운 일을 해보고 싶은데, 계속 같은 일만 맡아요.
+              <br />
+              다른 곳에 가야 배울 수 있나 싶고요.
+            </p>
+          </section>
+          {!aside && (
+            <section className="preview-proposal" aria-label="질문 제안">
+              <p className="eyebrow">질문을 여기에 놓아볼까요?</p>
               {editing ? (
                 <TextField.Root>
                   <TextField.Textarea
-                    aria-label="제안된 질문 수정"
+                    aria-label="제안 질문 수정"
                     value={question}
                     onChange={(e) => setQuestion(e.target.value)}
                     maxLength={1000}
@@ -268,23 +309,23 @@ export function NookPreview({
               ) : (
                 <h2>{question}</h2>
               )}
-              <p>새로운 일을 해보고 싶지만 계속 같은 일을 맡는다고 말했어요.</p>
+              <p>새로운 일을 해보고 싶다는 이야기가 이어졌어요.</p>
               <div className="preview-actions">
                 <ActionButton
-                  variant="neutralSolid"
-                  disabled={!question.trim() || approved}
+                  variant="neutralWeak"
+                  disabled={approved || !question.trim()}
                   onClick={() => {
                     setApproved(true);
                     setEditing(false);
                     setNotice(
-                      "시안에서 질문을 확인했어요. 실제 기록은 저장되지 않아요.",
+                      "예시 지도에 질문을 놓았어요. 서버에는 저장되지 않아요.",
                     );
                   }}
                 >
                   {approved
-                    ? "확인한 질문"
+                    ? "놓아둔 질문"
                     : editing
-                      ? "이 질문으로 보기"
+                      ? "이 질문으로"
                       : "맞아요"}
                 </ActionButton>
                 <ActionButton
@@ -292,74 +333,61 @@ export function NookPreview({
                   disabled={approved}
                   onClick={() => setEditing(!editing)}
                 >
-                  {editing ? "수정 닫기" : "조금 달라요"}
+                  {editing ? "수정 닫기" : "고칠게요"}
+                </ActionButton>
+                <ActionButton
+                  variant="ghost"
+                  disabled={approved}
+                  onClick={() => {
+                    setAside(true);
+                    setEditing(false);
+                  }}
+                >
+                  밀어두기 →
                 </ActionButton>
               </div>
             </section>
-            <p className="preview-status" role="status">
-              {notice || "내가 확인한 질문만 생각의 경로에 남아요."}
-            </p>
-          </section>
-          <aside className="preview-map">
-            <p className="preview-kicker">지나온 질문</p>
-            <h2>여기서 시작했어요.</h2>
-            <ThoughtPath approved={approved} question={question} />
-            <p className="preview-map-note">
-              질문이 달라진 순간을
-              <br />
-              차곡차곡 이어두어요.
-            </p>
-          </aside>
+          )}
+          {aside && (
+            <section className="set-aside">
+              <p className="eyebrow">한쪽에 밀어둔 질문</p>
+              <p>{question}</p>
+              <ActionButton variant="ghost" onClick={() => setAside(false)}>
+                다시 보기 ↗
+              </ActionButton>
+            </section>
+          )}
+          <p className="preview-caption">대화 흐름을 살펴보는 예시예요.</p>
         </main>
       ) : (
-        <main className="preview-summary">
-          <p className="preview-kicker">생각더미에 넣어둔 이야기 · 예시</p>
-          <h1>
-            오늘 지나온 질문을
-            <br />
-            펼쳐볼까요?
-          </h1>
-          <p className="preview-description">
-            처음의 질문과, 대화하며 이어진 질문.
-          </p>
-          <div className="preview-summary-card">
-            <ThoughtPath approved={approved} question={question} />
-            {approved && question !== nextQuestion && (
-              <p>시안에서 수정한 질문: {question}</p>
+        <main className="reading-desk">
+          <button className="text-button" onClick={() => setScreen("drawer")}>
+            ← 다시 꽂아두기
+          </button>
+          <article className="open-book">
+            <p className="eyebrow">{books[selectedBook].date} · 예시 기록</p>
+            <h1>{books[selectedBook].question}</h1>
+            <Path
+              approved={selectedBook === 5 && approved}
+              question={question}
+              origin={books[selectedBook].question}
+            />
+            {selectedBook === 5 && (
+              <section className="set-aside">
+                <p className="eyebrow">남겨둔 질문</p>
+                <p>일 밖에서 새로운 걸 배워볼까?</p>
+              </section>
             )}
-          </div>
-          <div className="preview-actions">
-            <ActionButton
-              variant="neutralSolid"
-              onClick={() =>
-                setNotice(
-                  "보관 화면의 시안이에요. 계정 연결 및 실제 저장은 다음 구현 단계예요.",
-                )
-              }
-            >
-              이 기록 남기기
-            </ActionButton>
-            <ActionButton
-              variant="ghost"
-              onClick={() => {
-                setThought("");
-                setApproved(false);
-                setQuestion(nextQuestion);
-                setEditing(false);
-                navigate("start");
-              }}
-            >
-              남기지 않고 나가기
-            </ActionButton>
-          </div>
-          <p className="preview-status" role="status">
-            {notice || "시안의 예시 데이터는 서버에 저장되지 않아요."}
-          </p>
+          </article>
+          <p className="preview-caption">대화 전문 대신, 질문이 지나온 자리.</p>
         </main>
       )}
+      <p className="preview-status" role="status">
+        {notice}
+      </p>
       <footer className="preview-footer">
-        <span>답을 주는 대신, 내가 어떤 질문을 지나왔는지.</span>
-        <span>Nook × SEED Design</span>
+        <span>생각이 머물다 가는 작은 자리.</span>
+        <Link href="/">실제 홈으로 ↗</Link>
       </footer>
     </div>
   );

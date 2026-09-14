@@ -236,38 +236,44 @@ export function DrawerContents() {
         )}
         {state.kind === "ready" &&
           (state.items.length ? (
-            <ul className="drawer-list">
+            <ul
+              className={`drawer-list ${collection === "sessions" ? "saved-books" : ""}`}
+            >
               {state.items.map((item) => (
                 <li key={item.id} className="preview-summary-card">
-                  <p>{item.text}</p>
-                  <small>
-                    {dateFormat.format(new Date(item.date))}에{" "}
-                    {collection === "trash" ? "휴지통으로 이동" : "보관"}
-                  </small>
-                  {item.purgeAfter && (
-                    <p>
-                      복원 기한:{" "}
-                      {new Date(item.purgeAfter).toLocaleString("ko-KR", {
-                        timeZone: "Asia/Seoul",
-                      })}{" "}
-                      (한국 시간)
-                    </p>
-                  )}
-                  <div>
-                    <ActionButton
-                      variant="neutralWeak"
-                      disabled={busy}
-                      onClick={() => void act(item)}
-                    >
-                      {busy
-                        ? "처리 중…"
-                        : collection === "trash"
-                          ? "복원하기"
-                          : collection === "questions"
-                            ? "질문 삭제"
-                            : "휴지통으로 이동"}
-                    </ActionButton>
-                  </div>
+                  <details className="saved-entry">
+                    <summary>
+                      <span className="saved-question-title">{item.text}</span>
+                    </summary>
+                    <small>
+                      {dateFormat.format(new Date(item.date))}에{" "}
+                      {collection === "trash" ? "휴지통으로 이동" : "보관"}
+                    </small>
+                    {item.purgeAfter && (
+                      <p>
+                        복원 기한:{" "}
+                        {new Date(item.purgeAfter).toLocaleString("ko-KR", {
+                          timeZone: "Asia/Seoul",
+                        })}{" "}
+                        (한국 시간)
+                      </p>
+                    )}
+                    <div>
+                      <ActionButton
+                        variant="neutralWeak"
+                        disabled={busy}
+                        onClick={() => void act(item)}
+                      >
+                        {busy
+                          ? "처리 중…"
+                          : collection === "trash"
+                            ? "복원하기"
+                            : collection === "questions"
+                              ? "질문 삭제"
+                              : "휴지통으로 이동"}
+                      </ActionButton>
+                    </div>
+                  </details>
                 </li>
               ))}
             </ul>
