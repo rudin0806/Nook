@@ -48,7 +48,7 @@ Judge 32 / Start 17 / Safety 15. Judge boundary는 J-SHIFT-04 하나이며 pendi
 
 ## 다음 업무
 
-1. 익명 로그인 초기화와 Google/Kakao identity linking·OAuth callback 구현.
+1. 익명 로그인 초기화·보관 선택 복귀 연결. Google/Kakao identity linking·OAuth callback은 구현됐으며 공급자 설정과 실제 왕복 검증이 남았다.
 2. 보관·휴지통·복원 API를 실제 화면에 연결하고 배포 환경에서 HTTP/RLS 왕복 검증.
 3. 삭제 예약 적용 준비. 만료 경계 테스트는 완료했다.
 4. Safety·종료 의사·구조 상한 뒤에 Judge 런타임을 연결하고, 사용자·세션 소유권·원자적 구조 로그 저장·요청량 제한을 통합 검증.
@@ -71,3 +71,7 @@ Judge 32 / Start 17 / Safety 15. Judge boundary는 J-SHIFT-04 하나이며 pendi
 ## Prompt C v2 구현
 
 [통합 기록](reviews/2026-09-14-prompt-c-integration.md). SHIFT/HIGH 호출 제한, 현재 창·carryover 원문 검증, 제안 출력 스키마·동일 질문 거절, 서버 SDK 호출과 오류 중단 구현. 신규 테스트 6개와 타입·린트·빌드 통과. 실제 모델 호출 0회. 공개 대화 API·사용자 승인·DB 저장 및 Safety 전체 연결은 미완료다.
+
+## 인증 연결 구현
+
+[인증 구현·설정·검증 기록](reviews/2026-09-14-auth-flow.md). 로그인 화면, Google/Kakao 시작, 익명 identity linking, PKCE callback, 이 기기 로그아웃 및 생각더미 로그인 안내를 연결했다. 인증 단위 테스트 6개·프로덕션 HTTP smoke 7개·타입·린트·빌드 통과. 실제 공급자 로그인과 운영 RLS 왕복은 미검증이며 익명 세션 생성 및 보관 선택 복귀 연결은 남았다. 운영 설정·DB 변경·유료 AI 호출은 없다.

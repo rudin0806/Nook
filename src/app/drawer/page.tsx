@@ -26,6 +26,9 @@ export default function DrawerPage() {
           다시 펼쳐보고 싶은 이야기를 여기 모아두어요.
         </p>
         <DrawerContents />
+        <p>
+          <Link href="/login">계정 연결 · 로그아웃</Link>
+        </p>
       </main>
     </div>
   );

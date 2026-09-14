@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { ActionButton } from "@seed-design/react";
 import { z } from "zod";
 import {
@@ -26,7 +27,7 @@ const questionsResponse = z.object({
 type Item = { id: string; text: string; date: string };
 type State =
   | { kind: "loading" }
-  | { kind: "error"; message: string }
+  | { kind: "error"; message: string; needsLogin?: boolean }
   | { kind: "ready"; items: Item[]; hasMore: boolean };
 const dateFormat = new Intl.DateTimeFormat("ko-KR", {
   timeZone: "Asia/Seoul",
@@ -56,11 +57,16 @@ export function DrawerContents() {
         if (!response.ok) {
           const message =
             response.status === 401
-              ? "생각더미을 보려면 로그인이 필요해요. 로그인 기능은 준비 중이에요."
+              ? "보관한 이야기를 보려면 계정을 연결해 주세요."
               : response.status === 503
-                ? "지금은 생각더미을 연결할 수 없어요. 잠시 후 다시 확인해 주세요."
-                : "생각더미을 불러오지 못했어요. 다시 시도해 주세요.";
-          if (!controller.signal.aborted) setState({ kind: "error", message });
+                ? "지금은 생각더미를 연결할 수 없어요. 잠시 후 다시 확인해 주세요."
+                : "생각더미를 불러오지 못했어요. 다시 시도해 주세요.";
+          if (!controller.signal.aborted)
+            setState({
+              kind: "error",
+              message,
+              needsLogin: response.status === 401,
+            });
           return;
         }
         const payload: unknown = await response.json();
@@ -84,7 +90,7 @@ export function DrawerContents() {
           setState({
             kind: "error",
             message:
-              "생각더미을 불러오지 못했어요. 연결을 확인하고 다시 시도해 주세요.",
+              "생각더미를 불러오지 못했어요. 연결을 확인하고 다시 시도해 주세요.",
           });
       }
     }
@@ -122,11 +128,16 @@ export function DrawerContents() {
       </div>
       <div aria-live="polite" aria-busy={state.kind === "loading"}>
         {state.kind === "loading" && (
-          <p className="preview-status">생각더미을 열고 있어요…</p>
+          <p className="preview-status">생각더미를 열고 있어요…</p>
         )}
         {state.kind === "error" && (
           <div className="preview-summary-card">
             <p>{state.message}</p>
+            {state.needsLogin && (
+              <p>
+                <Link href="/login">계정 연결하기</Link>
+              </p>
+            )}
             <ActionButton
               variant="neutralWeak"
               onClick={() => {

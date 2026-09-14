@@ -128,3 +128,7 @@ npm run validate
 `npm run eval -- --dry`로 기본 경계쌍을 검사합니다. 실제 호출 설정·비용 제한·보고서 범위는 [평가기 실행 안내](docs/reviews/2026-09-13-judge-model-runner.md)를 따릅니다.
 
 실서비스용 Judge 호출 경계는 [런타임 어댑터 기록](docs/reviews/2026-09-14-judge-runtime-adapter.md)을 따릅니다. 아직 공개 API Route에는 연결하지 않았으며 Safety·사용자 종료 의사·구조 상한을 먼저 통과한 서버 흐름에서만 호출해야 합니다.
+
+### 소셜 로그인 연결
+
+`/login`에서 Google/Kakao 연결을 시작합니다. 배포별 `NOOK_SITE_URL`, Supabase 공급자·Manual Linking·redirect 설정과 실제 검증 순서는 [인증 연결 안내](docs/reviews/2026-09-14-auth-flow.md)를 참고하세요. 익명 사용자 생성과 보관 선택 복귀는 아직 연결 전입니다.

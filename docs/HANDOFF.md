@@ -18,7 +18,7 @@
 - [PR #2](https://github.com/rudin0806/Nook/pull/2): 문서·평가·AI 엔진·API 보완 작업 브랜치. 전체 병합 전이다.
 - Judge 32 / Start 17 / Safety 15. Safety category 계약 불일치 8건은 미해결이다.
 - Prompt B는 `gpt-5.6-sol` reasoning high의 Judge strict 31/31 회귀를 통과했다. 한 번의 fixture 결과이며 실사용 정확도나 운영 모델 확정을 뜻하지 않는다.
-- Prompt D는 통합됐고 Judge 서버 전용 어댑터도 구현됐다. Prompt C와 전체 Safety→Judge→C/D 저장 배선은 남았다.
+- Prompt D는 통합됐고 Judge 서버 전용 어댑터도 구현됐다. Prompt C 내부 어댑터도 통합됐고, 전체 Safety→Judge→C/D 저장 배선은 남았다.
 
 ## 작업 이력과 다음 위임
 
@@ -97,3 +97,7 @@ Codex가 최종 Zod 스키마·호출 형식·사용자 확인·DB 저장을 구
 6. 최종 결과는 STATUS와 해당 제안서에 남긴다. 긴 대화 기록을 매번 전달하지 않는다.
 
 Core와 Safety 결과는 분리한다. 프롬프트 문안을 줄였다는 이유만으로 정확도나 안전 규칙이 좋아졌다고 판단하지 않는다.
+
+## 인증 구현 체크포인트
+
+Google/Kakao OAuth 시작·익명 identity linking·callback·로그아웃은 구현했다. 실제 공급자 설정/왕복, 익명 사용자 생성 및 보관 선택 복귀는 남았다. 설정·검증 범위는 [인증 기록](reviews/2026-09-14-auth-flow.md)을 참고한다. Claude가 프롬프트/제품 규칙을 이 인증 구현에 맞춰 바꿀 필요는 없다.

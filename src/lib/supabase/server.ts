@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { getSupabaseEnvironment } from "@/lib/env/public";
 
 /** For Route Handlers / Server Actions, where response cookies can be written.
- * Auth refresh/proxy and anonymous identity linking belong to the auth step.
+ * OAuth handlers and retention APIs share this cookie-backed client.
  */
 export async function createSupabaseRouteClient() {
   const { url, publishableKey } = getSupabaseEnvironment();

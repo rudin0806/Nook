@@ -964,3 +964,18 @@
     padding: 24px;
   }
 }
+
+.login-button {
+  border: 1px solid #d6dfcf;
+  border-radius: 999px;
+  padding: 14px 24px;
+  background: #f6f8f0;
+  color: #26392d;
+  font: inherit;
+  cursor: pointer;
+  box-shadow: 0 5px 12px #26392d12;
+}
+.login-button:focus-visible {
+  outline: 3px solid #4a7059;
+  outline-offset: 3px;
+}
