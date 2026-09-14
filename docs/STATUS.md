@@ -109,7 +109,7 @@ Sol high 최종 회귀는 Safety label/category/behavior 각각 **15/15**, Start
 
 기존 생각더미에는 이미 휴지통 이동·복원·질문 삭제 화면 연결이 있었다. 이번에는 `/drawer/[sessionId]`와 `/api/sessions/[sessionId]/story`를 추가했다. 사용자가 보관한 완료 세션의 승인된 중심 질문과 유효 Clarification을 구간·질문 순서로 읽는다. Anchor를 다시 Node로 표시하거나 대화 전문·미승인 AI 제안·내부 Judge 로그를 내려주지 않는다. 10구간씩 조회하며 사용자 쿠키 인증과 기존 RLS, SAVED 부모 검사, 조회 후 보관 상태 재검사, 응답 schema 검사·no-store를 적용한다. 새 DB migration은 없다. UI의 로그인 필요·조회 실패·빈 기록·재시도·이전/다음 구간을 구현했다.
 
-새 조회 테스트 5개를 포함해 전체 단위 테스트 121/121, 타입·린트·빌드·변경 소스 formatter·정적 평가 계약 issues 0 통과. 기본 CI도 이제 전체 단위 테스트를 실행한다. 로컬 서버는 명시적 loopback host로 실행됐지만 별도 실행기의 HTTP 연결은 `fetch failed`로 실패했다. HTTP/브라우저 검증 성공으로 기록하지 않는다. 인증된 실데이터와 새 상세 화면의 브라우저 왕복 검증은 별도 관문이다.
+새 조회 테스트 5개를 포함해 전체 단위 테스트 121/121, 타입·린트·빌드·변경 소스 formatter·정적 평가 계약 issues 0 통과. 기본 CI도 이제 전체 단위 테스트를 실행한다. 코드 `96c62c4`의 [GitHub 검증 및 독립 DB 회귀](https://github.com/rudin0806/Nook/actions/runs/34854312412)가 모두 통과했다. 별도 실행기의 HTTP 연결 실패 뒤 서버와 요청을 같은 실행기에서 실행해 HTTP smoke 4건을 확인했다: 잘못된 UUID/음수 offset은 400·no-store, 상세 HTML은 200·제목 표시·private no-store, 설정 없는 API는 503·no-store. 실제 로그인과 보관 데이터 조회 성공을 뜻하지 않는다. 인증된 실데이터와 새 상세 화면의 브라우저 클릭/시각 검증은 별도 관문이다.
 
 ### 사용자 인지 미결 항목
 
