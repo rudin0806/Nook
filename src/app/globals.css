@@ -1,9 +1,14 @@
 :root {
   color-scheme: light;
-  --nook-paper: #f5f1e8;
-  --nook-ink: #494139;
-  --nook-muted: #7c7267;
-  --nook-accent: #84775e;
+  --nook-lemon: #f5ecbf;
+  --nook-tea: #c2de9b;
+  --nook-rose: #b07b7b;
+  --nook-wood: #82735c;
+  --nook-mocha: #4b3b40;
+  --nook-paper: #f6f2e5;
+  --nook-ink: var(--nook-mocha);
+  --nook-muted: #766570;
+  --nook-accent: var(--nook-wood);
   --nook-line: #dcd3c3;
 }
 * {
@@ -12,7 +17,9 @@
 body {
   margin: 0;
   background:
-    radial-gradient(ellipse at 83% 10%, #fff9de9c, transparent 42%),
+    radial-gradient(ellipse at 85% 8%, #c2de9b70, transparent 44%),
+    radial-gradient(ellipse at 5% 55%, #b07b7b20, transparent 45%),
+    radial-gradient(ellipse at 50% 10%, #f5ecbfaa, transparent 60%),
     var(--nook-paper);
   color: var(--nook-ink);
   font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
@@ -84,7 +91,7 @@ h3 {
 }
 .wordmark span,
 .preview-logo span {
-  color: #a99871;
+  color: #b07b7b;
 }
 .home-nav,
 .preview-header nav {
@@ -135,7 +142,7 @@ h3 {
   width: 135px;
   height: 150px;
   border-radius: 50%;
-  background: radial-gradient(ellipse, #f8e6ac85, transparent 70%);
+  background: radial-gradient(ellipse, #c2de9b95, transparent 70%);
 }
 .desk-light span {
   position: absolute;
@@ -144,7 +151,7 @@ h3 {
   width: 54px;
   height: 54px;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 25%, #fffdf0, #e6d9b8);
+  background: radial-gradient(circle at 35% 25%, #f5ecbf, #c2de9b);
   box-shadow:
     6px 17px 20px #897b5920,
     inset 0 2px 3px #fff;
@@ -153,7 +160,7 @@ h3 {
 .preview-composer {
   position: relative;
   padding: 27px 30px 21px;
-  background: linear-gradient(125deg, #fffef7, #f9f5e9);
+  background: linear-gradient(125deg, #fffbdf, #f5ecbf);
   border: 1px solid #fffaf0;
   border-radius: 8px 8px 22px 8px;
   box-shadow:
@@ -203,7 +210,7 @@ textarea::placeholder {
   text-decoration: none;
   padding: 10px 14px;
   border-radius: 10px;
-  background: #eee9dc;
+  background: #c2de9b;
   color: var(--nook-ink);
 }
 .preview-examples {
@@ -264,8 +271,8 @@ textarea::placeholder {
   flex-direction: column;
   align-items: center;
   gap: 17px;
-  background: #b9b499;
-  color: #3f4438;
+  background: #c2de9b;
+  color: #4b3b40;
   box-shadow:
     inset 3px 0 3px #fff6,
     inset -4px 0 5px #0000000d,
@@ -283,25 +290,25 @@ textarea::placeholder {
 }
 .book-1 {
   height: 185px;
-  background: #dbcdaf;
+  background: #f5ecbf;
 }
 .book-2 {
   height: 238px;
-  background: #b5bba6;
+  background: #4b3b40;
 }
 .book-3 {
   height: 203px;
-  background: #bba19b;
-  color: #493b3b;
+  background: #b07b7b;
+  color: #35292d;
 }
 .book-4 {
   height: 225px;
-  background: #827966;
+  background: #82735c;
   color: #fff9e8;
 }
 .book-5 {
   height: 248px;
-  background: #d8c798;
+  background: #c2de9b;
 }
 .book-date {
   font:
@@ -327,7 +334,7 @@ textarea::placeholder {
 .shelf-edge {
   height: 13px;
   border-radius: 2px 2px 6px 6px;
-  background: linear-gradient(#c3b496, #bbaa8c);
+  background: linear-gradient(#a3957a, #82735c);
   box-shadow:
     0 10px 14px -5px #7663483d,
     inset 0 1px #ecdfc8;
@@ -366,7 +373,7 @@ textarea::placeholder {
   content: "";
   position: absolute;
   inset: 0;
-  background: #e6e1d3;
+  background: #b07b7b;
   border: 1px solid #d9d0bf;
   border-radius: 8px;
   transform: rotate(-3deg);
@@ -374,7 +381,7 @@ textarea::placeholder {
 }
 .card-stack:after {
   transform: rotate(2deg);
-  background: #f3eddd;
+  background: #c2de9b;
 }
 .question-card {
   position: relative;
@@ -382,7 +389,7 @@ textarea::placeholder {
   width: 100%;
   border: 1px solid #e2d9c7;
   padding: 25px;
-  background: linear-gradient(130deg, #fffaf0, #f3eddc);
+  background: linear-gradient(130deg, #e5f0d4, #c2de9b);
   border-radius: 7px;
   text-align: left;
   color: var(--nook-ink);
@@ -404,7 +411,7 @@ textarea::placeholder {
   padding: 22px;
   border: 1px solid #e0d7c5;
   border-radius: 14px;
-  background: #eae4d650;
+  background: #b07b7b18;
 }
 .question-board .question-card {
   max-width: 380px;
@@ -417,7 +424,7 @@ textarea::placeholder {
   text-align: center;
   padding: 9px 15px;
   color: #7e7468;
-  background: #ece7dc;
+  background: #e9dfd7;
   font-size: 11px;
 }
 .preview-actions {
@@ -517,7 +524,7 @@ textarea::placeholder {
   color: #7b7368;
 }
 .voice-nook {
-  color: #453e35;
+  color: #4b3b40;
   padding: 12px 0;
   font-size: 20px !important;
 }
@@ -525,7 +532,7 @@ textarea::placeholder {
   padding: 30px;
   border: 1px solid #e0c791;
   border-radius: 9px 9px 22px 9px;
-  background: linear-gradient(125deg, #faf0cf, #f1e2ba);
+  background: linear-gradient(125deg, #fbf3d4, #f5ecbf);
   box-shadow: 0 16px 35px -26px #a68139;
 }
 .preview-proposal h2 {
@@ -751,7 +758,7 @@ textarea::placeholder {
   align-items: flex-end;
   gap: 12px;
   padding: 20px 8px 10px;
-  border-bottom: 12px solid #bbaa8c;
+  border-bottom: 12px solid #82735c;
 }
 .saved-books > li.preview-summary-card {
   margin: 0;
@@ -767,7 +774,7 @@ textarea::placeholder {
   overflow: hidden;
   padding: 22px;
   border-radius: 6px 7px 0 0;
-  background: linear-gradient(90deg, #c8bc9f, #d9ceb4 7%, #c9bda0);
+  background: linear-gradient(90deg, #a8c282, #c2de9b 7%, #bdd697);
   box-shadow:
     inset -4px 0 4px #7b705224,
     3px 2px 6px #0000000c;
@@ -782,4 +789,32 @@ textarea::placeholder {
 }
 .saved-entry[open] > div {
   margin-top: 15px;
+}
+
+/* Moodboard palette takes precedence over the earlier accent-only concept. */
+.book-2 {
+  color: #f5ecbf;
+}
+.book-3 {
+  color: #302127;
+}
+.preview-composer-bottom button {
+  background: var(--nook-tea);
+  color: var(--nook-mocha);
+}
+.preview-examples button:hover {
+  background: #c2de9b55;
+}
+.question-card .eyebrow {
+  color: #586349;
+}
+.saved-books > li:nth-child(3n + 2) .saved-entry:not([open]) summary {
+  background: var(--nook-lemon);
+}
+.saved-books > li:nth-child(3n + 3) .saved-entry:not([open]) summary {
+  background: var(--nook-rose);
+  color: #302127;
+}
+.desk-link:hover {
+  background: #b3ce8d;
 }
