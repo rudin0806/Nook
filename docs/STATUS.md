@@ -32,7 +32,7 @@ main에는 migration 5개가 있다. PR #4의 신규 환경 REVOKE 보완, PR #5
 - 최종 결과는 결정론적 fixture 채점 1회 통과다. reference/examples 의미 동등성 사람 검토와 실제 대화 회귀 전까지 실사용 정확도를 보장하지 않는다. Sol high를 Judge 품질 기준 후보로 두되 Terra/Luna 동일 조건 비교 전에는 최저 비용 운영 모델을 확정하지 않는다.
 - [Judge 런타임 어댑터](reviews/2026-09-14-judge-runtime-adapter.md)는 서버 소유 세션과 최신 창·carryover를 대조하고, 전체 세션은 hedge 계산에만 사용한다. 모델은 Luna/Terra/Sol, reasoning은 low/medium/high, 출력은 최대 2048토큰으로 제한한다. Responses 요청은 `store: false`, SDK 자동 재시도 0회이며 검증된 구조 결과만 반환한다.
 - 런타임 어댑터는 내부 서버 모듈까지만 구현했다. 공개 API Route는 만들지 않았다. Safety → 명시적 종료 의사 → 구조 상한을 선행하고 사용자·세션 소유권과 원자적 DB 저장을 묶는 상위 처리 흐름이 남았다.
-- Prompt C는 Claude 산출물 대기. 실제 사용자 대화에 대한 Safety/종료/상한→Judge→C/D→저장 연결은 미구현이다.
+- Prompt C v2는 내부 서버 어댑터 통합 완료, 실제 모델 평가와 사용자 확인·저장 연결은 남았다. 실제 사용자 대화에 대한 Safety/종료/상한→Judge→C/D→저장 연결은 미구현이다.
 
 ## 평가 계약과 보류
 
@@ -52,7 +52,7 @@ Judge 32 / Start 17 / Safety 15. Judge boundary는 J-SHIFT-04 하나이며 pendi
 2. 보관·휴지통·복원 API를 실제 화면에 연결하고 배포 환경에서 HTTP/RLS 왕복 검증.
 3. 삭제 예약 적용 준비. 만료 경계 테스트는 완료했다.
 4. Safety·종료 의사·구조 상한 뒤에 Judge 런타임을 연결하고, 사용자·세션 소유권·원자적 구조 로그 저장·요청량 제한을 통합 검증.
-5. Claude Prompt C 검토, Safety 계약 해결, Terra/Luna 비용 비교 후 검증된 변경을 순차 병합.
+5. Prompt C 모델 평가, Safety 계약 해결, Terra/Luna 비용 비교 후 검증된 변경을 순차 병합.
 
 협업 역할과 최소 전달 방식은 [HANDOFF.md](HANDOFF.md)를 따른다. 오래된 체크포인트보다 이 문서의 현재 상태를 우선한다.
 
@@ -67,3 +67,7 @@ Judge 32 / Start 17 / Safety 15. Judge boundary는 J-SHIFT-04 하나이며 pendi
 ## UI 명칭 정정 및 레퍼런스 반영
 
 보관 화면의 최종 이름은 **생각더미**다. 이전 작업 기록의 서랍은 폐기된 화면 명칭이며, `/drawer`는 기존 기술 경로로만 유지한다. Fabric 구성(큰 카드·여백·플로팅 메뉴)과 Tolan 컨셉(부드러운 공간·말풍선·친근한 형태)을 사용자 제공 이미지 기준으로 반영했다. CSS 구름 오브젝트는 Nook 시안용이다. API 호출·저장 기능 상태는 이전과 같고, 예시 데이터임을 화면에 표시한다.
+
+## Prompt C v2 구현
+
+[통합 기록](reviews/2026-09-14-prompt-c-integration.md). SHIFT/HIGH 호출 제한, 현재 창·carryover 원문 검증, 제안 출력 스키마·동일 질문 거절, 서버 SDK 호출과 오류 중단 구현. 신규 테스트 6개와 타입·린트·빌드 통과. 실제 모델 호출 0회. 공개 대화 API·사용자 승인·DB 저장 및 Safety 전체 연결은 미완료다.

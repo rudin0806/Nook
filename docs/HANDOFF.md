@@ -51,7 +51,9 @@ Prompt B 최소 수정과 실패 subset 재검증을 거쳐 Sol high strict 31/3
 [`src/prompts/prompt-judge.ts`](../src/prompts/prompt-judge.ts)와
 [`조정 기록`](reviews/2026-09-14-judge-sol-tuning.md)이다.
 
-### 다음 — Prompt C 초안과 생성 사례
+### Prompt C v2 — 내부 서버 통합 완료, 생성 품질 평가 전
+
+v2는 `src/prompts/prompt-reframe.ts`와 `src/engine/reframe.ts`에 통합했다. [통합 기록](reviews/2026-09-14-prompt-c-integration.md)을 따른다. 이후 Claude 작업은 기존 프롬프트 예시와 겹치지 않는 C 평가 사례 및 문장 검토다.
 
 Judge가 `SHIFT/HIGH`를 반환한 뒤 사용자 확인 전 보여줄 **새 중심 질문과 근거 한 줄**을 만든다.
 RULES의 Reframe 경계, PRD의 Shift Proposal·User Confirm, Judge 출력 스키마만 읽는다. Judge 판정을
