@@ -158,3 +158,31 @@ h1 {
     font-size: 14px;
   }
 }
+
+.home-nav {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  font-size: 13px;
+  color: var(--nook-muted);
+}
+.home-nav a {
+  text-decoration: none;
+}
+.home-nav a[aria-current] {
+  color: var(--nook-ink);
+  font-weight: 600;
+}
+.thought-composer {
+  border-radius: 28px;
+  background: linear-gradient(140deg, #fffefa, #f5f6ed);
+  box-shadow:
+    10px 14px 30px #35482e10,
+    inset 0 2px 2px white;
+}
+@media (max-width: 520px) {
+  .home-nav {
+    gap: 12px;
+    font-size: 11px;
+  }
+}

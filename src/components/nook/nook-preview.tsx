@@ -3,14 +3,13 @@
 import { useState } from "react";
 import { ActionButton, TextField } from "@seed-design/react";
 
-type Screen = "start" | "conversation" | "path";
+type Screen = "start" | "conversation" | "path" | "drawer";
 const screens: { id: Screen; label: string }[] = [
-  { id: "start", label: "생각 시작" },
-  { id: "conversation", label: "대화와 질문 제안" },
-  { id: "path", label: "지나온 생각" },
+  { id: "start", label: "이야기 나누기" },
+  { id: "drawer", label: "서랍" },
 ];
 const initialQuestion = "지금 회사를 떠나고 싶은 걸까?";
-const nextQuestion = "지금 회사에서 원하는 성장을 할 수 있을까?";
+const nextQuestion = "지금 회사에서 새로운 일을 해볼 수 있을까?";
 
 function ThoughtPath({
   approved,
@@ -65,7 +64,7 @@ export function NookPreview({
         <button
           className="preview-logo"
           onClick={() => navigate("start")}
-          aria-label="생각 시작 화면"
+          aria-label="이야기 나누기 화면"
         >
           nook<span>.</span>
         </button>
@@ -73,7 +72,11 @@ export function NookPreview({
           {screens.map(({ id, label }) => (
             <button
               key={id}
-              aria-current={screen === id ? "page" : undefined}
+              aria-current={
+                (id === "start" ? screen !== "drawer" : screen === "drawer")
+                  ? "page"
+                  : undefined
+              }
               onClick={() => navigate(id)}
             >
               {label}
@@ -89,12 +92,12 @@ export function NookPreview({
           </div>
           <p className="preview-kicker">생각이 머무는 작은 자리</p>
           <h1>
-            머릿속에
+            무슨 생각
             <br />
-            걸리는 게 있나요?
+            하고 있었어요?
           </h1>
           <p className="preview-description">
-            정리하지 말고, 생각나는 대로 적어주세요.
+            두서없어도 괜찮아요. 편하게 들려주세요.
           </p>
           <div className="preview-composer">
             <TextField.Root>
@@ -136,11 +139,11 @@ export function NookPreview({
           </div>
           <div className="preview-recent">
             <div>
-              <p className="preview-kicker">지나온 생각 · 예시</p>
+              <p className="preview-kicker">서랍에 넣어둔 이야기 · 예시</p>
               <h2>
                 떠나고 싶은 마음에서,
                 <br />
-                성장하고 싶은 마음으로.
+                새로운 일을 해보고 싶은 마음으로.
               </h2>
               <span>9월 14일 · 질문의 경로</span>
             </div>
@@ -155,6 +158,42 @@ export function NookPreview({
               펼쳐보기 ↗
             </ActionButton>
           </div>
+        </main>
+      ) : screen === "drawer" ? (
+        <main className="preview-summary">
+          <div className="drawer-object" aria-hidden="true">
+            <span />
+          </div>
+          <p className="preview-kicker">내가 남겨둔 이야기</p>
+          <h1>서랍</h1>
+          <p className="preview-description">
+            다시 펼쳐보고 싶은 이야기를 여기 모아두어요.
+          </p>
+          <button
+            className="drawer-story"
+            onClick={() => {
+              setApproved(true);
+              setQuestion(nextQuestion);
+              navigate("path");
+            }}
+          >
+            <span className="preview-kicker">9월 14일 · 예시 기록</span>
+            <h2>새로운 일을 해보고 싶은 마음</h2>
+            <p>
+              {initialQuestion}
+              <br />
+              <span aria-hidden="true">↓</span>
+              <br />
+              {nextQuestion}
+            </p>
+            <span>이야기 펼쳐보기 ↗</span>
+          </button>
+          <p className="preview-status">
+            보관한 기록이 있을 때의 예시 화면이에요.
+          </p>
+          <ActionButton variant="ghost" onClick={() => navigate("start")}>
+            새 이야기 나누기
+          </ActionButton>
         </main>
       ) : screen === "conversation" ? (
         <main className="preview-session">
@@ -243,7 +282,7 @@ export function NookPreview({
         </main>
       ) : (
         <main className="preview-summary">
-          <p className="preview-kicker">지나온 생각 · 예시</p>
+          <p className="preview-kicker">서랍에 넣어둔 이야기 · 예시</p>
           <h1>
             오늘 지나온 질문을
             <br />
