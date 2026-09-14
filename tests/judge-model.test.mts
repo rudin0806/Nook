@@ -48,6 +48,7 @@ test("history and gold data do not leak; no persistence and output cap", () => {
   assert.ok(serializedInput.includes("JSON"));
   assert.equal(r.store, false);
   assert.equal(r.max_output_tokens, 1024);
+  assert.deepEqual(r.reasoning, { effort: "medium" });
 });
 test("unknown IDs, duplicates and excessive case counts fail before calls", () => {
   assert.throws(() => selectFixtures(all, ["BAD"], 2));

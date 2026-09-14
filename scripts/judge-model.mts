@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { computeHedge } from "../src/engine/hedge.ts";
 import { JUDGE_SYSTEM, buildJudgeUser } from "../src/prompts/prompt-judge.ts";
 import { judgeOutputSchema, mediumReasonSchema } from "../src/schemas/judge.ts";
+import type { NookReasoningEffort } from "../src/lib/openai/models.ts";
 import {
   score,
   severity,
@@ -19,6 +20,7 @@ export type ModelRequest = {
     },
   ];
   max_output_tokens: number;
+  reasoning: { effort: NookReasoningEffort };
   store: false;
   text: { format: { type: "json_object" } };
 };
@@ -111,6 +113,7 @@ export function makeJudgeRequest(
   fixture: Fixture,
   model: string,
   maxOutputTokens: number,
+  reasoningEffort: NookReasoningEffort = "medium",
 ): ModelRequest {
   if (!model.trim()) throw new Error("MODEL_REQUIRED");
   if (
@@ -151,6 +154,7 @@ export function makeJudgeRequest(
       },
     ],
     max_output_tokens: maxOutputTokens,
+    reasoning: { effort: reasoningEffort },
     store: false,
     text: { format: { type: "json_object" } },
   };
@@ -162,6 +166,7 @@ export async function evaluateJudge(
   maxOutputTokens: number,
   transport: Transport,
   onTransportError?: TransportErrorObserver,
+  reasoningEffort: NookReasoningEffort = "medium",
 ) {
   // Validate the whole selected batch before the first billable request.
   const selected = selectFixtures(
@@ -170,7 +175,7 @@ export async function evaluateJudge(
     32,
   );
   const requests = selected.map((f) =>
-    makeJudgeRequest(f, model, maxOutputTokens),
+    makeJudgeRequest(f, model, maxOutputTokens, reasoningEffort),
   );
   const cases: CaseResult[] = [];
   for (let i = 0; i < selected.length; i++) {
@@ -236,6 +241,7 @@ export async function evaluateJudge(
     scope:
       "Judge deterministic checks only; semantic review, Start and Safety not evaluated",
     model,
+    reasoningEffort,
     promptSha256: createHash("sha256").update(JUDGE_SYSTEM).digest("hex"),
     fixtureSha256: createHash("sha256")
       .update(JSON.stringify(selected))

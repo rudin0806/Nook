@@ -9,7 +9,10 @@ import {
 } from "./judge-model.mts";
 import { loadEvalTrigger } from "./eval-trigger.mts";
 import { type Fixture, run } from "./eval-core.mts";
-import { requireNookModelId } from "../src/lib/openai/models.ts";
+import {
+  requireNookModelId,
+  requireNookReasoningEffort,
+} from "../src/lib/openai/models.ts";
 
 async function main() {
   const { values } = parseArgs({
@@ -17,6 +20,7 @@ async function main() {
       dry: { type: "boolean" },
       trigger: { type: "string" },
       model: { type: "string" },
+      "reasoning-effort": { type: "string" },
       ids: { type: "string", default: "J-CLOSE-01,J-EDGE-01" },
       "max-cases": { type: "string", default: "2" },
       "max-output-tokens": { type: "string", default: "1024" },
@@ -46,6 +50,12 @@ async function main() {
     trigger?.model ?? values.model ?? process.env.NOOK_EVAL_MODEL;
   if (!requestedModel?.trim()) throw new Error("MODEL_REQUIRED");
   const model = requireNookModelId(requestedModel);
+  const reasoningEffort = requireNookReasoningEffort(
+    trigger?.reasoningEffort ??
+      values["reasoning-effort"] ??
+      process.env.NOOK_EVAL_REASONING_EFFORT ??
+      "medium",
+  );
   const client = new OpenAI({ apiKey, timeout: 30_000, maxRetries: 0 });
   const report = await evaluateJudge(
     fixtures,
@@ -53,6 +63,7 @@ async function main() {
     maxOutputTokens,
     (request) => client.responses.create(request),
     (error) => console.error(formatProviderDiagnostic(error)),
+    reasoningEffort,
   );
   const dir = resolve(import.meta.dirname, "../eval/reports");
   mkdirSync(dir, { recursive: true });
@@ -71,6 +82,7 @@ main().catch((error) => {
     "OPENAI_API_KEY_REQUIRED",
     "MODEL_REQUIRED",
     "MODEL_NOT_ALLOWED",
+    "REASONING_EFFORT_NOT_ALLOWED",
     "INVALID_CASE_LIMIT",
     "INVALID_CASE_IDS",
     "CASE_LIMIT_EXCEEDED",

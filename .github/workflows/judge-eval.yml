@@ -17,6 +17,15 @@ on:
         required: true
         default: J-CLOSE-01,J-EDGE-01
         type: string
+      reasoning_effort:
+        description: Responses API reasoning effort
+        required: true
+        default: medium
+        type: choice
+        options:
+          - low
+          - medium
+          - high
       max_cases:
         description: Maximum paid requests
         required: true
@@ -48,6 +57,7 @@ jobs:
       OPENAI_API_KEY: ${{ secrets.AI_API_KEY }}
       EVAL_MODEL: ${{ inputs.model || 'gpt-5.6-sol' }}
       EVAL_IDS: ${{ inputs.ids || 'J-CLOSE-01,J-EDGE-01' }}
+      REASONING_EFFORT: ${{ inputs.reasoning_effort || 'medium' }}
       MAX_CASES: ${{ inputs.max_cases || '2' }}
       MAX_OUTPUT_TOKENS: ${{ inputs.max_output_tokens || '1024' }}
 
@@ -87,5 +97,6 @@ jobs:
           npm run eval --
           --model "$EVAL_MODEL"
           --ids "$EVAL_IDS"
+          --reasoning-effort "$REASONING_EFFORT"
           --max-cases "$MAX_CASES"
           --max-output-tokens "$MAX_OUTPUT_TOKENS"

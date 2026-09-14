@@ -108,3 +108,17 @@
 남은 실패는 `J-CLOSE-03`의 CLOSE 누락 한 건이다. 확인 결과 confidence 절의 "MEDIUM과 LOW는
 모두 REFLECT"라는 문장이 뒤의 CLOSE 절과 충돌했다. action 순서를 SHIFT → CLOSE → REFLECT로
 고쳐 충돌을 제거하고 CLOSE 및 과잉 CLOSE 보호군만 다시 검증한다.
+
+## 시도 6 — action 판정 순서 충돌 제거
+
+- 커밋: [`813ce5a`](https://github.com/rudin0806/Nook/commit/813ce5a3b554efaac34a77c9742d35cb9f968872)
+- 실행: [GitHub Actions 34793656557](https://github.com/rudin0806/Nook/actions/runs/34793656557)
+- 모델: `gpt-5.6-sol`, reasoning effort 미지정(모델 기본값)
+- 결과: **8/10 통과**, action 9/10
+- 토큰: 입력 52,599 / 출력 3,235
+- 공개 uncached 단가 기준 상한: 약 $0.275
+
+`J-CLOSE-03`은 여전히 REFLECT/LOW였고, 직전 시도에서 통과한 `J-CARRY-02`가 이번에는 action은
+맞지만 금지 Branch를 하나 만들었다. 동일 규칙의 결과가 실행 사이에 바뀌었으므로 프롬프트 문구를
+더 늘리지 않는다. 같은 프롬프트·같은 10건을 `gpt-5.6-sol`의 reasoning high로 실행해 판정 안정성과
+추가 비용을 비교한다. high에서는 reasoning token을 포함한 출력 상한을 2,048로 올린다.
