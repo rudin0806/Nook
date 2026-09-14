@@ -35,6 +35,10 @@ export type CaseResult = {
   mode: Fixture["mode"];
   action: string | null;
   confidence: string | null;
+  mediumReason: string | null;
+  evidenceTurns: string[];
+  clarificationCount: number;
+  branchCount: number;
   failures: string[];
   severity: string[];
   inputTokens: number;
@@ -176,6 +180,10 @@ export async function evaluateJudge(
       mode: f.mode,
       action: null,
       confidence: null,
+      mediumReason: null,
+      evidenceTurns: [],
+      clarificationCount: 0,
+      branchCount: 0,
       failures: [],
       severity: [],
       inputTokens: 0,
@@ -212,6 +220,10 @@ export async function evaluateJudge(
     }
     result.action = parsed.data.action;
     result.confidence = parsed.data.shift_confidence ?? null;
+    result.mediumReason = parsed.data.medium_reason;
+    result.evidenceTurns = parsed.data.evidence_turns;
+    result.clarificationCount = parsed.data.clarifications.length;
+    result.branchCount = parsed.data.branches.length;
     result.failures = [...new Set(score(f, parsed.data).map((x) => x.kind))];
     result.severity = severity(f, parsed.data);
   }

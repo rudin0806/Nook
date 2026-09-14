@@ -74,6 +74,32 @@ test("MEDIUM to HIGH counts both severity errors and captures usage", async () =
   assert.equal(r.errors.MEDIUM_TO_HIGH, 1);
   assert.equal(r.cases[0].inputTokens, 10);
 });
+test("report keeps safe structural output without raw generated text", async () => {
+  const f = get("J-MED-01");
+  const result = await evaluateJudge([f], "test", 1024, async () =>
+    response({
+      action: "REFLECT",
+      shift_confidence: "MEDIUM",
+      medium_reason: "SINGLE_SPONTANEOUS",
+      evidence_turns: ["U3"],
+      clarifications: [
+        {
+          text: "SECRET_GENERATED_TEXT",
+          confidence: "MEDIUM",
+          evidence_turns: ["U3"],
+        },
+      ],
+      branches: [],
+      invalidate_clarifications: [],
+      promote_pile_item: null,
+    }),
+  );
+  assert.equal(result.cases[0].mediumReason, "SINGLE_SPONTANEOUS");
+  assert.deepEqual(result.cases[0].evidenceTurns, ["U3"]);
+  assert.equal(result.cases[0].clarificationCount, 1);
+  assert.equal(result.cases[0].branchCount, 0);
+  assert.ok(!JSON.stringify(result).includes("SECRET_GENERATED_TEXT"));
+});
 test("malformed or incomplete outputs fail rather than count as a pass", async () => {
   for (const r of [
     { status: "incomplete", output_text: "{}" },
