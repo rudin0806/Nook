@@ -1,3 +1,4 @@
 {
-  "purpose": "Evaluate actual Judge to Reframe and Reflection on six existing contexts; at most 12 calls"
+  "purpose": "Diagnose the first failed C/D batch with bounded stage/error codes; no automatic retries; at most 12 calls",
+  "attempt": 2
 }

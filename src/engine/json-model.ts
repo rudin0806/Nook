@@ -6,6 +6,8 @@ import type { JudgeModelRequest, PrepareJudgeOptions } from "./judge.ts";
 export type JsonTransport = (request: JudgeModelRequest) => Promise<{
   status?: string;
   output_text: string;
+  model?: string;
+  usage?: { input_tokens?: number; output_tokens?: number };
 }>;
 export function prepareJsonRequest(
   instructions: string,

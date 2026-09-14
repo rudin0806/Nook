@@ -53,10 +53,18 @@ export function ConversationPanel({ nodeId }: { nodeId: string }) {
   async function refresh() {
     try {
       const v = await readConversation(nodeId);
-      if (alive.current) setView(v);
+      if (alive.current) {
+        setView((current) =>
+          current && current.version > v.version ? current : v,
+        );
+        setNotice("");
+        setLogin(false);
+      }
     } catch {
-      if (alive.current)
+      if (alive.current) {
+        setView(null);
         setNotice("현재 기록을 불러오지 못했어요. 잠시 후 다시 확인해 주세요.");
+      }
     }
   }
   async function execute(body: string) {
@@ -97,11 +105,12 @@ export function ConversationPanel({ nodeId }: { nodeId: string }) {
       } else {
         pending.current = null;
         setRetry(false);
+        await refresh();
+        if (!alive.current) return;
         setLogin(result.kind === "login");
         setNotice(
           "요청을 완료하지 못했어요. 현재 기록을 확인한 뒤 다시 입력해 주세요.",
         );
-        await refresh();
       }
     } catch {
       if (alive.current) {

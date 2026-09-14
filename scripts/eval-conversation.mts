@@ -71,6 +71,7 @@ async function main() {
   const rows: unknown[] = [];
   let complete = true;
   for (const row of selected) {
+    let stage = "JUDGE";
     try {
       const judge = prepareJudge(row.input, row.input.turns, options);
       const output = await executeJson(
@@ -89,6 +90,7 @@ async function main() {
         complete = false;
         break;
       }
+      stage = output.action;
       if (output.action === "SHIFT") {
         const generated = await executeReframe(
           output,
@@ -133,9 +135,13 @@ async function main() {
         rows.push({ id: row.id, error: "UNEXPECTED_CLOSE" });
         break;
       }
-    } catch {
+    } catch (error) {
       complete = false;
-      rows.push({ id: row.id, error: "GENERATION_FAILED" });
+      const code =
+        error instanceof Error && /^[A-Z][A-Z_]{2,80}$/.test(error.message)
+          ? error.message
+          : "OUTPUT_SCHEMA_INVALID";
+      rows.push({ id: row.id, stage, error: code });
       break;
     }
   }

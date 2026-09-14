@@ -69,18 +69,23 @@ export async function planConversationTurn(
     return conversationPlanSchema.parse({ ...base, kind: "STRUCTURAL" });
   const prepared = prepareJudge(input, turns, options.judge);
   const started = Date.now();
+  let usage: { input_tokens?: number; output_tokens?: number } | undefined;
   const judge = await executeJson(
     prepared.request,
     prepared.validateOutput,
-    transport,
+    async (request) => {
+      const response = await transport(request);
+      usage = response.usage;
+      return response;
+    },
     "JUDGE",
   );
   const metadata = {
     configuredModel: prepared.request.model,
     promptVersion: prepared.promptVersion,
     latencyMs: Date.now() - started,
-    inputTokens: null,
-    outputTokens: null,
+    inputTokens: usage?.input_tokens ?? null,
+    outputTokens: usage?.output_tokens ?? null,
   };
   const newCarry =
     judge.action === "REFLECT" && judge.shift_confidence === "MEDIUM"
