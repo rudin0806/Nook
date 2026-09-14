@@ -1,7 +1,6 @@
 import Link from "next/link";
-import { AppNavigation } from "@/components/nook/app-navigation";
-import "../preview/preview.css";
-
+import { AccountPanel } from "@/components/nook/account-panel";
+import { PaperArt } from "@/components/nook/paper-art";
 const messages: Record<string, string> = {
   start: "로그인을 시작하지 못했어요. 잠시 후 다시 시도해 주세요.",
   callback: "로그인이 완료되지 않았어요. 아래에서 다시 연결해 주세요.",
@@ -21,45 +20,29 @@ export default async function LoginPage({
   const message =
     error && Object.hasOwn(messages, error) ? messages[error] : null;
   return (
-    <div className="nook-preview">
-      <header className="preview-header">
-        <Link href="/" className="wordmark">
+    <div className="account-page">
+      <header className="app-header">
+        <Link className="app-wordmark" href="/" aria-label="Nook 홈">
           nook<span>.</span>
         </Link>
+        <Link className="header-account" href="/">
+          닫기 ×
+        </Link>
       </header>
-      <AppNavigation current="account" />
-      <main id="main-content" className="preview-summary">
-        <p className="preview-kicker">다시 꺼내 보고 싶을 때</p>
-        <h1>내 이야기를 연결해 둘까요?</h1>
-        <p className="preview-description">
-          계정을 연결하면 보관한 이야기를 다시 찾아올 수 있어요. 지금 나누던
-          대화가 있다면 같은 사용자에 연결해요.
-        </p>
-        {message && (
-          <p role="alert" className="preview-status">
-            {message}
+      <main id="main-content" className="account-layout">
+        <div className="account-art">
+          <PaperArt compact />
+          <p>
+            다시 펼치고 싶은
+            <br />
+            나의 생각들.
           </p>
-        )}
-        <div className="preview-actions">
-          <form action="/api/auth/start" method="post">
-            <input type="hidden" name="provider" value="google" />
-            <button className="login-button" type="submit">
-              Google로 계속하기
-            </button>
-          </form>
         </div>
-        <p>
-          <Link href="/">지금은 이야기부터 할게요</Link>
-        </p>
-        <p>
-          <Link href="/drawer">생각더미로 돌아가기</Link>
-        </p>
-        <form action="/api/auth/signout" method="post">
-          <button className="login-button" type="submit">
-            이 기기에서 로그아웃
-          </button>
-        </form>
+        <AccountPanel message={message} />
       </main>
+      <footer className="account-footer">
+        a little room for your thoughts.
+      </footer>
     </div>
   );
 }
