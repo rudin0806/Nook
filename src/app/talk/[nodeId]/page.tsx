@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AppNavigation } from "@/components/nook/app-navigation";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { ConversationPanel } from "@/components/nook/conversation-panel";
@@ -17,7 +18,11 @@ export default async function TalkPage({
           nook<span>.</span>
         </Link>
       </header>
-      <main id="main-content" className="preview-summary">
+      <AppNavigation current="write" />
+      <main
+        id="main-content"
+        className="preview-summary conversation-workspace"
+      >
         <ConversationPanel key={id.data} nodeId={id.data} />
       </main>
     </div>

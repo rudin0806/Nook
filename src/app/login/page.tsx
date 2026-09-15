@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { AccountPanel } from "@/components/nook/account-panel";
-import { PaperArt } from "@/components/nook/paper-art";
+
 const messages: Record<string, string> = {
   cancelled: "로그인을 취소했어요. 원할 때 다시 연결해 주세요.",
   provider:
@@ -38,7 +38,7 @@ export default async function LoginPage({
       </header>
       <main id="main-content" className="account-layout">
         <div className="account-art">
-          <PaperArt compact />
+          <span className="preview-kicker">나만의 기록</span>
           <p>
             다시 펼치고 싶은
             <br />

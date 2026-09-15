@@ -179,7 +179,7 @@ export function DrawerContents({
     }
   }
   return (
-    <section aria-label="생각 더미 내용">
+    <section aria-label="생각 더미 내용" data-collection={collection}>
       <div className="preview-actions" role="group" aria-label="보관 종류">
         <ActionButton
           variant={collection === "sessions" ? "neutralSolid" : "neutralWeak"}

@@ -155,7 +155,10 @@ export function ConversationPanel({ nodeId }: { nodeId: string }) {
           {view.branches.length > 0 &&
             !exitMode &&
             view.mode !== "FINISHED" && (
-              <aside aria-label="다른 생각으로 이어지는 질문">
+              <aside
+                className="branch-links"
+                aria-label="다른 생각으로 이어지는 질문"
+              >
                 <ul>
                   {view.branches.map((b) => (
                     <li key={b.id}>
@@ -185,14 +188,18 @@ export function ConversationPanel({ nodeId }: { nodeId: string }) {
           )}
           <ol className="drawer-list" aria-label="최근 대화">
             {view.messages.map((m) => (
-              <li key={m.id} className="preview-summary-card">
+              <li
+                key={m.id}
+                className="preview-summary-card conversation-card"
+                data-role={m.role}
+              >
                 <small>{m.role === "USER" ? "내 이야기" : "누크의 질문"}</small>
                 <p className="conversation-message">{m.content}</p>
               </li>
             ))}
           </ol>
           {view.clarifications.length > 0 && (
-            <aside aria-label="분명해진 것">
+            <aside className="clarity-panel" aria-label="분명해진 것">
               <h2>분명해진 것</h2>
               <ul>
                 {view.clarifications.map((c) => (
@@ -203,6 +210,7 @@ export function ConversationPanel({ nodeId }: { nodeId: string }) {
           )}
           {!exitMode && view.mode === "READY" && (
             <form
+              className="conversation-composer"
               onSubmit={(e) => {
                 e.preventDefault();
                 if (text.trim()) act("reply", text.trim());
@@ -231,7 +239,7 @@ export function ConversationPanel({ nodeId }: { nodeId: string }) {
                 act("approve", (edit ?? view.pending!.question).trim());
               }}
             >
-              <h2>이 질문으로 옮겨볼까요?</h2>
+              <h2 className="shift-title">이 질문으로 옮겨볼까요?</h2>
               <p>{view.pending.evidence_sentence}</p>
               <TextField.Root className="writing-field">
                 <TextField.Textarea
@@ -264,7 +272,7 @@ export function ConversationPanel({ nodeId }: { nodeId: string }) {
           )}
           {!exitMode &&
             (view.mode === "CLOSE" || view.mode === "STRUCTURAL") && (
-              <div>
+              <div className="closure-panel">
                 <h2>여기까지 정리해 볼까요?</h2>
                 <p>
                   {view.mode === "STRUCTURAL"

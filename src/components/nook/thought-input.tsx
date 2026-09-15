@@ -77,7 +77,7 @@ export function ThoughtInput({
       </div>
       <h1 ref={heading} tabIndex={-1}>
         {view.kind === "input"
-          ? "생각나는 대로."
+          ? "지금, 어떤 생각이 드나요?"
           : view.kind === "proposal"
             ? "이 질문으로 시작할까요?"
             : view.kind === "focus"

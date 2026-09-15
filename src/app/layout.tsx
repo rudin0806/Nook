@@ -13,7 +13,12 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="ko" data-seed data-seed-color-mode="dark-only">
-      <body>{children}</body>
+      <body>
+        <a className="skip-link" href="#main-content">
+          본문으로 바로가기
+        </a>
+        {children}
+      </body>
     </html>
   );
 }

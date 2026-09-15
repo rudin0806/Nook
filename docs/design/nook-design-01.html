@@ -1,4 +1,4 @@
-/* Pretendard v1.3.9, Kil Hyung-jin, SIL Open Font License 1.1.
+<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Nook · 디자인 01</title><style>/* Pretendard v1.3.9, Kil Hyung-jin, SIL Open Font License 1.1.
    Typeface files are served from the upstream release; SEED supplies the type scale. */
 @font-face {
   font-family: Pretendard;
@@ -765,25 +765,16 @@ body button {
   }
 }
 
-.skip-link {
-  position: fixed;
-  top: -80px;
-  left: 20px;
-  z-index: 100;
-  padding: 10px 20px;
-  background: var(--nook-gold);
-  color: #171919;
-  border-radius: 10px;
-}
-.skip-link:focus {
-  top: 12px;
-}
-.recovery-list {
-  margin-top: 24px;
-  border-top: 1px solid var(--nook-line);
-  padding-top: 18px;
-  font-size: 14px;
-}
-.recovery-list a {
-  color: var(--nook-muted);
-}
+.skip-link { position: fixed; top: -80px; left: 20px; z-index: 100; padding: 10px 20px; background: var(--nook-gold); color: #171919; border-radius: 10px; }
+.skip-link:focus { top: 12px; }
+.recovery-list { margin-top: 24px; border-top: 1px solid var(--nook-line); padding-top: 18px; font-size: 14px; }
+.recovery-list a { color: var(--nook-muted); }
+
+[hidden]{display:none!important} .board-note{font-size:12px;color:var(--nook-muted);margin-left:auto} .app-dock button{border:0;background:transparent;color:var(--nook-muted);padding:16px;text-align:left;min-height:52px} .app-dock button[aria-pressed=true]{background:var(--nook-raised);color:var(--nook-gold)} .board-pill{font-size:13px;border-radius:20px;padding:5px 10px;color:var(--nook-peach);border:1px solid #71553e} .board-button{border:0;background:var(--nook-gold);color:#251b0c;padding:12px 20px;border-radius:12px} .swatches{display:flex;gap:8px}.swatches i{height:8px;width:24px;border-radius:4px;background:var(--nook-gold)}.swatches i:nth-child(2){background:var(--nook-mint)}.swatches i:nth-child(3){background:var(--nook-peach)}
+</style><body><header class="app-header"><a class="app-wordmark" href="#">nook<span>.</span></a><div class="swatches" aria-label="골드·민트·피치"><i></i><i></i><i></i></div><span class="board-note">디자인 시안 · 예시 데이터 · 전송·저장 없음</span></header>
+<nav class="app-dock" aria-label="시안 화면"><button data-tab="write" aria-pressed="true">01　생각 쓰기</button><button data-tab="talk" aria-pressed="false">02　대화</button><button data-tab="pile" aria-pressed="false">03　생각 더미</button></nav>
+<main id="main-content">
+<section data-view="write" class="desk-main"><div class="desk-heading"><p class="preview-kicker">나의 작업 공간</p><p class="desk-greeting">복잡한 생각을, 하나의 질문으로.</p></div><div class="desk-grid"><section class="writing-surface"><div class="paper-top"><span>지금, 내 머릿속</span><span>01 / 시작</span></div><h1>지금, 어떤 생각이 드나요?</h1><div class="writing-field"><textarea class="writing-textarea" aria-label="시안에 생각 적어보기" placeholder="오늘 자꾸 떠오르는 건…"></textarea></div><div class="paper-bottom"><p>정리된 문장이 아니어도 괜찮아요.</p><button class="board-button" data-open="talk">대화 시안 보기 ↗</button></div></section><aside class="desk-guide"><span class="guide-label">한 번에 하나씩</span><h2>답보다 먼저,<br>내 질문을 찾아요.</h2><ol class="guide-steps"><li><span>01</span><div><h3>꺼내놓기</h3><p>정리되지 않은 말도 괜찮아요.</p></div></li><li><span>02</span><div><h3>좁혀보기</h3><p>지금 가장 중요한 질문을 골라요.</p></div></li><li><span>03</span><div><h3>남겨두기</h3><p>다시 보고 싶은 생각만 남겨요.</p></div></li></ol><button class="board-button" data-open="pile">생각 더미 시안 보기</button></aside></div><p class="desk-footnote">결론이 나지 않아도 괜찮아요. 멈출 때는 내가 정해요.</p></section>
+<section data-view="talk" class="preview-summary conversation-workspace" hidden><p class="preview-kicker">지금 함께 보는 질문</p><h1>회사를 떠나고 싶은 걸까,<br>하는 일을 바꾸고 싶은 걸까?</h1><ol class="drawer-list"><li class="preview-summary-card conversation-card" data-role="USER"><small>내 이야기</small><p class="conversation-message">새로운 일을 잠깐 도왔을 때는 재밌었어.<br>매주 같은 표를 채우는 건 너무 지겹고.</p></li><li class="preview-summary-card conversation-card" data-role="ASSISTANT"><small>누크의 질문</small><p class="conversation-message">새로운 일을 할 때와 같은 표를 채울 때,<br>어떤 점이 가장 다르게 느껴졌나요?</p></li></ol><aside class="clarity-panel"><h2>분명해진 것</h2><p>회사를 떠나는 것과 업무를 바꾸는 것은 다른 선택이에요.</p></aside><div class="conversation-composer"><div class="writing-field"><textarea class="writing-textarea" aria-label="대화 시안 입력" placeholder="지금 떠오르는 이야기를 적어 주세요."></textarea></div><button class="board-button" id="show-closure">정리 제안 시안 보기</button></div><div class="closure-panel" id="closure" hidden><h2>여기까지 남겨도 좋아요.</h2><p>지금 찾은 질문을 남기거나, 더 생각할 수 있어요.</p><button class="board-button" data-open="pile">보관 화면 시안 보기</button><button class="board-button" id="continue">더 생각하기</button></div></section>
+<section data-view="pile" class="preview-summary collection-workspace" hidden><p class="preview-kicker">내가 남겨둔 이야기</p><h1>생각 더미</h1><p class="preview-description">지나온 질문을 다시 펼쳐보는 자리.</p><div class="preview-actions"><button aria-pressed="true" class="board-button">시안용 예시 기록</button></div><ul class="drawer-list"><li class="preview-summary-card"><details class="saved-entry"><summary>회사를 바꾸기 전에,<br>업무를 바꿀 수 있을까?</summary><small>9월 15일 · 남긴 이야기</small><div><p>반복되는 업무에서 무엇을 바꾸고 싶은지 생각했어요.</p><button class="board-button" data-open="talk">대화 시안 보기</button></div></details></li><li class="preview-summary-card" style="border-top-color:var(--nook-peach)"><details class="saved-entry"><summary>쉬는 날에도 마음이<br>바쁜 건 왜일까?</summary><small><span class="board-pill">미해결</span>　9월 14일</small><div><p>아직 답을 찾지 못한 질문도 남길 수 있어요.</p></div></details></li><li class="preview-summary-card"><details class="saved-entry"><summary>이번 주에는 무엇을<br>덜 해도 괜찮을까?</summary><small>9월 12일 · 남긴 이야기</small><div><p>내가 직접 고른 기록만 이곳에 모여요.</p></div></details></li></ul></section></main>
+<script>function openView(id){document.querySelectorAll('[data-view]').forEach(el=>el.hidden=el.dataset.view!==id);document.querySelectorAll('[data-tab]').forEach(el=>el.setAttribute('aria-pressed',String(el.dataset.tab===id)));window.scrollTo(0,0)}document.querySelectorAll('[data-tab],[data-open]').forEach(el=>el.addEventListener('click',()=>openView(el.dataset.tab||el.dataset.open)));document.getElementById('show-closure').onclick=()=>document.getElementById('closure').hidden=false;document.getElementById('continue').onclick=()=>document.getElementById('closure').hidden=true;</script></body></html>
