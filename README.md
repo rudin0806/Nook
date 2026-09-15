@@ -136,3 +136,7 @@ npm run validate
 ### 첫 입력과 질문 승인 API
 
 `/api/start`, `/api/start/focus`, `/api/start/approve`의 계약과 필요한 환경변수·공개 전 검증은 [구현 기록](docs/reviews/2026-09-14-start-api.md)을 따른다. 첫 입력과 승인을 내부 모듈·DB RPC까지 연결했으며 운영 공개는 별도 enable 설정으로 제어한다. 후보 서명은 응답/요청 본문에서만 전달하고 URL·로그·브라우저 영구 저장소에 보관하지 않는다.
+
+### AI 실행 설정 사전 점검
+
+`npm run release:env`는 현재 프로세스 환경과 존재하는 `.env.local`의 설정 형식만 검사한다. 값은 출력하지 않고 항목별 통과 여부를 표시한다. 모델별 허용 범위는 런타임과 공유하는 스키마를 사용한다. `npm run release:env -- --require-enabled`는 시작/대화 활성화 플래그까지 요구한다. 어느 명령도 모델 호출·DB 쓰기·기능 활성화를 수행하지 않는다. 키의 유효성·사용 가능 모델·DB 연결 및 실제 OAuth는 별도 검증이 필요하다. 로컬 결과를 Vercel 배포 설정 검사로 해석하지 않는다.
