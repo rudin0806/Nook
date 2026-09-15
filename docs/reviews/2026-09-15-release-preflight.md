@@ -45,3 +45,17 @@
 - 인증 정보 없는 authenticated 역할의 list_recoverable_sessions/read_restart_source/settle_own_retention 호출은 모두 AUTHENTICATION_REQUIRED로 거절됐다. 검사는 ROLLBACK으로 끝냈다.
 - 보안 advisor WARN 12개, INFO 4개. 새 WARN 3개는 인증 사용자에게 제공하는 소유자 전용 RPC이며, 새 INFO 2개는 클라이언트 접근을 차단한 서버 전용 테이블이다. 권한 점검은 통과했으며 경고 전체가 제거된 것으로 보고하지 않는다.
 - Cron 등록·정리 함수 실행·Vercel 배포·기능 공개·PR 병합은 실행하지 않았다. 다음 단계는 배포 환경 설정과 검증용 배포 및 실제 사용자 흐름 검증이다.
+
+
+## 후속: Preview 배포 및 연결 점검
+
+2026-09-15, PR 소스 기준 `9a42fc5c550cf7bd251bd57aba23f1a94566bba7`에서 파일 업로드 방식으로 Preview를 배포했다. Vercel Git 연결/metadata가 SHA를 증명하는 배포는 아니다.
+
+- Preview: https://nook-ivnpjoaml-suzie990806-3166.vercel.app
+- 배포 ID: `dpl_AKygBMeRmpCHZgeqqDuALDntMUFY`, READY. 운영 배포는 변경하지 않았다.
+- 첫 배포는 업로드 묶음에 `eval/safety_mapping.json`이 누락돼 빌드 실패했다. 해당 런타임 데이터를 포함한 114개 파일로 재배포하여 빌드가 성공했다. 다음 업로드에서도 src/public뿐 아니라 이 파일을 반드시 포함해야 한다.
+- 커넥터 GET `/api/recovery`: 503 `SERVICE_NOT_CONFIGURED`. Preview의 Supabase 클라이언트 초기화가 실패했다. 우선 Preview 범위의 `NEXT_PUBLIC_SUPABASE_URL` 및 `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` 설정을 확인하고 재배포해야 한다. 이 응답만으로 운영 DB 장애나 누락된 변수 하나를 확정하지 않는다.
+- 다른 GET 점검은 Vercel 보호 계층의 302 인증 리다이렉트로 종료됐다. 일부 최초 병렬 요청은 공유 URL 생성 충돌(409)이 있었고 순차 재시도에서도 인증 리다이렉트였다. 앱의 정상 200/400/401 확인으로 계산하지 않는다.
+- 사용 가능한 Vercel 연결 도구에는 환경변수 조회/수정 기능이 없고 로컬 Vercel 인증도 없어 환경 설정 수정은 수행하지 못했다. 보호 설정을 임의로 해제하지 않았다.
+- 다음 실행 순서: Preview 환경변수 및 canonical origin/OAuth callback 구성 확인 → 재배포 → 인증된 브라우저로 Google 로그인/대화/복귀/보관/복원/연결 재시작 검증 → 자동 정리 예약과 운영 배포 별도 진행.
+- 전체 완성도 추정: 핵심 기능 구현 약 85%, 출시 준비 약 65~70%. 측정된 진척률이 아닌 남은 작업과 검증 위험을 반영한 판단이다. UX/UI 재정비, 카카오 로그인, 브랜딩 공개, AI CLOSE 기준 1건이 남아 있으며 PR 병합 보류를 유지한다.
