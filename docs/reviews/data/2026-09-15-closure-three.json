@@ -1,0 +1,63 @@
+{
+  "attemptedCases": 3,
+  "cases": [
+    {
+      "action": "CLOSE",
+      "branchCount": 0,
+      "clarificationCount": 2,
+      "confidence": null,
+      "evidenceTurns": [],
+      "failures": [],
+      "id": "J-CLOSE-01",
+      "inputTokens": 5414,
+      "mediumReason": null,
+      "mode": "strict",
+      "outputTokens": 226,
+      "resolvedModel": "gpt-5.6-sol",
+      "severity": []
+    },
+    {
+      "action": "REFLECT",
+      "branchCount": 0,
+      "clarificationCount": 1,
+      "confidence": "LOW",
+      "evidenceTurns": [],
+      "failures": [],
+      "id": "J-CLOSE-DECLINED-01",
+      "inputTokens": 5326,
+      "mediumReason": null,
+      "mode": "strict",
+      "outputTokens": 190,
+      "resolvedModel": "gpt-5.6-sol",
+      "severity": []
+    },
+    {
+      "action": "CLOSE",
+      "branchCount": 0,
+      "clarificationCount": 2,
+      "confidence": null,
+      "evidenceTurns": [],
+      "failures": [],
+      "id": "J-CLOSE-RENEWED-01",
+      "inputTokens": 5411,
+      "mediumReason": null,
+      "mode": "strict",
+      "outputTokens": 393,
+      "resolvedModel": "gpt-5.6-sol",
+      "severity": []
+    }
+  ],
+  "complete": true,
+  "errors": {},
+  "fixtureSha256": "d147695332f8c5e781ec3cec9028bebff137c95f568dc349a694c67f11bdaffb",
+  "model": "gpt-5.6-sol",
+  "promptSha256": "b1d86a50cc0254cf67c5929337666f580b4a5140a2edca5324b1c84a72521408",
+  "reasoningEffort": "high",
+  "requestedCases": 3,
+  "scope": "Judge deterministic checks only; semantic review, Start and Safety not evaluated",
+  "strict": {
+    "actionMatched": 3,
+    "passed": 3,
+    "total": 3
+  }
+}
