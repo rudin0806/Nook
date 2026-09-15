@@ -366,3 +366,7 @@ stateDiagram-v2
 - `session_origins`: 자식 session PK(CASCADE), 출처 session/node/branch FK(SET NULL, deferred). 부모 삭제 시 여러 FK의 연쇄 순서와 관계없이 자식은 유지된다. 신규 기록은 이 테이블로 연결하며 기존 origin_branch_id/KEPT 제약을 완화하지 않는다.
 - 재시작 조회 및 commit 시점에 소유권을 확인한다. SAVED Node, KEPT Branch, 살아 있는 ACTIVE PENDING Branch, 승인 Node가 없는 SAVED 원래 입력만 허용한다. 출처 조회는 모델 호출과 새 세션 생성을 하지 않는다.
 - 신규 RPC는 기본 PUBLIC 권한을 회수한다. 원본/복귀 조회는 인증 사용자로 범위를 제한하고 start commit/임의 사용자 정산은 service_role만 실행한다.
+
+### 종료 재제안 억제 상태
+
+`conversation_runtime.dismissed_closure`: 더 생각하기 선택 시 마지막 사용자 발화. CLOSE→READY 전이에서 서버 트리거로 기록하며 기존 세션 삭제 연쇄·RLS를 따른다. Judge가 같은 정리를 재제안하지 않도록 전달한다. 운영 적용 전 migration 필요.

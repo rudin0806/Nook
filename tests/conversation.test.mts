@@ -309,3 +309,28 @@ test("client preserves request ID on retry and rejects malformed success", async
     ),
   );
 });
+
+test("continuing preserves the declined closure context outside the current window", async () => {
+  const s = snapshot();
+  s.state.dismissed_closure = "회사가 아니라 반복 업무를 바꾸고 싶었던 거네";
+  let calls = 0;
+  const plan = await planConversationTurn(s, options, async (request) => {
+    if (calls === 0)
+      assert.ok(
+        request.input[0].content[0].text.includes(s.state.dismissed_closure!),
+      );
+    return {
+      status: "completed",
+      output_text: JSON.stringify(
+        calls++ === 0
+          ? low
+          : {
+              question: "업무에서 더 살펴보고 싶은 부분은 무엇인가요?",
+              type: "PRESENT",
+            },
+      ),
+    };
+  });
+  assert.equal(plan.kind, "REFLECT");
+  assert.equal(calls, 2);
+});

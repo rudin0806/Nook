@@ -21,6 +21,7 @@ const node = z.object({
   final_text: z.string().min(1).max(1000),
 });
 export const conversationStateSchema = z.object({
+  dismissed_closure: z.string().max(5000).nullable().default(null),
   version: z.number().int().nonnegative(),
   mode: z.enum([
     "READY",

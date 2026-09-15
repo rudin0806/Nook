@@ -31,7 +31,9 @@ export async function loadConversation(auth: SupabaseClient, nodeId: string) {
       .single(),
     auth
       .from("conversation_runtime")
-      .select("version,mode,pending,last_question_type,carryover")
+      .select(
+        "version,mode,pending,last_question_type,carryover,dismissed_closure",
+      )
       .eq("session_id", sessionId)
       .maybeSingle(),
     auth

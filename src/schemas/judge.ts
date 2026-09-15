@@ -23,6 +23,7 @@ export const judgeTurnSchema = z
 
 export const judgeInputSchema = z
   .strictObject({
+    dismissed_closure: judgeTextSchema.nullable().optional(),
     main_question: judgeTextSchema.max(1_000),
     main_path: z.array(judgeTextSchema.max(1_000)).min(1).max(8),
     pile: z

@@ -393,3 +393,9 @@ API·JSON·Zod 오류 0을 기록했다. boundary `J-SHIFT-04`는 정확도에�
 `REFLECT/MEDIUM` 분포로 기록했다. 상세 실행 ID·토큰·프롬프트와 fixture SHA는
 [Sol 조정 기록](reviews/2026-09-14-judge-sol-tuning.md)에 있다. 한 번의 fixture 통과를 실사용
 정확도나 다른 모델·프롬프트의 통과로 확대 해석하지 않는다.
+
+### 2026-09-15 CLOSE 계약 변경
+
+RULES §8.1 사용자 승인 반영. 새 정보 없음·반복은 종료의 필수/충분조건이 아니다. J-CLOSE-01의 자기 구분은 CLOSE를 유지한다. J-CLOSE-03의 단순 반복은 REFLECT/LOW로 변경하며 Clarification 무효화 금지는 유지한다. 기존 모델 점수는 이전 계약의 결과다.
+
+신규 회귀: J-CLOSE-SUMMARY-01(요약), J-CLOSE-CONTINUE-01(계속 탐색), J-CLOSE-DECLINED-01(거절한 정리 반복). 현재 Judge fixture 총 35건. 실제 모델 검증 전이다.

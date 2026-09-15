@@ -69,8 +69,8 @@ const fixtures = readFileSync(
         fixture_meta: { history: HedgeTurn[]; expected_hedge_speaker: boolean };
       },
   );
-test("all 32 supplied Judge fixtures match the shared calculation", () => {
-  assert.equal(fixtures.length, 32);
+test("all 35 Judge fixtures match the shared calculation", () => {
+  assert.equal(fixtures.length, 35);
   for (const row of fixtures) {
     const result = calculateHedgeStats([
       ...row.fixture_meta.history,

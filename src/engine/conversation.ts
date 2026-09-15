@@ -19,6 +19,7 @@ export function conversationContext(raw: unknown) {
   const window = turns.slice(-8);
   const windowIds = new Set(window.map((t) => t.id));
   const input = judgeInputSchema.parse({
+    dismissed_closure: snapshot.state.dismissed_closure,
     main_question: snapshot.current.final_text,
     main_path: snapshot.path.map((n) => n.final_text),
     pile: snapshot.pile.map((p) => ({ id: p.id, text: p.text })),
