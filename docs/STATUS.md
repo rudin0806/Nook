@@ -190,3 +190,11 @@ Preview에서 `VERCEL_ENV=preview`인 경우 Vercel 서버 환경변수 `VERCEL_
 Vercel 시스템 환경변수 접근이 필요하며, Supabase Redirect URLs에 검증 대상 배포의 정확한 `/api/auth/callback` 주소를 추가해야 한다. 이 변경이 Supabase 허용 목록을 자동 변경하지는 않는다. 별도 도메인 구매는 필요 없다. Vercel Standard Deployment Protection과 VERCEL_URL 조합의 공식 문서상 제한도 배포 전 확인 대상이다.
 
 참고: https://vercel.com/docs/environment-variables/system-environment-variables
+
+## 사용자 로그인 확인 및 오류 처리 보완
+
+사용자가 Google Client Secret 교체 후 Preview 로그인이 해결됐다고 확인했다. 대상 Preview는 `nook-wgpupzziu-suzie990806-3166.vercel.app`, 배포 `dpl_C3kuuWcZaYDRKV6v6nGxgxrJuDu5`이며 소스 기준은 `76c6bc7`이다. 실제 대화·보관 전체 통합 검증 완료를 뜻하지 않는다.
+
+후속 코드에서 인증 취소/공급자 오류/시도 만료/코드 교환/사용자 조회/동일성 실패를 구분한다. 로그에는 고정된 실패 단계만 남기고 외부 오류·인증 코드·사용자 식별자는 기록하지 않는다. 로그인 오류 리다이렉트에 빈 fragment를 명시하여 외부 인증 정보의 주소창 상속을 막는다. NextResponse의 Location 보존을 회귀 테스트했다. 이 후속 변경은 아직 배포하지 않았다.
+
+미결: 실제 AI 실행 환경변수·모델 선택 및 기능 활성화, 자동 정리 예약 적용/검증, AI CLOSE 기준 1건, UX/UI 재정비, 카카오 공급자 설정, 브랜딩 공개. 사용자 직접 테스트는 별도로 진행하며 새 배포를 반복해 테스트 주소를 바꾸지 않는다. PR 병합은 보류한다.

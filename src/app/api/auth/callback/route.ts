@@ -4,6 +4,17 @@ import { problemResponse } from "@/lib/api/problem";
 import { authOrigin, authRedirect } from "@/lib/auth/http";
 import { FLOW_COOKIE, callbackMatches, readFlow } from "@/lib/auth/policy";
 
+import {
+  callbackInputFailure,
+  callbackFailurePath,
+  type CallbackFailure,
+} from "@/lib/auth/callback-errors";
+
+function fail(origin: string, reason: CallbackFailure) {
+  console.warn("nook_auth_callback_failed", reason);
+  return authRedirect(origin, callbackFailurePath(reason));
+}
+
 export async function GET(request: Request) {
   let origin: string;
   try {
@@ -20,22 +31,24 @@ export async function GET(request: Request) {
   store.delete(FLOW_COOKIE);
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
-  if (!flow || !code || code.length > 4096 || url.searchParams.has("error"))
-    return authRedirect(origin, "/login?error=callback");
+  const failure = callbackInputFailure(url.searchParams, flow);
+  if (failure) return fail(origin, failure);
+  if (!flow || !code) return fail(origin, "callback");
   try {
     const supabase = await createSupabaseRouteClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (error) return authRedirect(origin, "/login?error=callback");
+    if (error) return fail(origin, "exchange");
     const { data, error: userError } = await supabase.auth.getUser();
-    if (userError || !callbackMatches(flow, data.user)) {
+    if (userError) return fail(origin, "session");
+    if (!callbackMatches(flow, data.user)) {
       // A different account must never receive the anonymous user's records.
       // No data is merged, reassigned, or deleted. Clear only this device session.
       if (data.user && data.user.id !== flow.expectedUserId)
         await supabase.auth.signOut({ scope: "local" });
-      return authRedirect(origin, "/login?error=identity");
+      return fail(origin, "identity");
     }
     return authRedirect(origin, "/drawer");
   } catch {
-    return authRedirect(origin, "/login?error=callback");
+    return fail(origin, "callback");
   }
 }

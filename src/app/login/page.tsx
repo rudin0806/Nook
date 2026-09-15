@@ -2,6 +2,13 @@ import Link from "next/link";
 import { AccountPanel } from "@/components/nook/account-panel";
 import { PaperArt } from "@/components/nook/paper-art";
 const messages: Record<string, string> = {
+  cancelled: "로그인을 취소했어요. 원할 때 다시 연결해 주세요.",
+  provider:
+    "로그인 서비스에서 연결을 완료하지 못했어요. 잠시 후 다시 시도해 주세요.",
+  expired:
+    "로그인 시간이 지났거나 시작 정보를 확인하지 못했어요. 아래에서 다시 시작해 주세요.",
+  exchange:
+    "로그인 정보를 확인하지 못했어요. 아래에서 로그인을 다시 시작해 주세요.",
   start: "로그인을 시작하지 못했어요. 잠시 후 다시 시도해 주세요.",
   callback: "로그인이 완료되지 않았어요. 아래에서 다시 연결해 주세요.",
   session: "현재 로그인 상태를 확인하지 못했어요. 잠시 후 다시 시도해 주세요.",
