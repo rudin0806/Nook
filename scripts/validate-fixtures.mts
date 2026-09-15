@@ -141,7 +141,7 @@ function readRows<T>(
     }
   });
 }
-const judge = readRows("judge.jsonl", judgeSchema, 35);
+const judge = readRows("judge.jsonl", judgeSchema, 36);
 const safety = readRows("safety.jsonl", safetySchema, 15);
 const start = readRows("start.jsonl", startSchema, 17);
 const all = [...judge, ...safety, ...start];
