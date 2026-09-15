@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   loginProvider,
   siteOrigin,
+  deploymentOrigin,
   isSameOriginPost,
   loginMode,
   readFlow,
@@ -148,4 +149,50 @@ test("ordinary login, existing login and auth failure take distinct paths", asyn
     reason: "session",
   });
   assert.equal(calls, 1);
+});
+
+test("preview uses its own deployment while production and local require configured origin", () => {
+  const env = {
+    NOOK_SITE_URL: "https://nook.example",
+    VERCEL_URL: "nook-build-team.vercel.app",
+  };
+  const preview = deploymentOrigin({ ...env, VERCEL_ENV: "preview" });
+  assert.equal(preview, "https://nook-build-team.vercel.app");
+  for (const VERCEL_ENV of [undefined, "production", "development"])
+    assert.equal(deploymentOrigin({ ...env, VERCEL_ENV }), env.NOOK_SITE_URL);
+  assert.throws(() =>
+    deploymentOrigin({ VERCEL_ENV: "production", VERCEL_URL: env.VERCEL_URL }),
+  );
+  for (const VERCEL_URL of [
+    undefined,
+    "",
+    "evil.example",
+    "nook.vercel.app.evil.example",
+    "user@nook.vercel.app",
+    "nook.vercel.app/path",
+    "nook.vercel.app:443",
+    "https://nook.vercel.app",
+  ])
+    assert.throws(() =>
+      deploymentOrigin({ ...env, VERCEL_ENV: "preview", VERCEL_URL }),
+    );
+  assert.ok(
+    isSameOriginPost(
+      new Request(preview, { method: "POST", headers: { origin: preview } }),
+      preview,
+    ),
+  );
+  assert.equal(
+    isSameOriginPost(
+      new Request(preview, {
+        method: "POST",
+        headers: {
+          origin: env.NOOK_SITE_URL,
+          "x-forwarded-host": env.VERCEL_URL,
+        },
+      }),
+      preview,
+    ),
+    false,
+  );
 });

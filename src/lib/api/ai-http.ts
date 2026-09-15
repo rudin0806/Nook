@@ -1,23 +1,28 @@
 import { z } from "zod";
 import { parseJson, RequestInputError } from "./request.ts";
 import { dataResponse, problemResponse } from "./problem.ts";
-import { isSameOriginPost, siteOrigin } from "../auth/policy.ts";
+import {
+  isSameOriginPost,
+  deploymentOrigin,
+  type DeploymentEnvironment,
+} from "../auth/policy.ts";
 
 /** Same-origin cookie API. Errors and request bodies must never be logged. */
 export async function handleAIRequest<T>(
   request: Request,
   schema: z.ZodType<T>,
   run: (input: T) => Promise<{ status: string; retry_after?: number }>,
-  environment: {
-    NOOK_SITE_URL?: string;
+  environment: DeploymentEnvironment & {
     NOOK_START_API_ENABLED?: string;
   } = {
     NOOK_SITE_URL: process.env.NOOK_SITE_URL,
+    VERCEL_ENV: process.env.VERCEL_ENV,
+    VERCEL_URL: process.env.VERCEL_URL,
     NOOK_START_API_ENABLED: process.env.NOOK_START_API_ENABLED,
   },
 ) {
   try {
-    if (!isSameOriginPost(request, siteOrigin(environment.NOOK_SITE_URL)))
+    if (!isSameOriginPost(request, deploymentOrigin(environment)))
       return problemResponse({
         status: 403,
         code: "ORIGIN_REJECTED",

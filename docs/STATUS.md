@@ -182,3 +182,11 @@ Advisor는 authenticated SECURITY DEFINER WARN 12건(기존 9 + 소유자 전용
 - 사용 가능한 Vercel 연결 도구에는 환경변수 조회/수정 기능이 없고 로컬 Vercel 인증도 없어 환경 설정 수정은 수행하지 못했다. 보호 설정을 임의로 해제하지 않았다.
 - 다음 실행 순서: Preview 환경변수 및 canonical origin/OAuth callback 구성 확인 → 재배포 → 인증된 브라우저로 Google 로그인/대화/복귀/보관/복원/연결 재시작 검증 → 자동 정리 예약과 운영 배포 별도 진행.
 - 전체 완성도 추정: 핵심 기능 구현 약 85%, 출시 준비 약 65~70%. 측정된 진척률이 아닌 남은 작업과 검증 위험을 반영한 판단이다. UX/UI 재정비, 카카오 로그인, 브랜딩 공개, AI CLOSE 기준 1건이 남아 있으며 PR 병합 보류를 유지한다.
+
+## Preview 로그인 주소 자동 선택
+
+Preview에서 `VERCEL_ENV=preview`인 경우 Vercel 서버 환경변수 `VERCEL_URL`의 배포 호스트를 사용한다. 운영/로컬에서는 기존 `NOOK_SITE_URL`을 유지한다. 로그인·콜백·로그아웃, AI 요청, 직접 보관 POST에 같은 정책을 적용했다. 요청의 Host/Forwarded 헤더는 주소 선택에 쓰지 않는다. 잘못되거나 누락된 Preview 호스트는 운영 주소로 대체하지 않고 거절한다.
+
+Vercel 시스템 환경변수 접근이 필요하며, Supabase Redirect URLs에 검증 대상 배포의 정확한 `/api/auth/callback` 주소를 추가해야 한다. 이 변경이 Supabase 허용 목록을 자동 변경하지는 않는다. 별도 도메인 구매는 필요 없다. Vercel Standard Deployment Protection과 VERCEL_URL 조합의 공식 문서상 제한도 배포 전 확인 대상이다.
+
+참고: https://vercel.com/docs/environment-variables/system-environment-variables

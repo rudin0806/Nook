@@ -1,4 +1,4 @@
-import { isSameOriginPost, siteOrigin } from "@/lib/auth/policy";
+import { isSameOriginPost, deploymentOrigin } from "@/lib/auth/policy";
 import { dataResponse, problemResponse } from "@/lib/api/problem";
 import { parseJson } from "@/lib/api/request";
 import { withAuthenticatedSupabase } from "@/lib/api/authenticated-handler";
@@ -9,7 +9,16 @@ type RouteContext = { params: Promise<{ sessionId: string }> };
 
 export async function POST(request: Request, context: RouteContext) {
   try {
-    if (!isSameOriginPost(request, siteOrigin(process.env.NOOK_SITE_URL)))
+    if (
+      !isSameOriginPost(
+        request,
+        deploymentOrigin({
+          NOOK_SITE_URL: process.env.NOOK_SITE_URL,
+          VERCEL_ENV: process.env.VERCEL_ENV,
+          VERCEL_URL: process.env.VERCEL_URL,
+        }),
+      )
+    )
       return problemResponse({
         status: 403,
         code: "ORIGIN_REJECTED",

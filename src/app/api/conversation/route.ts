@@ -13,6 +13,8 @@ export const maxDuration = 180;
 export async function POST(request: Request) {
   return handleAIRequest(request, conversationRequestSchema, converse, {
     NOOK_SITE_URL: process.env.NOOK_SITE_URL,
+    VERCEL_ENV: process.env.VERCEL_ENV,
+    VERCEL_URL: process.env.VERCEL_URL,
     NOOK_START_API_ENABLED: process.env.NOOK_CONVERSATION_API_ENABLED,
   });
 }

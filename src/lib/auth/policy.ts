@@ -73,3 +73,23 @@ export function callbackMatches(
     (flow.expectedUserId === null || flow.expectedUserId === user.id)
   );
 }
+
+export type DeploymentEnvironment = {
+  NOOK_SITE_URL?: string;
+  VERCEL_ENV?: string;
+  VERCEL_URL?: string;
+};
+
+/** Only trusted server environment values; never infer trust from request headers. */
+export function deploymentOrigin(environment: DeploymentEnvironment): string {
+  if (environment.VERCEL_ENV === "preview") {
+    const host = environment.VERCEL_URL;
+    if (
+      !host ||
+      !/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.vercel\.app$/.test(host)
+    )
+      throw new Error("Invalid preview deployment host");
+    return siteOrigin(`https://${host}`);
+  }
+  return siteOrigin(environment.NOOK_SITE_URL);
+}
