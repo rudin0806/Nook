@@ -1,8 +1,10 @@
 import { z } from "zod";
 import { rawThoughtSchema } from "./start.ts";
+import { restartSourceSchema } from "./recovery.ts";
 export const startRequestSchema = z.strictObject({
   requestId: z.uuid(),
   thought: rawThoughtSchema,
+  source: restartSourceSchema.optional(),
   captchaToken: z.string().min(1).max(4096).optional(),
 });
 export const approvalRequestSchema = z.strictObject({

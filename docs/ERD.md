@@ -9,7 +9,7 @@
 - 세션은 첫 Raw Thought를 제출한 시점에 생성한다. 화면을 연 것만으로는 만들지 않는다.
 - 대화 종료 상태(`status`)와 보관 상태(`storage_state`)를 분리한다.
 - 사용자가 정상 종료한 세션만 보관 여부를 선택한다.
-- `생각더미`는 별도 테이블이 아니라 `COMPLETED + SAVED` 세션을 보여주는 목록이다.
+- `생각 더미`는 별도 테이블이 아니라 `COMPLETED + SAVED` 세션을 보여주는 목록이다.
 - `휴지통`도 별도 테이블이 아니라 `COMPLETED + TRASHED` 세션을 보여주는 목록이다.
 - 계정이 연결된 사용자의 휴지통 세션은 7일 안에 복원할 수 있고, 이후 세션 소유 데이터와 함께 영구 삭제한다.
 - 익명 사용자가 아무것도 보관하지 않으면 `TRASHED`를 만들지 않고 세션을 즉시 영구 삭제한다.
@@ -29,9 +29,9 @@
 | 코드 이름              | 자연어 뜻             | 설명                                                               |
 | ---------------------- | --------------------- | ------------------------------------------------------------------ |
 | `status`               | 대화 상태             | 대화가 진행 중인지, 정상 종료됐는지, Safety/HANDOFF로 멈췄는지     |
-| `storage_state`        | 보관 상태             | 임시인지, 생각더미에 보관됐는지, 휴지통에 있는지                   |
+| `storage_state`        | 보관 상태             | 임시인지, 생각 더미에 보관됐는지, 휴지통에 있는지                  |
 | `TEMPORARY`            | 임시                  | 진행 중이거나 종료 후 사용자의 보관 결정을 기다리는 상태           |
-| `SAVED`                | 보관됨                | 생각더미에서 다시 볼 수 있는 상태                                  |
+| `SAVED`                | 보관됨                | 생각 더미에서 다시 볼 수 있는 상태                                 |
 | `TRASHED`              | 휴지통                | 계정이 연결된 사용자가 7일 동안 복원할 수 있는 상태                |
 | `ACTIVE`               | 진행 중               | 아직 사용자가 대화를 끝내지 않은 세션                              |
 | `COMPLETED`            | 정상 종료             | 사용자가 `여기까지 정리하기`를 선택한 세션                         |
@@ -246,11 +246,11 @@ Anchor FK는 `ON DELETE NO ACTION DEFERRABLE`을 쓴다. 개별 Anchor Node 삭�
 ```mermaid
 stateDiagram-v2
     [*] --> ACTIVE: Raw Thought 제출
-    ACTIVE --> COMPLETED: 여기까지 정리하기
-    COMPLETED --> SAVED: 계정 연결 후 이 기록 남기기
-    COMPLETED --> TRASHED: 연결 계정이 남기지 않기
+    ACTIVE --> COMPLETED: 명시 종료 또는 계정 대화 만료
+    COMPLETED --> SAVED: 계정 연결 후 남기기
+    COMPLETED --> TRASHED: 연결 계정 미보관 또는 임시 만료
     COMPLETED --> [*]: 익명 + 아무것도 보관하지 않기
-    SAVED --> TRASHED: 생각더미에서 삭제
+    SAVED --> TRASHED: 생각 더미에서 삭제
     TRASHED --> SAVED: 7일 안에 복원
     TRASHED --> [*]: 7일 뒤 영구 삭제
 ```
@@ -272,9 +272,9 @@ stateDiagram-v2
 
 | 삭제 대상                      | DB 동작                                                                            | 독립 데이터 처리                                      |
 | ------------------------------ | ---------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| 생각더미의 세션                | 즉시 삭제하지 않고 `TRASHED`, `purge_after = now() + 7 days`                       | 보관한 질문과 그 질문에서 시작한 다른 세션은 유지     |
+| 생각 더미의 세션               | 즉시 삭제하지 않고 `TRASHED`, `purge_after = now() + 7 days`                       | 보관한 질문과 그 질문에서 시작한 다른 세션은 유지     |
 | 익명 사용자의 미보관 완료 세션 | `TRASHED` 없이 즉시 hard delete                                                    | 보관 항목이 있으면 먼저 identity linking이 필요       |
-| 휴지통 세션 복원               | `SAVED`로 되돌리고 삭제 시각 제거                                                  | 생각더미에 다시 노출                                  |
+| 휴지통 세션 복원               | `SAVED`로 되돌리고 삭제 시각 제거                                                  | 생각 더미에 다시 노출                                 |
 | 만료된 휴지통 세션             | 세션과 Segment/Message/Node/Edge/Clarification/Feedback/Judge/Safety를 hard delete | 보관한 질문의 출처 FK만 `NULL`                        |
 | 보관한 질문                    | 확인 후 hard delete                                                                | 그 질문에서 시작한 세션의 `origin_branch_id`만 `NULL` |
 | 개별 Question Node             | 사용자 경로에서 금지                                                               | Anchor와 Thought Path 무결성 보호                     |
@@ -287,7 +287,7 @@ stateDiagram-v2
 - 익명 로그인 사용자도 Supabase의 `authenticated` 역할을 사용하므로 모든 개인 조회는 `auth.uid()` 소유권으로 제한한다.
 - 보관 RPC는 JWT의 `is_anonymous` claim을 검사한다. 익명 사용자의 보관 요청은 거절하고, 미보관 요청은 즉시 삭제한다.
 - `anon` 역할에는 Nook 개인 데이터 권한을 주지 않는다.
-- 사용자는 자신의 일반 세션, 생각더미, 휴지통, 보관 질문만 읽을 수 있다.
+- 사용자는 자신의 일반 세션, 생각 더미, 휴지통, 보관 질문만 읽을 수 있다.
 - `SAFETY_STOPPED`와 `HANDOFF_STOPPED` 세션은 사용자 목록 조회에서 숨긴다.
 - `judge_logs`와 `safety_events`는 브라우저에 노출하지 않는다.
 - 메시지·Node·Edge·Judge/Safety 기록은 Next.js 서버만 쓴다. 서버는 Supabase secret key를 사용하되, 먼저 로그인 사용자와 대상 세션 소유권을 검증한다.
@@ -310,14 +310,14 @@ stateDiagram-v2
 
 ## 9. 앱 조회 규칙
 
-| 화면         | 조건                                                                     |
-| ------------ | ------------------------------------------------------------------------ |
-| 진행 중 세션 | `status = ACTIVE AND storage_state = TEMPORARY`                          |
-| 생각더미     | `status = COMPLETED AND storage_state = SAVED`                           |
-| 휴지통       | `status = COMPLETED AND storage_state = TRASHED AND purge_after > now()` |
-| 남겨둔 질문  | `branch_questions.retention_state = KEPT`                                |
+| 화면        | 조건                                                                                           |
+| ----------- | ---------------------------------------------------------------------------------------------- |
+| 홈 복귀     | `status IN (ACTIVE, COMPLETED) AND storage_state = TEMPORARY AND temporary_expires_at > now()` |
+| 생각 더미   | `status = COMPLETED AND storage_state = SAVED`                                                 |
+| 휴지통      | `status = COMPLETED AND storage_state = TRASHED AND purge_after > now()`                       |
+| 남겨둔 질문 | `branch_questions.retention_state = KEPT`                                                      |
 
-`생각더미`, `휴지통`, `진행 중 세션`은 같은 `thought_sessions`의 서로 다른 조회다. 같은 세션을 Archive/Trash 테이블에 복제하지 않는다.
+`생각 더미`, `휴지통`, `진행 중 세션`은 같은 `thought_sessions`의 서로 다른 조회다. 같은 세션을 Archive/Trash 테이블에 복제하지 않는다.
 
 ## 10. 구현 파일
 
@@ -354,3 +354,15 @@ stateDiagram-v2
 - CLOSE Judge Log는 confidence가 NULL이다. 기존 로그를 덮어쓰지 않고 신규 행의 action/confidence 계약을 검사한다.
 - 구간에 새 Node가 없으면 다음 구간은 이전 구간이 이어받은 Anchor를 계속 사용한다. 기존 질문을 복제하거나 node_count에 더하지 않는다.
 - 대화용 RPC는 요청 lease·소유자·세션/구간 상태·version을 잠근 뒤 저장한다. 안전한 USER Message는 Judge 전에 저장하며, 생성 결과가 잘못되면 질문·근거·로그 묶음은 저장하지 않는다. 완료 결과와 요청 성공 표시는 같은 트랜잭션에서 기록한다.
+
+## 2026-09-15 종료·복귀·재시작 보완
+
+보관 기준은 RULES §12를 따른다. `20260915011312_session_recovery_and_restart.sql`은 다음을 추가한다.
+
+- 계정 사용자의 일반 TEMPORARY는 만료 시 TRASHED. `trashed_at = 이전 temporary_expires_at`, `purge_after = 만료 + 7일`. 익명·Safety 만료는 삭제. `retention_source`는 USER/EXPIRED를 구분하고 EXPIRED의 retention_decided_at은 사용자 의사 표시가 아닌 상태 전환 시각이다.
+- `settle_own_retention()`은 소유자 한 명만 정산하고 전역 `purge_expired_sessions()`는 동일 함수를 재사용한다. RLS는 기한이 지난 데이터를 숨긴다. 서비스 사용 이력이 없는 계정도 정리하려면 별도 Cron 적용이 필요하다.
+- ACTIVE에서도 보관 확정이 가능하다. 사용자 한도 행→세션 잠금 순서를 공유하고 구간 마감·보관·선택 질문 처리·runtime 마감을 원자적으로 수행한다. 늦은 AI 출력은 ACTIVE 조건에서 거절한다. 읽기와 정상 종료 자체는 TTL을 늘리지 않는다.
+- `start_drafts`: session PK(CASCADE), 원래 메시지 FK(CASCADE), 검증된 시작 결과 JSON. 서버만 접근하며 서명된 receipt는 저장하지 않는다. 복귀 API가 현재 소유자·ACTIVE·TTL을 재확인하고 기존 만료 기한으로 서명한다.
+- `session_origins`: 자식 session PK(CASCADE), 출처 session/node/branch FK(SET NULL, deferred). 부모 삭제 시 여러 FK의 연쇄 순서와 관계없이 자식은 유지된다. 신규 기록은 이 테이블로 연결하며 기존 origin_branch_id/KEPT 제약을 완화하지 않는다.
+- 재시작 조회 및 commit 시점에 소유권을 확인한다. SAVED Node, KEPT Branch, 살아 있는 ACTIVE PENDING Branch, 승인 Node가 없는 SAVED 원래 입력만 허용한다. 출처 조회는 모델 호출과 새 세션 생성을 하지 않는다.
+- 신규 RPC는 기본 PUBLIC 권한을 회수한다. 원본/복귀 조회는 인증 사용자로 범위를 제한하고 start commit/임의 사용자 정산은 service_role만 실행한다.

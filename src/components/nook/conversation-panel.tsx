@@ -11,8 +11,16 @@ import type {
   ConversationRequest,
   ConversationView,
 } from "@/schemas/conversation";
+import { SessionOrigin } from "./session-origin";
 import { ConversationRetention } from "./conversation-retention";
 export function ConversationPanel({ nodeId }: { nodeId: string }) {
+  const [exitMode, setExitMode] = useState<"exit" | "closure" | null>(null);
+  const ended = useRef(false);
+  const exitOpen = useRef(false);
+  function openExit(mode: "exit" | "closure") {
+    exitOpen.current = true;
+    setExitMode(mode);
+  }
   const [view, setView] = useState<ConversationView | null>(null);
   const [text, setText] = useState("");
   const [edit, setEdit] = useState<string | null>(null);
@@ -53,7 +61,7 @@ export function ConversationPanel({ nodeId }: { nodeId: string }) {
   async function refresh() {
     try {
       const v = await readConversation(nodeId);
-      if (alive.current) {
+      if (alive.current && !ended.current && !exitOpen.current) {
         setView((current) =>
           current && current.version > v.version ? current : v,
         );
@@ -61,7 +69,7 @@ export function ConversationPanel({ nodeId }: { nodeId: string }) {
         setLogin(false);
       }
     } catch {
-      if (alive.current) {
+      if (alive.current && !ended.current && !exitOpen.current) {
         setView(null);
         setNotice("현재 기록을 불러오지 못했어요. 잠시 후 다시 확인해 주세요.");
       }
@@ -74,7 +82,7 @@ export function ConversationPanel({ nodeId }: { nodeId: string }) {
     setNotice("");
     try {
       const result = await sendConversation(body);
-      if (!alive.current) return;
+      if (!alive.current || ended.current) return;
       if (result.kind === "done") {
         pending.current = null;
         setRetry(false);
@@ -106,14 +114,14 @@ export function ConversationPanel({ nodeId }: { nodeId: string }) {
         pending.current = null;
         setRetry(false);
         await refresh();
-        if (!alive.current) return;
+        if (!alive.current || ended.current) return;
         setLogin(result.kind === "login");
         setNotice(
           "요청을 완료하지 못했어요. 현재 기록을 확인한 뒤 다시 입력해 주세요.",
         );
       }
     } catch {
-      if (alive.current) {
+      if (alive.current && !ended.current) {
         setRetry(true);
         setNotice(
           "처리 결과를 확인하지 못했어요. 다시 입력하지 말고 같은 요청의 결과를 확인해 주세요.",
@@ -143,6 +151,38 @@ export function ConversationPanel({ nodeId }: { nodeId: string }) {
         <>
           <p className="preview-kicker">지금 함께 보는 질문</p>
           <h1>{view.currentQuestion}</h1>
+          <SessionOrigin sessionId={view.sessionId} />
+          {view.branches.length > 0 &&
+            !exitMode &&
+            view.mode !== "FINISHED" && (
+              <aside aria-label="다른 생각으로 이어지는 질문">
+                <ul>
+                  {view.branches.map((b) => (
+                    <li key={b.id}>
+                      <Link href={`/restart/branch/${b.id}`}>{b.text}</Link>
+                    </li>
+                  ))}
+                </ul>
+              </aside>
+            )}
+          {exitMode && (
+            <ConversationRetention
+              sessionId={view.sessionId}
+              branches={view.branches}
+              closure={exitMode === "closure"}
+              onCancel={() => {
+                exitOpen.current = false;
+                setExitMode(null);
+                void refresh();
+              }}
+              onDone={() => {
+                ended.current = true;
+                setBusy(false);
+                setNotice("");
+                setRetry(false);
+              }}
+            />
+          )}
           <ol className="drawer-list" aria-label="최근 대화">
             {view.messages.map((m) => (
               <li key={m.id} className="preview-summary-card">
@@ -161,7 +201,7 @@ export function ConversationPanel({ nodeId }: { nodeId: string }) {
               </ul>
             </aside>
           )}
-          {view.mode === "READY" && (
+          {!exitMode && view.mode === "READY" && (
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -184,7 +224,7 @@ export function ConversationPanel({ nodeId }: { nodeId: string }) {
               </ActionButton>
             </form>
           )}
-          {view.mode === "SHIFT" && view.pending && (
+          {!exitMode && view.mode === "SHIFT" && view.pending && (
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -222,29 +262,29 @@ export function ConversationPanel({ nodeId }: { nodeId: string }) {
               </div>
             </form>
           )}
-          {(view.mode === "CLOSE" || view.mode === "STRUCTURAL") && (
-            <div>
-              <h2>여기까지 정리해 볼까요?</h2>
-              <p>
-                {view.mode === "STRUCTURAL"
-                  ? "지나온 질문을 남기거나, 지금 질문에서 이야기를 이어갈 수 있어요."
-                  : "여기까지 남겨도 좋고, 더 떠오르는 이야기를 이어가도 좋아요."}
-              </p>
-              <ActionButton disabled={locked} onClick={() => act("continue")}>
-                조금 더 보기
-              </ActionButton>
-            </div>
-          )}
-          {view.mode !== "FINISHED" && (
-            <ActionButton
-              variant="ghost"
-              disabled={locked}
-              onClick={() => act("finish")}
-            >
-              여기까지 정리하기
+          {!exitMode &&
+            (view.mode === "CLOSE" || view.mode === "STRUCTURAL") && (
+              <div>
+                <h2>여기까지 정리해 볼까요?</h2>
+                <p>
+                  {view.mode === "STRUCTURAL"
+                    ? "지나온 질문을 남기거나, 지금 질문에서 이야기를 이어갈 수 있어요."
+                    : "여기까지 남겨도 좋고, 더 떠오르는 이야기를 이어가도 좋아요."}
+                </p>
+                <ActionButton onClick={() => openExit("closure")}>
+                  남기고 마치기
+                </ActionButton>
+                <ActionButton disabled={locked} onClick={() => act("continue")}>
+                  더 생각하기
+                </ActionButton>
+              </div>
+            )}
+          {!exitMode && view.mode !== "FINISHED" && (
+            <ActionButton variant="ghost" onClick={() => openExit("exit")}>
+              나가기
             </ActionButton>
           )}
-          {view.mode === "FINISHED" && (
+          {!exitMode && view.mode === "FINISHED" && (
             <ConversationRetention
               sessionId={view.sessionId}
               branches={view.branches}
@@ -287,7 +327,7 @@ export function ConversationPanel({ nodeId }: { nodeId: string }) {
           <Link href="/login">계정 연결하기</Link>
         </p>
       )}
-      {retry && (
+      {retry && !exitMode && (
         <ActionButton
           disabled={busy || wait > 0}
           onClick={() => {
@@ -297,7 +337,7 @@ export function ConversationPanel({ nodeId }: { nodeId: string }) {
           {wait > 0 ? `${wait}초 뒤 확인` : "같은 요청의 결과 확인"}
         </ActionButton>
       )}
-      {!stopped && !locked && (
+      {!stopped && !locked && !exitMode && (
         <ActionButton variant="ghost" onClick={() => void refresh()}>
           현재 기록 다시 확인
         </ActionButton>

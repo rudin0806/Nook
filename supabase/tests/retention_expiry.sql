@@ -40,9 +40,11 @@ begin
 
   set local role service_role;
   deleted_count := public.purge_expired_sessions();
-  if deleted_count<>5 then raise exception 'FAIL expired count: %',deleted_count; end if;
-  if exists(select 1 from public.thought_sessions where id in(expired_temp,boundary_temp,expired_trash,boundary_trash,safety_id)) then raise exception 'FAIL expired rows remain'; end if;
+  if deleted_count<>3 then raise exception 'FAIL expired count: %',deleted_count; end if;
+  if exists(select 1 from public.thought_sessions where id in(expired_trash,boundary_trash,safety_id)) then raise exception 'FAIL expired rows remain'; end if;
   if (select count(*) from public.thought_sessions where id in(future_temp,future_trash,saved_id))<>3 then raise exception 'FAIL unexpired or saved data deleted'; end if;
+  if (select count(*) from public.thought_sessions where id in(expired_temp,boundary_temp) and storage_state='TRASHED' and retention_source='EXPIRED' and purge_after=trashed_at+interval '7 days')<>2 then raise exception 'FAIL expired linked temporary not trashed'; end if;
+  if (select trashed_at from public.thought_sessions where id=boundary_temp)<>now() then raise exception 'FAIL deadline drift'; end if;
   if public.purge_expired_sessions()<>0 then raise exception 'FAIL cleanup not idempotent'; end if;
   reset role;
   set constraints all immediate;

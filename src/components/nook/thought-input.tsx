@@ -2,13 +2,31 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ActionButton, TextField } from "@seed-design/react";
+import { ConversationRetention } from "./conversation-retention";
+import type { StartView } from "@/lib/start/client";
+import { RecoveryList } from "./recovery-list";
 import { useStartConversation } from "./use-start-conversation";
 
-export function ThoughtInput({ enabled = false }: { enabled?: boolean }) {
-  const [thought, setThought] = useState("");
+export function ThoughtInput({
+  enabled = false,
+  initialThought = "",
+  initialView,
+  initialSessionId,
+  source,
+  showRecovery = false,
+}: {
+  enabled?: boolean;
+  initialThought?: string;
+  initialView?: StartView;
+  initialSessionId?: string;
+  source?: { kind: "node" | "branch" | "session"; id: string };
+  showRecovery?: boolean;
+}) {
+  const [exiting, setExiting] = useState(false);
+  const [thought, setThought] = useState(initialThought);
   const [editedQuestion, setEditedQuestion] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(false);
-  const flow = useStartConversation();
+  const flow = useStartConversation(initialView, initialSessionId);
   const { view, locked } = flow;
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
@@ -27,6 +45,15 @@ export function ThoughtInput({ enabled = false }: { enabled?: boolean }) {
     setThought("");
     setEditedQuestion(null);
   }
+  const sessionId = flow.sessionId;
+  if (exiting && sessionId)
+    return (
+      <ConversationRetention
+        sessionId={sessionId}
+        branches={[]}
+        onCancel={() => setExiting(false)}
+      />
+    );
   return (
     <section
       className="writing-surface"
@@ -64,7 +91,7 @@ export function ThoughtInput({ enabled = false }: { enabled?: boolean }) {
           onSubmit={(e) => {
             e.preventDefault();
             if (enabled && thought.trim() && !locked)
-              flow.submit("start", { thought });
+              flow.submit("start", { thought, ...(source ? { source } : {}) });
           }}
         >
           <TextField.Root className="writing-field">
@@ -98,6 +125,7 @@ export function ThoughtInput({ enabled = false }: { enabled?: boolean }) {
           </div>
         </form>
       )}
+      {showRecovery && view.kind === "input" && <RecoveryList />}
       {view.kind === "focus" && (
         <div className="start-response">
           <p>{view.question}</p>
@@ -156,10 +184,12 @@ export function ThoughtInput({ enabled = false }: { enabled?: boolean }) {
       {view.kind === "replay" && (
         <div className="start-response">
           <p>
-            입력 처리는 완료됐지만 제안된 질문을 다시 불러오지 못했어요. 질문이
-            확정된 상태는 아니에요.
+            입력은 처리됐어요. 대화를 다시 열어 현재 상태를 확인할 수 있어요.
           </p>
         </div>
+      )}
+      {view.kind === "replay" && sessionId && (
+        <Link href={`/resume/${sessionId}`}>대화 다시 열기</Link>
       )}
       {view.kind === "stopped" && (
         <div className="start-response">
@@ -213,6 +243,11 @@ export function ThoughtInput({ enabled = false }: { enabled?: boolean }) {
           {flow.waitSeconds > 0
             ? `${waitLabel} 확인할 수 있어요`
             : "처리 결과 다시 확인"}
+        </ActionButton>
+      )}
+      {sessionId && view.kind !== "stopped" && (
+        <ActionButton variant="ghost" onClick={() => setExiting(true)}>
+          나가기
         </ActionButton>
       )}
       {view.kind !== "input" && !locked && (

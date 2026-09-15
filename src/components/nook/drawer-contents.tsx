@@ -45,8 +45,12 @@ const dateFormat = new Intl.DateTimeFormat("ko-KR", {
   day: "numeric",
 });
 
-export function DrawerContents() {
-  const [collection, setCollection] = useState<Collection>("sessions");
+export function DrawerContents({
+  initialCollection = "sessions",
+}: {
+  initialCollection?: Collection;
+}) {
+  const [collection, setCollection] = useState<Collection>(initialCollection);
   const [offset, setOffset] = useState(0);
   const [attempt, setAttempt] = useState(0);
   const [state, setState] = useState<State>({ kind: "loading" });
@@ -74,8 +78,8 @@ export function DrawerContents() {
             response.status === 401
               ? "보관한 이야기를 보려면 계정을 연결해 주세요."
               : response.status === 503
-                ? "지금은 생각더미를 연결할 수 없어요. 잠시 후 다시 확인해 주세요."
-                : "생각더미를 불러오지 못했어요. 다시 시도해 주세요.";
+                ? "지금은 생각 더미를 연결할 수 없어요. 잠시 후 다시 확인해 주세요."
+                : "생각 더미를 불러오지 못했어요. 다시 시도해 주세요.";
           if (!controller.signal.aborted)
             setState({
               kind: "error",
@@ -112,7 +116,7 @@ export function DrawerContents() {
           setState({
             kind: "error",
             message:
-              "생각더미를 불러오지 못했어요. 연결을 확인하고 다시 시도해 주세요.",
+              "생각 더미를 불러오지 못했어요. 연결을 확인하고 다시 시도해 주세요.",
           });
       }
     }
@@ -153,7 +157,7 @@ export function DrawerContents() {
       setNotice({
         text:
           action === "restore"
-            ? "생각더미로 복원했어요."
+            ? "생각 더미로 복원했어요."
             : action === "trash"
               ? "휴지통으로 옮겼어요."
               : "질문을 삭제했어요.",
@@ -175,7 +179,7 @@ export function DrawerContents() {
     }
   }
   return (
-    <section aria-label="생각더미 내용">
+    <section aria-label="생각 더미 내용">
       <div className="preview-actions" role="group" aria-label="보관 종류">
         <ActionButton
           variant={collection === "sessions" ? "neutralSolid" : "neutralWeak"}
@@ -213,7 +217,7 @@ export function DrawerContents() {
       )}
       <div aria-live="polite" aria-busy={state.kind === "loading"}>
         {state.kind === "loading" && (
-          <p className="preview-status">생각더미를 열고 있어요…</p>
+          <p className="preview-status">생각 더미를 열고 있어요…</p>
         )}
         {state.kind === "error" && (
           <div className="preview-summary-card">
@@ -259,6 +263,13 @@ export function DrawerContents() {
                       </p>
                     )}
                     <div>
+                      {collection === "questions" && (
+                        <p>
+                          <Link href={`/restart/branch/${item.id}`}>
+                            이 질문으로 다시 생각하기
+                          </Link>
+                        </p>
+                      )}
                       {collection === "sessions" && (
                         <p>
                           <Link href={`/drawer/${item.id}`}>

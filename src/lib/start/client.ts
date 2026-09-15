@@ -72,7 +72,7 @@ export type StartView =
   | { kind: "approved"; nodeId: string }
   | { kind: "replay" };
 export type StartClientResult =
-  | { kind: "view"; view: StartView }
+  | { kind: "view"; view: StartView; sessionId?: string }
   | {
       kind: "notice";
       message: string;
@@ -220,7 +220,18 @@ export async function sendStartRequest(
     return { kind: "view", view: { kind: "approved", nodeId: data.result_id } };
   }
   const result = data.result;
-  if (!result) return { kind: "view", view: { kind: "replay" } };
+  if (!result)
+    return {
+      kind: "view",
+      view: { kind: "replay" },
+      sessionId: data.result_id,
+    };
+  return { ...startResultView(result), sessionId: data.result_id };
+}
+export function startResultView(
+  raw: unknown,
+): Extract<StartClientResult, { kind: "view" }> {
+  const result = resultSchema.parse(raw);
   if (result.kind === "PROPOSAL")
     return {
       kind: "view",

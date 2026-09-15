@@ -23,7 +23,7 @@ test("proposal is not approved and replay without proposal is not a saved Node",
       request,
       reply({ status: "SUCCEEDED", result_id: id }),
     ),
-    { kind: "view", view: { kind: "replay" } },
+    { kind: "view", view: { kind: "replay" }, sessionId: id },
   );
   const result = await sendStartRequest(
     request,

@@ -19,6 +19,7 @@ function fixture(
     removed?: boolean;
     failure?: boolean;
     long?: boolean;
+    rawOnly?: boolean;
   } = {},
 ) {
   const urls: URL[] = [];
@@ -54,16 +55,20 @@ function fixture(
               : [{ id: gid, ordinal: 1 }];
           }
           if (url.pathname.endsWith("question_nodes"))
-            value = [
-              {
-                id: nid,
-                segment_id: gid,
-                ordinal: 1,
-                final_text: "계속 만날까?",
-                approved_at: now,
-                ai_proposed_text: "private proposal",
-              },
-            ];
+            value = options.rawOnly
+              ? []
+              : [
+                  {
+                    id: nid,
+                    segment_id: gid,
+                    ordinal: 1,
+                    final_text: "계속 만날까?",
+                    approved_at: now,
+                    ai_proposed_text: "private proposal",
+                  },
+                ];
+          if (url.pathname.endsWith("messages"))
+            value = { content: "아직 질문으로 정리하지 못한 생각" };
           if (url.pathname.endsWith("clarifications"))
             value = [
               {
@@ -128,4 +133,16 @@ test("segment pagination reports a next page without returning the lookahead row
   assert.equal(story.offset, 10);
   const url = urls.find((u) => u.pathname.endsWith("segments"))!;
   assert.equal(url.searchParams.get("offset"), "10");
+});
+
+test("saving before first approval exposes original input separately without inventing a Node", async () => {
+  const { client, urls } = fixture({ rawOnly: true });
+  const story = await readSavedStory(client, sid, {});
+  assert.ok(story);
+  assert.equal(story.initialThought, "아직 질문으로 정리하지 못한 생각");
+  assert.equal(story.segments[0].nodes.length, 0);
+  const raw = urls.find((u) => u.pathname.endsWith("messages"))!;
+  assert.equal(raw.searchParams.get("session_id"), `eq.${sid}`);
+  assert.equal(raw.searchParams.get("kind"), "eq.RAW_THOUGHT");
+  assert.equal(raw.searchParams.get("role"), "eq.USER");
 });

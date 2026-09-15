@@ -97,6 +97,18 @@ export function SavedStoryContents({ sessionId }: { sessionId: string }) {
           {!state.story.segments.some((s) => s.nodes.length) && (
             <p>이 페이지에 남겨진 중심 질문이 없어요.</p>
           )}
+          {state.story.initialThought && (
+            <section aria-label="처음 적은 생각">
+              <h2>처음 적은 생각</h2>
+              <p>첫 질문을 확정하기 전에 남긴 기록이에요.</p>
+              <p className="conversation-message">
+                {state.story.initialThought}
+              </p>
+              <Link href={`/restart/session/${state.story.session.id}`}>
+                이 생각으로 다시 시작하기
+              </Link>
+            </section>
+          )}
           {state.story.segments.map((segment) => (
             <section
               key={segment.id}
@@ -107,6 +119,9 @@ export function SavedStoryContents({ sessionId }: { sessionId: string }) {
                 {segment.nodes.map((node) => (
                   <li key={node.id} className="preview-summary-card">
                     <h3>{node.final_text}</h3>
+                    <Link href={`/restart/node/${node.id}`}>
+                      이 질문으로 다시 생각하기
+                    </Link>
                     {state.story.clarifications.some(
                       (c) => c.node_id === node.id,
                     ) && (

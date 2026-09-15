@@ -83,7 +83,7 @@ export function AccountPanel({ message }: { message: string | null }) {
       ) : (
         <>
           <Link className="account-primary" href="/drawer">
-            내 생각더미 열기 ↗
+            내 생각 더미 열기 ↗
           </Link>
           <form action="/api/auth/signout" method="post">
             <button className="signout-button" type="submit">

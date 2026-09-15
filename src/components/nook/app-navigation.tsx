@@ -10,7 +10,7 @@ const items = [
   {
     id: "saved",
     href: "/drawer",
-    label: "생각더미",
+    label: "생각 더미",
     path: "M4 5h4v15H4V5Zm6-1h4v16h-4V4Zm7 2 3-1 3 14-3 1-3-14Z",
   },
   {

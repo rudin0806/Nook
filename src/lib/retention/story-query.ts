@@ -78,12 +78,29 @@ export async function readSavedStory(
         .parse(result.data);
     }
   }
+  let initialThought: string | null = null;
+  if (offset === 0 && !nodes.length) {
+    const raw = await client
+      .from("messages")
+      .select("content")
+      .eq("session_id", id)
+      .eq("kind", "RAW_THOUGHT")
+      .eq("role", "USER")
+      .maybeSingle();
+    if (raw.error) throw new Error("STORY_QUERY_FAILED");
+    initialThought = z
+      .string()
+      .max(5000)
+      .nullable()
+      .parse(raw.data?.content ?? null);
+  }
   // A concurrent move to trash must not leave the detail response presented as saved.
   const latest = await parent();
   if (latest.error) throw new Error("STORY_QUERY_FAILED");
   if (!latest.data) return null;
   return savedStorySchema.parse({
     session,
+    initialThought,
     segments: segments.map((s) => ({
       ...s,
       nodes: nodes.filter((n) => n.segment_id === s.id),

@@ -1,4 +1,5 @@
 import "server-only";
+import { restartSourceViewSchema } from "@/schemas/recovery";
 import { randomUUID } from "node:crypto";
 import type { z } from "zod";
 import type {
@@ -27,17 +28,28 @@ export async function startConversation(
       userId: context.userId,
       requestId: input.requestId,
       operation: "start",
-      body: JSON.stringify([input.thought]),
+      body: JSON.stringify([input.thought, input.source ?? null]),
     },
     context.secret,
     context.store,
-    () => createServerStartFlow(input.thought, options).start(),
+    async () => {
+      if (input.source) {
+        const source = await context.auth.rpc("read_restart_source", {
+          p_kind: input.source.kind,
+          p_id: input.source.id,
+        });
+        if (source.error) throw new Error("START_SOURCE_INVALID");
+        restartSourceViewSchema.parse(source.data);
+      }
+      return createServerStartFlow(input.thought, options).start();
+    },
     (result, token, fingerprint) =>
       commit(context, {
         requestId: input.requestId,
         sessionId,
         messageId,
         text: input.thought,
+        origin: input.source,
         result,
         token,
         fingerprint,
@@ -153,13 +165,17 @@ async function commit(
     fingerprint: string;
     sourceMessage?: string;
     expiresAt?: number;
+    origin?: { kind: "node" | "branch" | "session"; id: string };
   },
 ) {
   const safety =
     "safety" in input.result
       ? input.result.safety
       : { label: "NONE", category: "NONE", behavior: "CONTINUE" };
-  const result = await context.admin.rpc("commit_start_input", {
+  const result = await context.admin.rpc("commit_start_with_recovery", {
+    p_result: safety.behavior === "CONTINUE" ? input.result : null,
+    p_origin_kind: input.origin?.kind ?? null,
+    p_origin_id: input.origin?.id ?? null,
     p_user: context.userId,
     p_request: input.requestId,
     p_token: input.token,

@@ -8,8 +8,14 @@ import {
   type StartOperation,
 } from "@/lib/start/client";
 
-export function useStartConversation() {
-  const [view, setView] = useState<StartView>({ kind: "input" });
+export function useStartConversation(
+  initialView: StartView = { kind: "input" },
+  initialSessionId?: string,
+) {
+  const [view, setView] = useState<StartView>(initialView);
+  const [sessionId, setSessionId] = useState<string | undefined>(
+    initialSessionId,
+  );
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<{
     message: string;
@@ -49,6 +55,7 @@ export function useStartConversation() {
         setCanRetry(false);
         setWaitSeconds(0);
         setView(result.view);
+        if (result.sessionId) setSessionId(result.sessionId);
       } else {
         setNotice(result);
         setCanRetry(result.retryable);
@@ -73,12 +80,14 @@ export function useStartConversation() {
   function reset() {
     if (inFlight.current || pending.current) return;
     setView({ kind: "input" });
+    setSessionId(undefined);
     setNotice(null);
     setCanRetry(false);
     setWaitSeconds(0);
   }
   return {
     view,
+    sessionId,
     busy,
     notice,
     canRetry,

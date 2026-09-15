@@ -6,19 +6,24 @@ import { z } from "zod";
 export function ConversationRetention({
   sessionId,
   branches,
+  onCancel,
+  onDone,
+  closure = false,
 }: {
   sessionId: string;
   branches: { id: string; text: string }[];
+  onCancel?: () => void;
+  onDone?: () => void;
+  closure?: boolean;
 }) {
-  const [keep, setKeep] = useState<boolean | null>(null);
   const [selected, setSelected] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
   const [notice, setNotice] = useState("");
   const [login, setLogin] = useState(false);
   const lock = useRef(false);
-  async function save() {
-    if (lock.current || keep === null) return;
+  async function save(keep: boolean) {
+    if (lock.current) return;
     lock.current = true;
     setBusy(true);
     setNotice("");
@@ -39,7 +44,7 @@ export function ConversationRetention({
         setNotice(
           code === "IDENTITY_LINK_REQUIRED"
             ? "남겨두려면 먼저 계정을 연결해 주세요. 계정 연결 후 이 이야기로 돌아와 보관을 선택할 수 있어요."
-            : "보관 결과를 확인하지 못했어요. 생각더미에서 현재 기록을 확인해 주세요.",
+            : "보관 결과를 확인하지 못했어요. 생각 더미에서 현재 기록을 확인해 주세요.",
         );
         return;
       }
@@ -51,9 +56,10 @@ export function ConversationRetention({
         }),
       }).parse(await response.json());
       setDone(true);
+      onDone?.();
     } catch {
       setNotice(
-        "처리 결과를 확인하지 못했어요. 생각더미에서 기록을 확인한 뒤 다시 시도해 주세요.",
+        "처리 결과를 확인하지 못했어요. 생각 더미에서 기록을 확인한 뒤 다시 시도해 주세요.",
       );
     } finally {
       lock.current = false;
@@ -64,34 +70,13 @@ export function ConversationRetention({
     return (
       <div role="status">
         <p>선택한 보관 내용을 반영했어요.</p>
-        <Link href="/drawer">생각더미 보기</Link> ·{" "}
+        <Link href="/drawer">생각 더미 보기</Link> ·{" "}
         <Link href="/">새 생각 시작하기</Link>
       </div>
     );
   return (
     <section aria-label="기록 보관 선택">
-      <h2>어떤 내용을 남길까요?</h2>
-      <fieldset disabled={busy}>
-        <legend>이 이야기의 질문 경로</legend>
-        <label>
-          <input
-            type="radio"
-            name="keep-story"
-            checked={keep === true}
-            onChange={() => setKeep(true)}
-          />{" "}
-          기록 남기기
-        </label>
-        <label>
-          <input
-            type="radio"
-            name="keep-story"
-            checked={keep === false}
-            onChange={() => setKeep(false)}
-          />{" "}
-          남기지 않기
-        </label>
-      </fieldset>
+      <h2>{closure ? "여기까지 남길까요?" : "이 대화를 마칠까요?"}</h2>
       {branches.length > 0 && (
         <fieldset disabled={busy}>
           <legend>나중에 다시 볼 질문</legend>
@@ -114,15 +99,35 @@ export function ConversationRetention({
         </fieldset>
       )}
       <p>
+        계정이 연결된 기록은 남기지 않으면 휴지통에서 7일간 복원할 수 있어요.
+      </p>
+      <p>
         이야기와 질문은 각각 선택할 수 있어요. 계정 연결 없이 아무것도 남기지
         않으면 기록을 복원할 수 없어요.
       </p>
-      <ActionButton
-        disabled={busy || keep === null}
-        onClick={() => void save()}
-      >
-        {busy ? "반영하는 중…" : "선택한 내용으로 마치기"}
-      </ActionButton>
+      <p>
+        이미 보낸 내용과 확인한 질문을 남겨요. 미전송 입력이나 아직 도착하지
+        않은 AI 응답은 포함되지 않아요.
+      </p>
+      <div className="preview-actions">
+        <ActionButton disabled={busy} onClick={() => void save(true)}>
+          {busy ? "반영하는 중…" : closure ? "남기고 마치기" : "남기고 나가기"}
+        </ActionButton>
+        {!closure && (
+          <ActionButton
+            disabled={busy}
+            variant="ghost"
+            onClick={() => void save(false)}
+          >
+            남기지 않고 나가기
+          </ActionButton>
+        )}
+        {onCancel && (
+          <ActionButton disabled={busy} variant="ghost" onClick={onCancel}>
+            대화로 돌아가기
+          </ActionButton>
+        )}
+      </div>
       <p role="status">{notice}</p>
       {login && (
         <Link href="/login" target="_blank" rel="noopener noreferrer">

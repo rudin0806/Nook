@@ -26,6 +26,7 @@ export default function HomePage() {
             </div>
             <div className="hero-composition">
               <ThoughtInput
+                showRecovery
                 enabled={process.env.NOOK_START_API_ENABLED === "true"}
               />
               <PaperArt />
@@ -69,7 +70,7 @@ export default function HomePage() {
                 다시 보고 싶은 질문을.
               </h2>
               <Link href="/drawer" className="editorial-link">
-                생각더미 열기 ↗
+                생각 더미 열기 ↗
               </Link>
             </div>
             <div className="keeper-art" aria-hidden="true">

@@ -2,7 +2,7 @@ import { PGlite } from "@electric-sql/pglite";
 import { readFileSync, readdirSync } from "node:fs";
 const db = new PGlite();
 await db.exec(
-  `create schema auth; create schema extensions; create role anon; create role authenticated; create role service_role bypassrls; create table auth.users(id uuid primary key); create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claims',true),'')::jsonb->>'sub'$$;`
+  `create schema auth; create schema extensions; create role anon; create role authenticated; create role service_role bypassrls; create table auth.users(id uuid primary key, is_anonymous boolean not null default false); create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claims',true),'')::jsonb->>'sub'$$;`
     .replace("::jsonb->>'sub'", "::jsonb->>'sub'")
     .replace(
       "select nullif(current_setting('request.jwt.claims',true),'')::jsonb->>'sub'",
@@ -41,7 +41,7 @@ if (!process.exitCode) {
       await db.exec(readFileSync(new URL(test, tests), "utf8"));
       console.log("PASS", test);
     } catch (error) {
-      console.error("FAIL", test, error.message);
+      console.error("FAIL", test, error.message, error.detail, error.where);
       await db.exec("rollback");
       process.exitCode = 1;
       break;

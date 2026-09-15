@@ -52,6 +52,8 @@ export async function listSessions(
   supabase: SupabaseClient,
   query: RetentionListQuery,
 ) {
+  const settled = await supabase.rpc("settle_own_retention");
+  if (settled.error) throw new RetentionDatabaseError(settled.error.message);
   const config = sessionCollections[query.collection];
   const { data, error } = await supabase
     .from(config.table)

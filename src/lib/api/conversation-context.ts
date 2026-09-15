@@ -49,6 +49,8 @@ export async function loadConversation(auth: SupabaseClient, nodeId: string) {
   ]);
   if (sr.error || gr.error || rr.error || mr.error || pr.error)
     throw new Error("CONVERSATION_READ_FAILED");
+  if (sr.data.storage_state !== "TEMPORARY")
+    throw new Error("CONVERSATION_NOT_ACTIVE");
   if (
     sr.data.storage_state === "TEMPORARY" &&
     Date.parse(sr.data.temporary_expires_at) <= Date.now()
@@ -94,13 +96,22 @@ export async function loadConversation(auth: SupabaseClient, nodeId: string) {
     messages: mr.data,
     clarifications: cr.data,
     pile: pr.data,
-    state: rr.data ?? {
-      version: 0,
-      mode: "READY",
-      pending: null,
-      last_question_type: null,
-      carryover: [],
-    },
+    state:
+      sr.data.status === "COMPLETED"
+        ? {
+            version: rr.data?.version ?? 0,
+            mode: "FINISHED",
+            pending: null,
+            last_question_type: null,
+            carryover: [],
+          }
+        : (rr.data ?? {
+            version: 0,
+            mode: "READY",
+            pending: null,
+            last_question_type: null,
+            carryover: [],
+          }),
   });
 }
 export function conversationView(s: ConversationSnapshot) {

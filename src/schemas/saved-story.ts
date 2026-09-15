@@ -17,6 +17,7 @@ export const storyClarificationSchema = z.object({
 });
 export const savedStorySchema = z.object({
   session: savedSessionListItemSchema,
+  initialThought: z.string().max(5000).nullable().optional(),
   segments: z.array(
     z.object({
       id: z.uuid(),
