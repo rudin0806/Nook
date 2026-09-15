@@ -56,4 +56,21 @@ if (!process.exitCode && process.argv.includes("--helper")) {
     throw Error("helper permissions");
   console.log("PASS optional helper privileges");
 }
+if (!process.exitCode) {
+  const ready = await db.query(
+    readFileSync(
+      new URL(
+        "../../supabase/snippets/verify_release_readiness.sql",
+        import.meta.url,
+      ),
+      "utf8",
+    ),
+  );
+  if (ready.rows.length !== 11 || ready.rows.some((r) => r.passed !== true))
+    throw new Error(
+      "Release readiness contract failed: " +
+        JSON.stringify(ready.rows.filter((r) => !r.passed)),
+    );
+  console.log("PASS read-only release readiness (11 checks)");
+}
 await db.close();

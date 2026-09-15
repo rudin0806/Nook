@@ -149,3 +149,7 @@ Sol high 최종 회귀는 Safety label/category/behavior 각각 **15/15**, Start
 타입·린트·빌드, 오프라인 137개, 독립 SQL 7개와 선택적 보조 함수 권한 검사를 통과했다. 로컬 HTTP는 화면 응답·잘못된 식별자·Origin 차단과 DB 미설정 시 데이터 미노출만 확인했다.
 
 세부 인수 기준과 이번 검증 기록: [보관·복귀 구현](reviews/2026-09-15-retention-recovery.md).
+
+## 2026-09-15 운영 사전 점검 후속
+
+[운영 사전 점검](reviews/2026-09-15-release-preflight.md)을 추가했다. 운영 DB는 적용 이력 8건·세션 0건·Cron 미설치이며 새 대화/보관 migration 2건은 미적용이다. 자동 승인 검토가 운영 DB 변경을 명시적 승인 부족으로 거절해 변경은 실행되지 않았다. 읽기 전용 적용 점검 SQL 11개와 공개 경로 점검 명령 `npm run release:check -- --url …`를 추가했다. 독립 DB에서는 11개 모두 충족, 운영은 미적용에 따라 모두 미충족이다. Vercel health 200은 DB·모델·대화 기능의 준비 완료를 뜻하지 않는다.

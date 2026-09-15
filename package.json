@@ -24,7 +24,8 @@
     "test:judge-model": "node --experimental-strip-types --test tests/judge-model.test.mts",
     "test:eval-trigger": "node --experimental-strip-types --test tests/eval-trigger.test.mts",
     "test:reframe": "node --experimental-strip-types --test tests/reframe.test.mts",
-    "test:auth": "node --experimental-strip-types --test tests/auth-policy.test.mts"
+    "test:auth": "node --experimental-strip-types --test tests/auth-policy.test.mts",
+    "release:check": "node --experimental-strip-types scripts/check-release.mts"
   },
   "dependencies": {
     "@seed-design/css": "2.7.0",
