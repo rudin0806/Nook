@@ -83,11 +83,17 @@ body {
 }
 
 .app-wordmark,
-.app-wordmark span {
+.app-wordmark span,
+.app-wordmark .logo-n {
   color: var(--nook-ink);
 }
-.app-wordmark .logo-n {
-  color: var(--nook-primary);
+/* SUIT has no width axis, so the wide half of the mark is scaled instead. */
+.app-wordmark .logo-wide {
+  display: inline-block;
+  transform: scaleX(1.22);
+  transform-origin: left center;
+  margin-right: 0.18em;
+  letter-spacing: -0.06em;
 }
 .header-account {
   border-color: var(--nook-line);
@@ -105,16 +111,57 @@ body {
 .closure-panel {
   background: var(--nook-raised);
 }
-.account-art {
-  background: var(--nook-primary-weak);
-  color: var(--nook-primary);
-}
-.account-art > p {
-  color: var(--nook-primary);
-}
 .account-error {
   background: var(--nook-open-weak);
   color: var(--nook-ink);
+}
+
+/* One centred card. The split layout gave half the screen to a single line. */
+.account-layout {
+  display: block;
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 72px 20px 40px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
+}
+.account-panel {
+  display: grid;
+  gap: 14px;
+  padding: 36px 32px 32px;
+  border: 1px solid var(--nook-card-line);
+  border-radius: 20px;
+  background: var(--nook-surface);
+  text-align: center;
+}
+.account-panel > h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--nook-ink);
+}
+.account-panel .account-description {
+  margin: 0;
+  font-size: 14px;
+  color: var(--nook-muted);
+}
+.account-panel form {
+  display: grid;
+  gap: 10px;
+  margin-top: 6px;
+}
+.account-panel form button {
+  width: 100%;
+}
+.account-footer {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--nook-subtle);
+  text-align: center;
 }
 
 .nook-icon {

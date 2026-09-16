@@ -33,10 +33,6 @@ export function AccountPanel({ message }: { message: string | null }) {
   }, [attempt]);
   return (
     <section className="account-panel" aria-busy={state === "loading"}>
-      <span className="account-mark" aria-hidden="true">
-        n.
-      </span>
-      <p className="section-index">MY LITTLE NOOK</p>
       <h1>
         {state === "signed_in"
           ? "다시 만나 반가워요."

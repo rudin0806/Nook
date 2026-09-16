@@ -30,21 +30,14 @@ export default async function LoginPage({
     <div className="account-page">
       <header className="app-header">
         <Link className="app-wordmark" href="/" aria-label="Nook 홈">
-          nook<span>.</span>
+          <span className="logo-n">N</span>
+          <span className="logo-wide">ook</span>
         </Link>
         <Link className="header-account" href="/">
           닫기 ×
         </Link>
       </header>
       <main id="main-content" className="account-layout">
-        <div className="account-art">
-          <span className="preview-kicker">나만의 기록</span>
-          <p>
-            다시 펼치고 싶은
-            <br />
-            나의 생각들.
-          </p>
-        </div>
         <AccountPanel message={message} />
       </main>
       <footer className="account-footer">
