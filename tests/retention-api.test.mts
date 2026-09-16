@@ -58,6 +58,7 @@ test("session list contract excludes undeclared fields", () => {
     started_at: "2026-09-13T00:00:00+00:00",
     completed_at: "2026-09-13T00:10:00+00:00",
     retention_decided_at: "2026-09-13T00:11:00+00:00",
+    shelf_position: null,
   });
   assert.equal("user_id" in parsed, false);
 });

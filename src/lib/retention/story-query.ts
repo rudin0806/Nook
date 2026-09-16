@@ -23,7 +23,7 @@ export async function readSavedStory(
     client
       .from("saved_thought_sessions")
       .select(
-        "id,origin_branch_id,started_at,completed_at,retention_decided_at",
+        "id,origin_branch_id,started_at,completed_at,retention_decided_at,shelf_position",
       )
       .eq("id", id)
       .maybeSingle();

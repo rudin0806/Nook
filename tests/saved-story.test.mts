@@ -12,6 +12,7 @@ const session = {
   started_at: now,
   completed_at: now,
   retention_decided_at: now,
+  shelf_position: null,
 };
 function fixture(
   options: {
