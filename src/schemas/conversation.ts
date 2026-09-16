@@ -18,8 +18,19 @@ const node = z.object({
   id: z.uuid(),
   segment_id: z.uuid(),
   ordinal: z.number().int(),
+  ai_proposed_text: z.string().min(1).max(1000),
   final_text: z.string().min(1).max(1000),
+  approved_at: z.string().datetime({ offset: true }),
 });
+const messageKindSchema = z.enum([
+  "RAW_THOUGHT",
+  "USER_REPLY",
+  "START_REFRAME",
+  "REFLECTION",
+  "SHIFT_PROPOSAL",
+  "CLOSURE",
+  "SYSTEM_NOTICE",
+]);
 export const conversationStateSchema = z.object({
   dismissed_closure: z.string().max(5000).nullable().default(null),
   version: z.number().int().nonnegative(),
@@ -67,8 +78,10 @@ export const conversationSnapshotSchema = z.object({
         id: z.uuid(),
         role: z.enum(["USER", "ASSISTANT"]),
         content: z.string().min(1).max(5000),
+        kind: messageKindSchema,
         sequence_no: z.number().int().positive(),
         segment_id: z.uuid(),
+        created_at: z.string().datetime({ offset: true }),
       }),
     )
     .min(1)
@@ -122,6 +135,17 @@ export const conversationViewSchema = z.object({
   version: z.number().int().nonnegative(),
   mode: conversationStateSchema.shape.mode,
   currentQuestion: z.string(),
+  nodes: z
+    .array(
+      z.object({
+        id: z.uuid(),
+        question: z.string().min(1).max(1000),
+        messageId: z.uuid(),
+        current: z.boolean(),
+      }),
+    )
+    .min(1)
+    .max(5),
   pending: z
     .object({ question: z.string(), evidence_sentence: z.string() })
     .nullable(),
