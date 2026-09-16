@@ -420,11 +420,157 @@ body button {
   padding-top: 8px;
   animation: settle 0.25s ease-out;
 }
+.shelf-edit-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 20px 0 -4px;
+}
+.shelf-edit-toolbar > p {
+  color: var(--nook-muted);
+  margin: 0;
+  font-size: 14px;
+}
+.shelf-edit-toolbar .preview-actions {
+  margin: 0;
+}
+.shelf-order-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 14px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--nook-line);
+}
+.shelf-drag-handle {
+  color: var(--nook-muted);
+  cursor: grab;
+  font-size: 22px;
+  line-height: 1;
+}
+.shelf-position {
+  color: var(--nook-muted);
+  font-size: 13px;
+  margin-right: auto;
+}
+.shelf-order-controls button {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--nook-line);
+  border-radius: 50%;
+  background: var(--nook-raised);
+  color: var(--nook-ink);
+  cursor: pointer;
+}
+.shelf-order-controls button:disabled {
+  cursor: default;
+  opacity: 0.35;
+}
+.saved-books > li[data-order-editing] {
+  cursor: grab;
+  border-color: var(--nook-peach);
+}
+.saved-books > li[data-dragging] {
+  opacity: 0.55;
+  transform: scale(0.98);
+}
+.saved-books > li[data-order-editing]:focus-within {
+  outline: 2px solid var(--nook-mint);
+  outline-offset: 3px;
+}
 .conversation-workspace {
   max-width: 1170px;
 }
 .conversation-workspace > section > h1 {
   max-width: 780px;
+}
+.node-navigation {
+  margin: 26px 0 30px;
+  padding: 18px;
+  border: 1px solid var(--nook-line);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--nook-surface) 92%, transparent);
+  box-shadow: 0 10px 30px rgb(40 38 34 / 7%);
+}
+.node-navigation-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+.node-navigation-heading strong {
+  font-size: 15px;
+}
+.node-navigation-heading small {
+  color: var(--nook-muted);
+  text-align: right;
+}
+.node-navigation ol {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.node-navigation button {
+  width: 100%;
+  min-height: 86px;
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  align-items: start;
+  gap: 9px;
+  padding: 13px;
+  border: 1px solid var(--nook-line);
+  border-radius: 13px;
+  background: var(--nook-paper);
+  color: var(--nook-ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease;
+}
+.node-navigation button > span:first-child {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--nook-line);
+  font-size: 12px;
+}
+.node-navigation button > span:last-child {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 13px;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+.node-navigation button[data-current="true"] {
+  border-color: color-mix(in srgb, var(--nook-gold) 62%, var(--nook-line));
+}
+.node-navigation button[data-active="true"] {
+  border-color: var(--nook-gold);
+  background: color-mix(in srgb, var(--nook-gold) 10%, var(--nook-paper));
+  transform: translateY(-2px);
+}
+.node-navigation button[data-active="true"] > span:first-child {
+  background: var(--nook-gold);
+  color: #251b0c;
+}
+.conversation-card:focus-visible,
+.conversation-current-position:focus-visible {
+  outline: 2px solid var(--nook-gold);
+  outline-offset: 4px;
+}
+.conversation-current-position {
+  scroll-margin-top: 24px;
 }
 .conversation-card {
   background: transparent;
@@ -720,6 +866,24 @@ body button {
   .paper-bottom button {
     width: 100%;
   }
+  .node-navigation {
+    margin-inline: -6px;
+    padding: 14px;
+  }
+  .node-navigation-heading {
+    display: block;
+  }
+  .node-navigation-heading small {
+    display: block;
+    margin-top: 5px;
+    text-align: left;
+  }
+  .node-navigation ol {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .node-navigation button {
+    min-height: 78px;
+  }
   .conversation-card {
     padding: 18px;
   }
@@ -731,6 +895,14 @@ body button {
   }
   .preview-actions {
     gap: 7px;
+  }
+  .shelf-edit-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .shelf-edit-toolbar .preview-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
   }
   .preview-actions button {
     font-size: 14px;
