@@ -1,6 +1,10 @@
 import OpenAI from "openai";
 import { readFileSync, writeFileSync } from "node:fs";
-import { makeJudgeRequest, selectFixtures } from "./judge-model.mts";
+import {
+  makeJudgeRequest,
+  selectFixtures,
+  formatProviderDiagnostic,
+} from "./judge-model.mts";
 import { score, type Fixture } from "./eval-core.mts";
 import { prepareReframe } from "../src/engine/reframe.ts";
 import { prepareJsonRequest } from "../src/engine/json-model.ts";
@@ -123,17 +127,18 @@ async function main() {
   const report = {
     options,
     maxCalls: generatorsOnly ? 2 : 5,
-    previousCalls: generatorsOnly ? 3 : 0,
+    previousCalls: generatorsOnly ? 4 : 0,
     calls: 0,
     inputTokens: 0,
     outputTokens: 0,
     semanticReview: "PENDING",
+    diagnostic: null as string | null,
     cases: [] as unknown[],
     error: null as string | null,
   };
   try {
     for (const job of generatorsOnly ? jobs.slice(3) : jobs) {
-      if (report.calls + report.previousCalls >= 5) throw Error("CALL_LIMIT");
+      if (report.calls >= report.maxCalls) throw Error("CALL_LIMIT");
       report.calls++;
       const response = await client.responses.create({
         ...job.request,
@@ -149,7 +154,9 @@ async function main() {
       if (response.status !== "completed") throw Error("RESPONSE_INCOMPLETE");
       job.validate(JSON.parse(response.output_text));
     }
-  } catch {
+  } catch (error) {
+    report.diagnostic =
+      formatProviderDiagnostic(error) || "NO_SAFE_PROVIDER_DIAGNOSTIC";
     report.error = "EVALUATION_STOPPED_REVIEW_LAST_CASE";
     process.exitCode = 1;
   } finally {
