@@ -3,11 +3,14 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ActionButton } from "@seed-design/react";
 import { recoveryPageSchema, type RecoveryItem } from "@/schemas/recovery";
+import { NookIcon } from "./nook-icon";
 export function RecoveryList() {
+  const dialog = useRef<HTMLDialogElement>(null);
+  const [selected, setSelected] = useState(0);
   const [items, setItems] = useState<RecoveryItem[]>([]),
     [more, setMore] = useState(false),
     [notice, setNotice] = useState("");
-  const [busy, setBusy] = useState(false),
+  const [busy, setBusy] = useState(true),
     [now, setNow] = useState(() => Date.now());
   const lock = useRef(false),
     alive = useRef(true);
@@ -54,30 +57,53 @@ export function RecoveryList() {
     };
   }, []);
   const visible = items.filter((i) => Date.parse(i.expiresAt) > now);
-  if (!visible.length && !notice && !more) return null;
+  const current = visible[Math.min(selected, Math.max(0, visible.length - 1))];
   return (
-    <aside aria-label="이어가던 대화" className="recovery-list">
-      <h2>이어가던 대화</h2>
-      <p>
-        아직 생각 더미에 남기지 않았어요. 계정이 연결된 대화는 아래 시각에
-        휴지통으로 옮겨져요. 익명 대화는 삭제돼요.
-      </p>
-      <ul>
-        {visible.map((i) => (
-          <li key={i.id}>
-            <Link href={`/resume/${i.id}`}>{i.question}</Link>
-            <small>
-              {" "}
-              ·{" "}
-              {new Date(i.expiresAt).toLocaleString("ko-KR", {
-                timeZone: "Asia/Seoul",
-              })}
-              까지 (한국 시간)
-            </small>
-          </li>
+    <section aria-label="이어갈 대화" className="recovery-panel">
+      <div className="panel-heading">
+        <div className="panel-title-with-icon">
+          <NookIcon name="conversation" tone="orange" />
+          <div>
+          <span className="panel-eyebrow">아직 펼쳐둔 생각</span>
+          <h2>이어갈 대화</h2>
+          </div>
+        </div>
+        <span>
+          {visible.length > 0 ? `${visible.length}${more ? "+" : ""}개` : ""}
+        </span>
+      </div>
+      {busy && !items.length ? (
+        <p role="status">대화를 불러오고 있어요.</p>
+      ) : null}
+      {!busy && !visible.length && !notice ? (
+        <div className="recovery-empty">
+          <div className="empty-cards" aria-hidden="true"><i /><i /><i /></div>
+          <div className="empty-card-copy">
+          <strong>아직 이어갈 대화가 없어요</strong>
+          <p>대화를 남기면 다시 묻고 싶은 질문이 카드로 쌓여요.</p>
+          <span>먼저 떠오르는 생각을 적어보세요.</span>
+          </div>
+        </div>
+      ) : null}
+      <div className="scattered-cards">
+        {visible.slice(0, 4).map((item, index) => (
+          <button
+            className="thought-card"
+            key={item.id}
+            onClick={() => {
+              setSelected(index);
+              dialog.current?.showModal();
+            }}
+          >
+            <span className="card-mark">
+              {String(index + 1).padStart(2, "0")}
+            </span>
+            <strong>{item.question}</strong>
+            <span className="card-caption">펼쳐보기 ↗</span>
+          </button>
         ))}
-      </ul>
-      {more && (
+      </div>
+      {more ? (
         <ActionButton
           variant="ghost"
           disabled={busy}
@@ -86,23 +112,93 @@ export function RecoveryList() {
             void load(items.length);
           }}
         >
-          더 보기
+          이전 대화 더 불러오기
         </ActionButton>
-      )}
-      {notice && (
-        <>
-          <p role="status">{notice}</p>
-          <ActionButton
-            disabled={busy}
+      ) : null}
+      {visible.length > 4 ? (
+        <button
+          className="recovery-browse"
+          onClick={() => {
+            setSelected(4);
+            dialog.current?.showModal();
+          }}
+        >
+          모든 대화 살펴보기 →
+        </button>
+      ) : null}
+      {notice ? (
+        <div role="status">
+          <p>{notice}</p>
+          <button
             onClick={() => {
               setBusy(true);
               void load(0);
             }}
           >
             다시 불러오기
-          </ActionButton>
-        </>
-      )}
-    </aside>
+          </button>
+        </div>
+      ) : null}
+      <dialog
+        ref={dialog}
+        className="card-browser"
+        aria-labelledby="card-browser-title"
+      >
+        <div className="panel-heading">
+          <h2 id="card-browser-title">이어갈 대화</h2>
+          <button
+            autoFocus
+            aria-label="닫기"
+            onClick={() => dialog.current?.close()}
+          >
+            닫기 ×
+          </button>
+        </div>
+        {current ? (
+          <>
+            <div className="card-stack">
+              <article className="browse-card" key={current.id}>
+                <span className="panel-eyebrow">아직 남기지 않은 생각</span>
+                <h3>{current.question}</h3>
+                <p>
+                  {new Date(current.expiresAt).toLocaleString("ko-KR", {
+                    timeZone: "Asia/Seoul",
+                  })}
+                  까지 이어갈 수 있어요.
+                </p>
+                <Link href={`/resume/${current.id}`}>이 대화 이어가기 ↗</Link>
+              </article>
+            </div>
+            <div className="card-controls">
+              <button
+                aria-label="이전 카드"
+                disabled={selected <= 0}
+                onClick={() => setSelected(Math.max(0, selected - 1))}
+              >
+                ←
+              </button>
+              <span aria-live="polite">
+                {Math.min(selected + 1, visible.length)} / {visible.length}
+              </span>
+              <button
+                aria-label="다음 카드"
+                disabled={selected >= visible.length - 1}
+                onClick={() =>
+                  setSelected(Math.min(visible.length - 1, selected + 1))
+                }
+              >
+                →
+              </button>
+            </div>
+            <p className="card-policy">
+              만료되면 계정에 연결된 대화는 휴지통으로 이동하고, 익명 대화는
+              삭제돼요.
+            </p>
+          </>
+        ) : (
+          <p>이어갈 수 있는 대화가 없어요.</p>
+        )}
+      </dialog>
+    </section>
   );
 }
