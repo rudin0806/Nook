@@ -6,7 +6,7 @@ Nook은 현재의 중심 질문을 찾고, 사용자가 확정한 질문의 이�
 
 ## 현재 단계
 
-진행 상태와 다음 작업은 [`docs/STATUS.md`](docs/STATUS.md)를 기준으로 확인합니다.
+운영 주소는 [Nook](https://nook-nine-eta.vercel.app/)입니다. 현재 운영 기능 코드는 `codex/restore-node-navigation-and-shelf-order-20260916` 브랜치에 보존돼 있으며, `main`은 최신 운영 코드와 다릅니다. 배포·GitHub 구현·검증 상태를 구분한 진행 상태와 다음 작업은 [`docs/STATUS.md`](docs/STATUS.md)를 기준으로 확인합니다.
 
 Codex·Claude 병행 작업의 역할과 전달 형식은 [`docs/HANDOFF.md`](docs/HANDOFF.md)를 참고합니다.
 
@@ -127,11 +127,11 @@ npm run validate
 
 `npm run eval -- --dry`로 기본 경계쌍을 검사합니다. 실제 호출 설정·비용 제한·보고서 범위는 [평가기 실행 안내](docs/reviews/2026-09-13-judge-model-runner.md)를 따릅니다.
 
-실서비스용 Judge 호출 경계는 [런타임 어댑터 기록](docs/reviews/2026-09-14-judge-runtime-adapter.md)을 따릅니다. 아직 공개 API Route에는 연결하지 않았으며 Safety·사용자 종료 의사·구조 상한을 먼저 통과한 서버 흐름에서만 호출해야 합니다.
+실서비스용 Judge 호출 경계는 [런타임 어댑터 기록](docs/reviews/2026-09-14-judge-runtime-adapter.md)을 따릅니다. 공개 대화 API에 연결돼 있습니다. Safety·사용자 종료 의사·구조 상한을 먼저 통과하는 서버 흐름을 유지하며 현재 배포·검증 범위는 [STATUS](docs/STATUS.md)를 따릅니다.
 
 ### 소셜 로그인 연결
 
-`/login`에서 Google/Kakao 연결을 시작합니다. 배포별 `NOOK_SITE_URL`, Supabase 공급자·Manual Linking·redirect 설정과 실제 검증 순서는 [인증 연결 안내](docs/reviews/2026-09-14-auth-flow.md)를 참고하세요. 익명 사용자 생성과 보관 선택 복귀는 아직 연결 전입니다.
+`/login`에는 Google 연결 버튼이 공개돼 있습니다. Kakao는 내부 어댑터만 있으며 버튼 공개·공급자 검증은 후속입니다. 배포별 `NOOK_SITE_URL`, Supabase 공급자·Manual Linking·redirect 설정과 실제 검증 순서는 [인증 연결 안내](docs/reviews/2026-09-14-auth-flow.md)를 참고하세요. 익명 사용자 생성·CAPTCHA 검증 요구·identity linking 기반 코드는 있습니다. 실제 익명 시작 전체 왕복과 로그인 후 원래 보관 선택 복귀는 별도 미결이며, 닉네임 편집도 아직 없습니다.
 
 ### 첫 입력과 질문 승인 API
 
