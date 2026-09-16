@@ -55,6 +55,11 @@ const databaseProblems: Record<string, ApiProblem> = {
     code: "KEPT_BRANCH_NOT_FOUND",
     message: "남겨둔 질문을 찾을 수 없어요.",
   },
+  SHELF_ORDER_STALE: {
+    status: 409,
+    code: "SHELF_ORDER_STALE",
+    message: "책장 내용이 바뀌었어요. 목록을 새로고침해 주세요.",
+  },
 };
 
 export function mapDatabaseProblem(message: string): ApiProblem {
