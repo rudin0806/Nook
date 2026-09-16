@@ -80,7 +80,7 @@ export function ThoughtInput({
       </div>
       <div className="panel-title-with-icon">
         <NookIcon name="write" tone="blue" />
-        <h1 ref={heading} tabIndex={-1}>
+        <h2 ref={heading} tabIndex={-1}>
           {view.kind === "input"
             ? "생각 적기"
             : view.kind === "proposal"
@@ -90,7 +90,7 @@ export function ThoughtInput({
                 : view.kind === "approved"
                   ? "첫 질문을 기록했어요."
                   : "잠시 살펴봐요."}
-        </h1>
+        </h2>
       </div>
       {view.kind === "input" && (
         <form

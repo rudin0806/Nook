@@ -92,9 +92,17 @@ export function ShelfPreview() {
         ))}
       </div>
       {empty || guest ? (
-        <div className="shelf-empty" role="status">
+        <div className="shelf-empty">
           <div className="empty-books" aria-hidden="true"><i /><i /><i /></div>
-          <div><strong>{guest ? "대화를 남길 책장이에요" : "아직 책장이 비어 있어요"}</strong><p>{guest ? "로그인하면 남긴 책을 여기서 볼 수 있어요." : "남긴 대화가 한 권씩 시간순으로 쌓여요."}</p></div>
+          <div>
+            <strong>{guest ? "대화를 남길 책장이에요" : "아직 책장이 비어 있어요"}</strong>
+            <p role="status">{guest ? "로그인하면 남긴 책을 여기서 볼 수 있어요." : "남긴 대화가 한 권씩 시간순으로 쌓여요."}</p>
+            {guest ? (
+              <Link className="shelf-cta" href="/login">
+                계정 연결하기
+              </Link>
+            ) : null}
+          </div>
         </div>
       ) : status ? (
         <p className="shelf-status" role="status">
