@@ -1,6 +1,6 @@
 # Nook 병행 작업 안내
 
-제품 기준은 작업 기준 브랜치의 PRD/RULES, 개발 진행 상태는 STATUS다. main과 운영 소스는 현재 다르므로 main만 읽고 미구현을 판단하지 않는다. 이 문서는 역할과 전달 형식만 정하며 제품 규칙을 새로 만들지 않는다.
+제품 기준은 PRD/RULES, 개발 진행 상태는 STATUS다. **2026-09-16부터 main이 운영 코드와 일치한다.** 다만 과거에 갈라진 브랜치들이 서로를 포함하지 않으므로, 어떤 기능이 없어 보이면 다른 브랜치와 과거 커밋을 먼저 확인한다. 이 문서는 역할과 전달 형식만 정하며 제품 규칙을 새로 만들지 않는다.
 
 ## 역할 분담
 
@@ -16,10 +16,9 @@
 
 - 현재 기능·배포·검증·결함의 단일 기준은 [STATUS](STATUS.md)다.
 - **`main` = `b6fcc95`가 기준이다.** main이 운영 코드와 일치한다. `codex/restore-node-navigation-and-shelf-order-20260916` / `e1bf2e1` 위에 상세 조회 결함·테스트 fixture·벤또 홈·책장 이동·팔레트 개정·로그인 재구성이 얹혀 main으로 올라갔다.
-- **브랜치가 여럿이고 서로를 포함하지 않는다.** `f5aefa92`(claim-fidelity)에서 갈라져 `restore-node-navigation`(보관·정렬·상세)과 `recover-vivid-nook-ui-v2`(홈 디자인·테마)가 각자 진행됐고 main은 09-13에 멈춰 있다. **main만 읽고 미구현을 판단하지 않는다**는 규칙이 여기서 나왔다. 어떤 기능이 없어 보이면 다른 브랜치와 과거 커밋을 먼저 확인한다.
+- **브랜치가 여럿이고 서로를 포함하지 않는다.** `f5aefa92`(claim-fidelity)에서 갈라져 `restore-node-navigation`(보관·정렬·상세)과 `recover-vivid-nook-ui-v2`(홈 디자인·테마)가 각자 진행됐다. main은 이제 전자 계열을 담고 있고 후자의 스타일은 의도적으로 가져오지 않았다. **어떤 기능이 없어 보이면 다른 브랜치와 과거 커밋을 먼저 확인한다.**
 - **Vercel ↔ GitHub 연결 완료. main에 push하면 자동 배포된다.** 배포마다 `githubCommitSha`가 남는다. 배포는 main에만 push한다 — 다른 브랜치에 같이 push하면 preview 배포가 추가로 생겨 일 100회 한도를 쓴다. 배포가 끝났으므로 옛 `reorder_saved_sessions`와 `/api/sessions/order`는 이제 제거할 수 있다.
-- 작업 브랜치(이전 기준): `codex/restore-node-navigation-and-shelf-order-20260916`, 실사 기준 `56f09e46ee671fa1a16d924fb8bf22348865f5ea`.
-- 운영 배포: `dpl_387H51i2jBD3BP3iAQGMbp7j4bA3`. main `65f9e63`과 동일하다고 가정하지 않는다.
+- 참고용 이전 기준: 보존 브랜치 `codex/restore-node-navigation-and-shelf-order-20260916` / `56f09e46ee671fa1a16d924fb8bf22348865f5ea`. 지금은 main이 기준이다.
 - 3번 노드 이동과 4번 책장 정렬은 구현·보존·배포됐다. 남은 검증 또는 발견된 결함은 STATUS에서 별도 관리한다.
 - 5번의 선행 조건이던 상세 조회 회귀는 해결됐다(`81ab2c8`). 남은 것은 탐색·카드 모션 고도화다. 6번은 닉네임 및 로그인 후 원래 보관 화면 복귀가 남았다.
 
