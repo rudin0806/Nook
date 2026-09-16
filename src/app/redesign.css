@@ -12,6 +12,12 @@
   --nook-fill: #f1efe9;
   --nook-lamp: #d8e64d;
   --nook-card-border: transparent;
+  --nook-glass: rgba(255, 255, 255, 0.72);
+  --nook-glass-edge: rgba(255, 255, 255, 0.9);
+  --nook-glass-shadow: 0 1px 2px rgba(31, 30, 26, 0.04),
+    0 12px 32px -18px rgba(31, 30, 26, 0.18);
+  --nook-ambient-a: rgba(216, 230, 77, 0.16);
+  --nook-ambient-b: rgba(255, 181, 62, 0.12);
 }
 
 :root[data-theme="dark"] {
@@ -27,11 +33,38 @@
   --nook-fill: #252929;
   --nook-lamp: #c7d94a;
   --nook-card-border: #2f3432;
+  --nook-glass: rgba(32, 35, 35, 0.62);
+  --nook-glass-edge: rgba(255, 255, 255, 0.07);
+  --nook-glass-shadow: 0 1px 2px rgba(0, 0, 0, 0.24),
+    0 16px 36px -22px rgba(0, 0, 0, 0.6);
+  --nook-ambient-a: rgba(199, 217, 74, 0.09);
+  --nook-ambient-b: rgba(255, 167, 112, 0.07);
 }
 
 body {
+  position: relative;
   background: var(--nook-paper);
   color: var(--nook-ink);
+}
+
+/* Glass needs something behind it, so the page carries a faint light of its own. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      62vw 48vh at 78% 8%,
+      var(--nook-ambient-a),
+      transparent 70%
+    ),
+    radial-gradient(
+      54vw 44vh at 6% 88%,
+      var(--nook-ambient-b),
+      transparent 72%
+    );
 }
 
 .nook-icon {
@@ -92,17 +125,31 @@ body {
 .shelf-panel,
 .recovery-panel {
   box-sizing: border-box;
-  background: var(--nook-surface);
-  border: 1px solid var(--nook-card-border);
+  position: relative;
+  background: var(--nook-glass);
+  backdrop-filter: blur(20px) saturate(1.08);
+  -webkit-backdrop-filter: blur(20px) saturate(1.08);
+  border: 1px solid var(--nook-glass-edge);
   border-radius: 20px;
+  box-shadow: var(--nook-glass-shadow);
   padding: 24px 26px;
+}
+
+/* Without blur support the panels would read as washed-out paper. */
+@supports not (backdrop-filter: blur(1px)) {
+  .writing-surface,
+  .lamp-panel,
+  .shelf-panel,
+  .recovery-panel {
+    background: var(--nook-surface);
+  }
 }
 
 /* The writing block sits at the foot of the card so the page opens on empty space. */
 .writing-surface {
   display: flex;
   flex-direction: column;
-  min-height: 560px;
+  min-height: 500px;
 }
 .writing-surface > .paper-top {
   display: flex;
@@ -127,20 +174,21 @@ body {
 }
 .writing-surface > form {
   margin-top: auto;
-  padding-top: 32px;
+  padding-top: 20px;
 }
-.writing-field {
-  border: 1px solid var(--nook-line);
-  border-radius: 14px;
-  padding: 12px 14px;
+
+/* globals.css clears this field's border, padding, background and box-shadow
+   with !important, so the writing box is drawn on the textarea instead. */
+.writing-field textarea.writing-textarea {
+  min-height: 240px;
+  padding: 20px 22px;
+  border-radius: 16px;
   background: var(--nook-surface);
+  box-shadow: inset 0 0 0 1px var(--nook-line-strong);
+  transition: box-shadow 0.18s;
 }
-.writing-field:focus-within {
-  border-color: var(--nook-line-strong);
-}
-.writing-textarea {
-  min-height: 118px;
-  resize: vertical;
+.writing-field:focus-within textarea.writing-textarea {
+  box-shadow: inset 0 0 0 2px var(--nook-line-strong);
 }
 .paper-bottom {
   display: flex;
@@ -153,26 +201,6 @@ body {
   margin: 0;
   font-size: 13px;
   color: var(--nook-muted);
-}
-
-.example-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 0 0 14px;
-}
-.example-chips > button {
-  padding: 9px 15px;
-  border: 1px solid transparent;
-  border-radius: 999px;
-  background: var(--nook-fill);
-  font-size: 13px;
-  color: var(--nook-muted);
-  cursor: pointer;
-}
-.example-chips > button:hover {
-  border-color: var(--nook-line-strong);
-  color: var(--nook-ink);
 }
 
 .panel-heading {

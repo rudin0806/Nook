@@ -100,23 +100,6 @@ export function ThoughtInput({
               flow.submit("start", { thought, ...(source ? { source } : {}) });
           }}
         >
-          <div className="example-chips" aria-label="시작 예시">
-            {[
-              "이직하고 싶은데 이유를 모르겠어",
-              "계속 만나는 게 맞는지 모르겠어",
-              "사고 싶은데 계속 망설여져",
-              "그냥 머릿속이 복잡해",
-            ].map((example) => (
-              <button
-                key={example}
-                type="button"
-                disabled={locked}
-                onClick={() => setThought(example)}
-              >
-                {example}
-              </button>
-            ))}
-          </div>
           <TextField.Root className="writing-field">
             <TextField.Textarea
               id="raw-thought"
