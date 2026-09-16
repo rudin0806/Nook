@@ -6,6 +6,8 @@ import { ConversationRetention } from "./conversation-retention";
 import type { StartView } from "@/lib/start/client";
 import { RecoveryList } from "./recovery-list";
 import { useStartConversation } from "./use-start-conversation";
+import { NookIcon } from "./nook-icon";
+
 
 export function ThoughtInput({
   enabled = false,
@@ -58,6 +60,7 @@ export function ThoughtInput({
     <section
       className="writing-surface"
       data-expanded={expanded}
+      data-stage={view.kind}
       aria-label="내 생각 쓰기"
       aria-busy={flow.busy}
       onKeyDown={(e) => {
@@ -75,17 +78,20 @@ export function ThoughtInput({
           {expanded ? "접어두기 ↙" : "넓게 쓰기 ↗"}
         </ActionButton>
       </div>
-      <h1 ref={heading} tabIndex={-1}>
-        {view.kind === "input"
-          ? "지금, 어떤 생각이 드나요?"
-          : view.kind === "proposal"
-            ? "이 질문으로 시작할까요?"
-            : view.kind === "focus"
-              ? "무엇부터 볼까요?"
-              : view.kind === "approved"
-                ? "첫 질문을 기록했어요."
-                : "잠시 살펴봐요."}
-      </h1>
+      <div className="panel-title-with-icon">
+        <NookIcon name="write" tone="blue" />
+        <h1 ref={heading} tabIndex={-1}>
+          {view.kind === "input"
+            ? "생각 적기"
+            : view.kind === "proposal"
+              ? "이 질문으로 시작할까요?"
+              : view.kind === "focus"
+                ? "무엇부터 볼까요?"
+                : view.kind === "approved"
+                  ? "첫 질문을 기록했어요."
+                  : "잠시 살펴봐요."}
+        </h1>
+      </div>
       {view.kind === "input" && (
         <form
           onSubmit={(e) => {
@@ -94,6 +100,23 @@ export function ThoughtInput({
               flow.submit("start", { thought, ...(source ? { source } : {}) });
           }}
         >
+          <div className="example-chips" aria-label="시작 예시">
+            {[
+              "이직하고 싶은데 이유를 모르겠어",
+              "계속 만나는 게 맞는지 모르겠어",
+              "사고 싶은데 계속 망설여져",
+              "그냥 머릿속이 복잡해",
+            ].map((example) => (
+              <button
+                key={example}
+                type="button"
+                disabled={locked}
+                onClick={() => setThought(example)}
+              >
+                {example}
+              </button>
+            ))}
+          </div>
           <TextField.Root className="writing-field">
             <TextField.Textarea
               id="raw-thought"
