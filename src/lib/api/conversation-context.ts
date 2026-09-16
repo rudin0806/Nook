@@ -38,7 +38,7 @@ export async function loadConversation(auth: SupabaseClient, nodeId: string) {
       .maybeSingle(),
     auth
       .from("messages")
-      .select("id,role,content,sequence_no,segment_id")
+      .select("id,role,kind,content,sequence_no,segment_id,created_at")
       .eq("session_id", sessionId)
       .order("sequence_no", { ascending: true })
       .limit(201),
@@ -60,7 +60,7 @@ export async function loadConversation(auth: SupabaseClient, nodeId: string) {
     throw new Error("CONVERSATION_EXPIRED");
   const nr = await auth
     .from("question_nodes")
-    .select("id,segment_id,ordinal,final_text")
+    .select("id,segment_id,ordinal,ai_proposed_text,final_text,approved_at")
     .eq("session_id", sessionId)
     .eq("segment_id", gr.data.id)
     .order("ordinal", { ascending: true })
@@ -70,7 +70,7 @@ export async function loadConversation(auth: SupabaseClient, nodeId: string) {
   if (gr.data.anchor_node_id) {
     const anchor = await auth
       .from("question_nodes")
-      .select("id,segment_id,ordinal,final_text")
+      .select("id,segment_id,ordinal,ai_proposed_text,final_text,approved_at")
       .eq("session_id", sessionId)
       .eq("id", gr.data.anchor_node_id)
       .single();
@@ -117,15 +117,41 @@ export async function loadConversation(auth: SupabaseClient, nodeId: string) {
   });
 }
 export function conversationView(s: ConversationSnapshot) {
+  const pathSegments = new Set(s.path.map((node) => node.segment_id));
+  const visibleMessages = s.messages.filter((message) =>
+    pathSegments.has(message.segment_id),
+  );
+  const nodes = s.path.map((node) => {
+    const segmentMessages = visibleMessages.filter(
+      (message) => message.segment_id === node.segment_id,
+    );
+    const startMessage =
+      node.ordinal === 1
+        ? segmentMessages[0]
+        : segmentMessages
+            .filter(
+              (message) =>
+                message.kind === "SHIFT_PROPOSAL" &&
+                message.content === node.ai_proposed_text &&
+                Date.parse(message.created_at) <= Date.parse(node.approved_at),
+            )
+            .at(-1);
+    if (!startMessage) throw new Error("CONVERSATION_NODE_MESSAGE_NOT_FOUND");
+    return {
+      id: node.id,
+      question: node.final_text,
+      messageId: startMessage.id,
+      current: node.id === s.current.id,
+    };
+  });
   return conversationViewSchema.parse({
     sessionId: s.session.id,
     version: s.state.version,
     mode: s.state.mode,
     currentQuestion: s.current.final_text,
+    nodes,
     pending: s.state.pending,
-    messages: s.messages
-      .filter((m) => m.segment_id === s.segment.id)
-      .slice(-16),
+    messages: visibleMessages,
     clarifications: s.clarifications.slice(-3),
     branches: s.pile.filter(
       (p) =>
