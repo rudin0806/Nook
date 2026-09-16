@@ -7,7 +7,7 @@ import { z } from "zod";
 import {
   performRetentionAction,
   RetentionActionError,
-  saveSessionOrder,
+  moveSessionToPosition,
   type RetentionAction,
 } from "@/lib/retention/client";
 import {
@@ -59,7 +59,6 @@ export function DrawerContents({
   const [busy, setBusy] = useState(false);
   const [editingOrder, setEditingOrder] = useState(false);
   const [draggedId, setDraggedId] = useState<string | null>(null);
-  const orderSnapshot = useRef<Item[]>([]);
   const [notice, setNotice] = useState<{
     text: string;
     needsLogin?: boolean;
@@ -71,7 +70,7 @@ export function DrawerContents({
         const url =
           collection === "questions"
             ? `/api/branch-questions?limit=20&offset=${offset}`
-            : `/api/sessions?collection=${collection === "trash" ? "trash" : "saved"}&limit=${collection === "sessions" ? 50 : 20}&offset=${offset}`;
+            : `/api/sessions?collection=${collection === "trash" ? "trash" : "saved"}&limit=20&offset=${offset}`;
         const response = await fetch(url, {
           signal: controller.signal,
           cache: "no-store",
@@ -185,60 +184,53 @@ export function DrawerContents({
     }
   }
 
-  function moveSavedItem(itemId: string, targetIndex: number) {
-    setState((current) => {
-      if (current.kind !== "ready") return current;
-      const sourceIndex = current.items.findIndex((item) => item.id === itemId);
-      if (sourceIndex < 0) return current;
-      const boundedTarget = Math.max(
-        0,
-        Math.min(targetIndex, current.items.length - 1),
-      );
-      if (sourceIndex === boundedTarget) return current;
-      const items = [...current.items];
-      const [moved] = items.splice(sourceIndex, 1);
-      items.splice(boundedTarget, 0, moved);
-      return { ...current, items };
-    });
-  }
-
-  function beginOrderEdit() {
-    if (state.kind !== "ready" || state.items.length < 2) return;
-    orderSnapshot.current = [...state.items];
-    setNotice(null);
-    setEditingOrder(true);
-  }
-
-  function cancelOrderEdit() {
-    setState((current) =>
-      current.kind === "ready"
-        ? { ...current, items: orderSnapshot.current }
-        : current,
-    );
-    setDraggedId(null);
-    setEditingOrder(false);
-  }
-
-  async function persistOrder() {
+  /** Each move is persisted on its own, so a shelf past one page still reorders. */
+  async function moveSavedItem(itemId: string, targetIndex: number) {
     if (state.kind !== "ready" || mutationLock.current) return;
+    const sourceIndex = state.items.findIndex((item) => item.id === itemId);
+    if (sourceIndex < 0) return;
+    const boundedTarget = Math.max(
+      0,
+      Math.min(targetIndex, state.items.length - 1),
+    );
+    if (sourceIndex === boundedTarget) return;
+
+    const previous = state.items;
+    const items = [...previous];
+    const [moved] = items.splice(sourceIndex, 1);
+    items.splice(boundedTarget, 0, moved);
+    setState({ ...state, items });
+
     mutationLock.current = true;
     setBusy(true);
     setNotice(null);
     try {
-      await saveSessionOrder(state.items.map((item) => item.id));
-      orderSnapshot.current = [...state.items];
-      setEditingOrder(false);
-      setNotice({ text: "책장 순서를 저장했어요." });
+      await moveSessionToPosition(itemId, offset + boundedTarget + 1);
     } catch (error) {
+      setState((current) =>
+        current.kind === "ready" ? { ...current, items: previous } : current,
+      );
       setNotice(
         error instanceof RetentionActionError
           ? { text: error.message, needsLogin: error.needsLogin }
-          : { text: "순서를 저장하지 못했어요. 다시 시도해 주세요." },
+          : { text: "자리를 옮기지 못했어요. 다시 시도해 주세요." },
       );
     } finally {
       mutationLock.current = false;
       setBusy(false);
     }
+  }
+
+  function beginOrderEdit() {
+    if (state.kind !== "ready" || state.items.length < 2) return;
+    setNotice(null);
+    setEditingOrder(true);
+  }
+
+  function endOrderEdit() {
+    if (mutationLock.current) return;
+    setDraggedId(null);
+    setEditingOrder(false);
   }
   return (
     <section aria-label="생각 더미 내용" data-collection={collection}>
@@ -283,21 +275,17 @@ export function DrawerContents({
           <div className="shelf-edit-toolbar">
             {editingOrder ? (
               <>
-                <p>끌어서 옮기거나 화살표로 순서를 정리해 보세요.</p>
+                <p>
+                  끌어서 옮기거나 화살표로 순서를 정리해 보세요. 옮길 때마다
+                  바로 저장돼요.
+                </p>
                 <div className="preview-actions">
-                  <ActionButton
-                    variant="neutralWeak"
-                    disabled={busy}
-                    onClick={cancelOrderEdit}
-                  >
-                    취소
-                  </ActionButton>
                   <ActionButton
                     variant="neutralSolid"
                     disabled={busy}
-                    onClick={() => void persistOrder()}
+                    onClick={endOrderEdit}
                   >
-                    {busy ? "저장 중…" : "순서 저장"}
+                    {busy ? "옮기는 중…" : "정리 마치기"}
                   </ActionButton>
                 </div>
               </>
@@ -344,7 +332,7 @@ export function DrawerContents({
                 <li
                   key={item.id}
                   className="preview-summary-card"
-                  draggable={editingOrder}
+                  draggable={editingOrder && !busy}
                   data-order-editing={editingOrder || undefined}
                   data-dragging={draggedId === item.id || undefined}
                   onDragStart={(event) => {
@@ -364,7 +352,7 @@ export function DrawerContents({
                     event.preventDefault();
                     const sourceId =
                       draggedId || event.dataTransfer.getData("text/plain");
-                    if (sourceId) moveSavedItem(sourceId, index);
+                    if (sourceId) void moveSavedItem(sourceId, index);
                     setDraggedId(null);
                   }}
                 >
@@ -378,7 +366,7 @@ export function DrawerContents({
                         type="button"
                         disabled={index === 0 || busy}
                         aria-label={`${item.text} 위로 이동`}
-                        onClick={() => moveSavedItem(item.id, index - 1)}
+                        onClick={() => void moveSavedItem(item.id, index - 1)}
                       >
                         ↑
                       </button>
@@ -386,7 +374,7 @@ export function DrawerContents({
                         type="button"
                         disabled={index === state.items.length - 1 || busy}
                         aria-label={`${item.text} 아래로 이동`}
-                        onClick={() => moveSavedItem(item.id, index + 1)}
+                        onClick={() => void moveSavedItem(item.id, index + 1)}
                       >
                         ↓
                       </button>
@@ -473,7 +461,7 @@ export function DrawerContents({
       </ActionButton>
       {state.kind !== "loading" &&
         !editingOrder &&
-        collection !== "sessions" && (
+        (
           <div className="preview-actions">
             {offset > 0 && (
               <ActionButton

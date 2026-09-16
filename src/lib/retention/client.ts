@@ -36,6 +36,42 @@ export async function saveSessionOrder(
   }).parse(await response.json());
 }
 
+/** Moves one book, so a shelf larger than a page can still be ordered. */
+export async function moveSessionToPosition(
+  candidate: string,
+  candidatePosition: number,
+  send: typeof fetch = fetch,
+) {
+  const id = z.uuid().parse(candidate);
+  const position = z.number().int().min(1).parse(candidatePosition);
+  const response = await send(`/api/sessions/${id}/shelf-position`, {
+    method: "PATCH",
+    credentials: "same-origin",
+    cache: "no-store",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ position }),
+  });
+  if (!response.ok) {
+    throw new RetentionActionError(
+      response.status === 401,
+      response.status === 401
+        ? "로그인이 만료됐어요. 계정을 다시 연결해 주세요."
+        : response.status === 404
+          ? "이 이야기가 책장에 없어요. 목록을 새로고침해 주세요."
+          : "자리를 옮기지 못했어요. 목록을 확인한 뒤 다시 시도해 주세요.",
+    );
+  }
+  const { data } = z
+    .object({
+      data: z.object({
+        sessionId: z.literal(id),
+        position: z.number().int().positive(),
+      }),
+    })
+    .parse(await response.json());
+  return data.position;
+}
+
 /** Cookie authentication only. Validate acknowledgement before showing success. */
 export async function performRetentionAction(
   action: RetentionAction,

@@ -56,6 +56,12 @@ export const savedSessionOrderSchema = z
   })
   .strict();
 
+export const savedSessionPositionSchema = z
+  .object({
+    position: z.coerce.number().int().min(1).max(10_000),
+  })
+  .strict();
+
 export const trashedSessionListItemSchema = z.object({
   id: z.uuid(),
   origin_branch_id: nullableId,
@@ -79,3 +85,6 @@ export type FinalizeRetentionInput = z.infer<typeof finalizeRetentionSchema>;
 export type RetentionCollection = z.infer<typeof retentionCollectionSchema>;
 export type RetentionListQuery = z.infer<typeof retentionListQuerySchema>;
 export type SavedSessionOrderInput = z.infer<typeof savedSessionOrderSchema>;
+export type SavedSessionPositionInput = z.infer<
+  typeof savedSessionPositionSchema
+>;

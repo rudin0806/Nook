@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { z } from "zod";
 import {
   activeSessionListItemSchema,
   keptBranchQuestionListItemSchema,
@@ -9,6 +10,7 @@ import {
   type FinalizeRetentionInput,
   type RetentionListQuery,
   type SavedSessionOrderInput,
+  type SavedSessionPositionInput,
 } from "@/schemas/retention";
 
 type Page<T> = {
@@ -163,4 +165,20 @@ export async function reorderSavedSessions(
   });
   if (error) throw new RetentionDatabaseError(error.message);
   return { sessionIds: input.sessionIds };
+}
+
+export async function moveSavedSession(
+  supabase: SupabaseClient,
+  sessionId: string,
+  input: SavedSessionPositionInput,
+) {
+  const { data, error } = await supabase.rpc("move_saved_session", {
+    p_session_id: sessionId,
+    p_target_position: input.position,
+  });
+  if (error) throw new RetentionDatabaseError(error.message);
+  return {
+    sessionId,
+    position: z.number().int().positive().parse(data),
+  };
 }

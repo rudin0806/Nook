@@ -60,6 +60,11 @@ const databaseProblems: Record<string, ApiProblem> = {
     code: "SHELF_ORDER_STALE",
     message: "책장 내용이 바뀌었어요. 목록을 새로고침해 주세요.",
   },
+  INVALID_SHELF_POSITION: {
+    status: 400,
+    code: "INVALID_SHELF_POSITION",
+    message: "옮길 자리를 다시 선택해 주세요.",
+  },
 };
 
 export function mapDatabaseProblem(message: string): ApiProblem {
