@@ -24,7 +24,8 @@ jobs:
       - run: npm ci
       - run: node --experimental-strip-types scripts/eval-claim-fidelity.mts --dry
       - run: node --experimental-strip-types --test tests/claim-fidelity-eval.test.mts
-      - run: node --experimental-strip-types scripts/eval-claim-fidelity.mts
+      # Continue only the two unexecuted generators; prior run consumed three calls.
+      - run: node --experimental-strip-types scripts/eval-claim-fidelity.mts --generators-only
         env:
           OPENAI_API_KEY: ${{ secrets.AI_API_KEY }}
       - name: Report synthetic evaluation results

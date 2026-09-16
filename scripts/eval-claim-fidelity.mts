@@ -108,7 +108,12 @@ async function main() {
     );
     return;
   }
-  if (process.argv.length !== 2 || !process.env.OPENAI_API_KEY)
+  const generatorsOnly =
+    process.argv.slice(2).join(" ") === "--generators-only";
+  if (
+    (!generatorsOnly && process.argv.length !== 2) ||
+    !process.env.OPENAI_API_KEY
+  )
     throw Error("EVAL_SETUP_INVALID");
   const client = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
@@ -117,7 +122,8 @@ async function main() {
   });
   const report = {
     options,
-    maxCalls: 5,
+    maxCalls: generatorsOnly ? 2 : 5,
+    previousCalls: generatorsOnly ? 3 : 0,
     calls: 0,
     inputTokens: 0,
     outputTokens: 0,
@@ -126,8 +132,8 @@ async function main() {
     error: null as string | null,
   };
   try {
-    for (const job of jobs) {
-      if (report.calls >= 5) throw Error("CALL_LIMIT");
+    for (const job of generatorsOnly ? jobs.slice(3) : jobs) {
+      if (report.calls + report.previousCalls >= 5) throw Error("CALL_LIMIT");
       report.calls++;
       const response = await client.responses.create({
         ...job.request,
