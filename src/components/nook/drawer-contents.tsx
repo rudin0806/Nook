@@ -7,6 +7,7 @@ import { z } from "zod";
 import {
   performRetentionAction,
   RetentionActionError,
+  saveSessionOrder,
   type RetentionAction,
 } from "@/lib/retention/client";
 import {
@@ -56,6 +57,9 @@ export function DrawerContents({
   const [state, setState] = useState<State>({ kind: "loading" });
   const mutationLock = useRef(false);
   const [busy, setBusy] = useState(false);
+  const [editingOrder, setEditingOrder] = useState(false);
+  const [draggedId, setDraggedId] = useState<string | null>(null);
+  const orderSnapshot = useRef<Item[]>([]);
   const [notice, setNotice] = useState<{
     text: string;
     needsLogin?: boolean;
@@ -67,7 +71,7 @@ export function DrawerContents({
         const url =
           collection === "questions"
             ? `/api/branch-questions?limit=20&offset=${offset}`
-            : `/api/sessions?collection=${collection === "trash" ? "trash" : "saved"}&limit=20&offset=${offset}`;
+            : `/api/sessions?collection=${collection === "trash" ? "trash" : "saved"}&limit=${collection === "sessions" ? 50 : 20}&offset=${offset}`;
         const response = await fetch(url, {
           signal: controller.signal,
           cache: "no-store",
@@ -126,6 +130,8 @@ export function DrawerContents({
 
   function select(value: Collection) {
     if (value === collection || mutationLock.current) return;
+    setEditingOrder(false);
+    setDraggedId(null);
     setNotice(null);
     setState({ kind: "loading" });
     setOffset(0);
@@ -178,6 +184,62 @@ export function DrawerContents({
       setBusy(false);
     }
   }
+
+  function moveSavedItem(itemId: string, targetIndex: number) {
+    setState((current) => {
+      if (current.kind !== "ready") return current;
+      const sourceIndex = current.items.findIndex((item) => item.id === itemId);
+      if (sourceIndex < 0) return current;
+      const boundedTarget = Math.max(
+        0,
+        Math.min(targetIndex, current.items.length - 1),
+      );
+      if (sourceIndex === boundedTarget) return current;
+      const items = [...current.items];
+      const [moved] = items.splice(sourceIndex, 1);
+      items.splice(boundedTarget, 0, moved);
+      return { ...current, items };
+    });
+  }
+
+  function beginOrderEdit() {
+    if (state.kind !== "ready" || state.items.length < 2) return;
+    orderSnapshot.current = [...state.items];
+    setNotice(null);
+    setEditingOrder(true);
+  }
+
+  function cancelOrderEdit() {
+    setState((current) =>
+      current.kind === "ready"
+        ? { ...current, items: orderSnapshot.current }
+        : current,
+    );
+    setDraggedId(null);
+    setEditingOrder(false);
+  }
+
+  async function persistOrder() {
+    if (state.kind !== "ready" || mutationLock.current) return;
+    mutationLock.current = true;
+    setBusy(true);
+    setNotice(null);
+    try {
+      await saveSessionOrder(state.items.map((item) => item.id));
+      orderSnapshot.current = [...state.items];
+      setEditingOrder(false);
+      setNotice({ text: "책장 순서를 저장했어요." });
+    } catch (error) {
+      setNotice(
+        error instanceof RetentionActionError
+          ? { text: error.message, needsLogin: error.needsLogin }
+          : { text: "순서를 저장하지 못했어요. 다시 시도해 주세요." },
+      );
+    } finally {
+      mutationLock.current = false;
+      setBusy(false);
+    }
+  }
   return (
     <section aria-label="생각 더미 내용" data-collection={collection}>
       <div className="preview-actions" role="group" aria-label="보관 종류">
@@ -215,6 +277,41 @@ export function DrawerContents({
       {collection === "trash" && (
         <p>휴지통으로 옮긴 이야기는 7일 동안 복원할 수 있어요.</p>
       )}
+      {collection === "sessions" &&
+        state.kind === "ready" &&
+        state.items.length > 1 && (
+          <div className="shelf-edit-toolbar">
+            {editingOrder ? (
+              <>
+                <p>끌어서 옮기거나 화살표로 순서를 정리해 보세요.</p>
+                <div className="preview-actions">
+                  <ActionButton
+                    variant="neutralWeak"
+                    disabled={busy}
+                    onClick={cancelOrderEdit}
+                  >
+                    취소
+                  </ActionButton>
+                  <ActionButton
+                    variant="neutralSolid"
+                    disabled={busy}
+                    onClick={() => void persistOrder()}
+                  >
+                    {busy ? "저장 중…" : "순서 저장"}
+                  </ActionButton>
+                </div>
+              </>
+            ) : (
+              <ActionButton
+                variant="neutralWeak"
+                disabled={busy}
+                onClick={beginOrderEdit}
+              >
+                책장 순서 편집
+              </ActionButton>
+            )}
+          </div>
+        )}
       <div aria-live="polite" aria-busy={state.kind === "loading"}>
         {state.kind === "loading" && (
           <p className="preview-status">생각 더미를 열고 있어요…</p>
@@ -243,8 +340,58 @@ export function DrawerContents({
             <ul
               className={`drawer-list ${collection === "sessions" ? "saved-books" : ""}`}
             >
-              {state.items.map((item) => (
-                <li key={item.id} className="preview-summary-card">
+              {state.items.map((item, index) => (
+                <li
+                  key={item.id}
+                  className="preview-summary-card"
+                  draggable={editingOrder}
+                  data-order-editing={editingOrder || undefined}
+                  data-dragging={draggedId === item.id || undefined}
+                  onDragStart={(event) => {
+                    if (!editingOrder) return;
+                    setDraggedId(item.id);
+                    event.dataTransfer.effectAllowed = "move";
+                    event.dataTransfer.setData("text/plain", item.id);
+                  }}
+                  onDragEnd={() => setDraggedId(null)}
+                  onDragOver={(event) => {
+                    if (!editingOrder || !draggedId) return;
+                    event.preventDefault();
+                    event.dataTransfer.dropEffect = "move";
+                  }}
+                  onDrop={(event) => {
+                    if (!editingOrder) return;
+                    event.preventDefault();
+                    const sourceId =
+                      draggedId || event.dataTransfer.getData("text/plain");
+                    if (sourceId) moveSavedItem(sourceId, index);
+                    setDraggedId(null);
+                  }}
+                >
+                  {editingOrder && (
+                    <div className="shelf-order-controls">
+                      <span className="shelf-drag-handle" aria-hidden="true">
+                        ⠿
+                      </span>
+                      <span className="shelf-position">{index + 1}번째</span>
+                      <button
+                        type="button"
+                        disabled={index === 0 || busy}
+                        aria-label={`${item.text} 위로 이동`}
+                        onClick={() => moveSavedItem(item.id, index - 1)}
+                      >
+                        ↑
+                      </button>
+                      <button
+                        type="button"
+                        disabled={index === state.items.length - 1 || busy}
+                        aria-label={`${item.text} 아래로 이동`}
+                        onClick={() => moveSavedItem(item.id, index + 1)}
+                      >
+                        ↓
+                      </button>
+                    </div>
+                  )}
                   <details className="saved-entry">
                     <summary>
                       <span className="saved-question-title">{item.text}</span>
@@ -279,7 +426,7 @@ export function DrawerContents({
                       )}
                       <ActionButton
                         variant="neutralWeak"
-                        disabled={busy}
+                        disabled={busy || editingOrder}
                         onClick={() => void act(item)}
                       >
                         {busy
@@ -316,7 +463,7 @@ export function DrawerContents({
       </div>
       <ActionButton
         variant="ghost"
-        disabled={busy || state.kind === "loading"}
+        disabled={busy || editingOrder || state.kind === "loading"}
         onClick={() => {
           setState({ kind: "loading" });
           setAttempt((n) => n + 1);
@@ -324,28 +471,30 @@ export function DrawerContents({
       >
         목록 새로고침
       </ActionButton>
-      {state.kind !== "loading" && (
-        <div className="preview-actions">
-          {offset > 0 && (
-            <ActionButton
-              variant="ghost"
-              disabled={busy}
-              onClick={() => page(Math.max(0, offset - 20))}
-            >
-              이전
-            </ActionButton>
-          )}
-          {state.kind === "ready" && state.hasMore && (
-            <ActionButton
-              variant="ghost"
-              disabled={busy}
-              onClick={() => page(offset + 20)}
-            >
-              다음
-            </ActionButton>
-          )}
-        </div>
-      )}
+      {state.kind !== "loading" &&
+        !editingOrder &&
+        collection !== "sessions" && (
+          <div className="preview-actions">
+            {offset > 0 && (
+              <ActionButton
+                variant="ghost"
+                disabled={busy}
+                onClick={() => page(Math.max(0, offset - 20))}
+              >
+                이전
+              </ActionButton>
+            )}
+            {state.kind === "ready" && state.hasMore && (
+              <ActionButton
+                variant="ghost"
+                disabled={busy}
+                onClick={() => page(offset + 20)}
+              >
+                다음
+              </ActionButton>
+            )}
+          </div>
+        )}
     </section>
   );
 }
