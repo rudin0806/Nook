@@ -1,3 +1,11 @@
+## 2026-09-16 생각더미 순서
+
+- `thought_sessions.shelf_position integer null`: `SAVED` 세션의 사용자별 표시 순서. 양수만 허용하며 기존·신규 null 값은 보관 결정 시각 역순 뒤에 놓는다.
+- `saved_thought_sessions`는 `security_invoker=true`를 유지하고 `shelf_position`을 노출한다.
+- `reorder_saved_sessions(uuid[])`: 로그인·실명 계정 소유자의 전체 SAVED 세션 집합과 요청 배열이 정확히 일치할 때만 ordinality를 저장한다. `anon` 실행 권한은 없고 `authenticated`만 호출한다.
+
+---
+
 # ERD — Nook 데이터 모델 v1
 
 > 기준일: 2026-09-12  
