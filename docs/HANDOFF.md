@@ -15,9 +15,9 @@
 ## 현재 기준 — 2026-09-16
 
 - 현재 기능·배포·검증·결함의 단일 기준은 [STATUS](STATUS.md)다.
-- **기능 코드의 최신은 `claude/supabase-github-public-setup-u6t79x` / `80a2a90`이다.** `codex/restore-node-navigation-and-shelf-order-20260916` / `e1bf2e1`에서 갈라져 나왔고, 상세 조회 결함·테스트 fixture·벤또 홈·책장 이동 4개 커밋이 얹혀 있다. 이어서 작업할 때 이 브랜치를 기준으로 삼는다.
+- **`main` = `b6fcc95`가 기준이다.** main이 운영 코드와 일치한다. `codex/restore-node-navigation-and-shelf-order-20260916` / `e1bf2e1` 위에 상세 조회 결함·테스트 fixture·벤또 홈·책장 이동·팔레트 개정·로그인 재구성이 얹혀 main으로 올라갔다.
 - **브랜치가 여럿이고 서로를 포함하지 않는다.** `f5aefa92`(claim-fidelity)에서 갈라져 `restore-node-navigation`(보관·정렬·상세)과 `recover-vivid-nook-ui-v2`(홈 디자인·테마)가 각자 진행됐고 main은 09-13에 멈춰 있다. **main만 읽고 미구현을 판단하지 않는다**는 규칙이 여기서 나왔다. 어떤 기능이 없어 보이면 다른 브랜치와 과거 커밋을 먼저 확인한다.
-- **운영 DB가 앱보다 앞서 있다.** `move_saved_session`이 운영에 적용돼 있고 pg_cron 예약도 켜져 있지만, 위 4개 커밋은 재배포되지 않아 Vercel 운영은 아직 이전 UI다. 그래서 옛 `reorder_saved_sessions`를 남겨뒀다. 재배포 전에 지우면 운영 순서 저장이 깨진다.
+- **Vercel ↔ GitHub 연결 완료. main에 push하면 자동 배포된다.** 배포마다 `githubCommitSha`가 남는다. 배포는 main에만 push한다 — 다른 브랜치에 같이 push하면 preview 배포가 추가로 생겨 일 100회 한도를 쓴다. 배포가 끝났으므로 옛 `reorder_saved_sessions`와 `/api/sessions/order`는 이제 제거할 수 있다.
 - 작업 브랜치(이전 기준): `codex/restore-node-navigation-and-shelf-order-20260916`, 실사 기준 `56f09e46ee671fa1a16d924fb8bf22348865f5ea`.
 - 운영 배포: `dpl_387H51i2jBD3BP3iAQGMbp7j4bA3`. main `65f9e63`과 동일하다고 가정하지 않는다.
 - 3번 노드 이동과 4번 책장 정렬은 구현·보존·배포됐다. 남은 검증 또는 발견된 결함은 STATUS에서 별도 관리한다.
@@ -27,8 +27,8 @@
 
 1. **5번 책 상세 탐색·카드 넘김 고도화.** 선행 결함이 풀렸으니 바로 착수 가능하다. 내부 질문/구간 탐색, 카드 전환 모션, 모바일·키보드, `prefers-reduced-motion`.
 2. **6번 닉네임·로그인 후 복귀.** 닉네임 입력·검증·저장·재조회, OAuth 후 원래 보관 선택 화면으로 복귀하며 선택을 유지, 취소·만료·다른 계정 충돌 처리. 익명 사용자 ID를 유지하는 identity linking 원칙을 지키고 이메일 문자열로 계정을 합치지 않는다.
-3. **홈 UI 잔여 작업.** 상단탭 전환, 이어갈 대화의 겹친 점선 카드, 카드 스와이프 레이아웃 CSS. 위치와 참고 커밋은 STATUS의 "홈에서 남은 UI 작업"에 적어 뒀다.
-4. **재배포와 main 병합.** 이 둘을 하기 전에는 운영이 이전 UI라는 점을 전제로 판단한다. 재배포 후 옛 `reorder_saved_sessions`를 제거한다.
+3. **UI 잔여 작업.** 이어갈 대화의 겹친 점선 카드, 카드 스와이프 레이아웃 CSS, 그리고 `globals.css`에 남은 다크 전용 하드코딩 12곳. 위치와 참고 커밋은 STATUS의 "남은 UI 작업"에 적어 뒀다. 팔레트와 깊이 규칙은 [디자인 문서](design/README.md)가 기준이다.
+4. **정리.** 옛 `reorder_saved_sessions` RPC와 `/api/sessions/order` 라우트 제거.
 5. **남은 검증.** 실제 로그인 왕복, 브라우저 다중 이동·재접속 정렬, 익명 identity linking 전체 왕복, 만료 데이터 발생 후 Cron 실행 이력.
 
 ### 이번에 얻은 교훈
