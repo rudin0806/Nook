@@ -31,6 +31,14 @@ const low = {
   invalidate_clarifications: [],
   promote_pile_item: null,
 };
+const startNode = {
+  id: id(3),
+  segment_id: id(2),
+  ordinal: 1,
+  ai_proposed_text: "이직할까?",
+  final_text: "이직할까?",
+  approved_at: "2026-09-16T00:00:00Z",
+};
 function snapshot() {
   return conversationSnapshotSchema.parse({
     session: {
@@ -47,22 +55,17 @@ function snapshot() {
       branch_count: 0,
       anchor_node_id: null,
     },
-    current: {
-      id: id(3),
-      segment_id: id(2),
-      ordinal: 1,
-      final_text: "이직할까?",
-    },
-    path: [
-      { id: id(3), segment_id: id(2), ordinal: 1, final_text: "이직할까?" },
-    ],
+    current: startNode,
+    path: [startNode],
     messages: [
       {
         id: id(4),
         role: "USER",
         content: "새 회사에서도 같은 일을 할까 봐 고민이야",
+        kind: "USER_REPLY",
         sequence_no: 1,
         segment_id: id(2),
+        created_at: "2026-09-16T00:00:00Z",
       },
     ],
     clarifications: [],
