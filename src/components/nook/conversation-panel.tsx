@@ -29,9 +29,12 @@ export function ConversationPanel({ nodeId }: { nodeId: string }) {
   const [busy, setBusy] = useState(false);
   const [retry, setRetry] = useState(false);
   const [wait, setWait] = useState(0);
+  const [activeNodeId, setActiveNodeId] = useState<string | null>(null);
   const pending = useRef<string | null>(null);
   const lock = useRef(false);
   const alive = useRef(true);
+  const messageElements = useRef(new Map<string, HTMLLIElement>());
+  const currentPosition = useRef<HTMLDivElement>(null);
   useEffect(() => {
     alive.current = true;
     const c = new AbortController();
@@ -58,6 +61,26 @@ export function ConversationPanel({ nodeId }: { nodeId: string }) {
     const timer = setTimeout(() => setWait((v) => Math.max(0, v - 1)), 1000);
     return () => clearTimeout(timer);
   }, [wait]);
+  function scrollTo(element: HTMLElement | null) {
+    if (!element) return;
+    const reducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    element.scrollIntoView({
+      behavior: reducedMotion ? "auto" : "smooth",
+      block: "start",
+    });
+    element.focus({ preventScroll: true });
+  }
+  function navigateToNode(targetNodeId: string, messageId: string) {
+    if (activeNodeId === targetNodeId) {
+      setActiveNodeId(null);
+      scrollTo(currentPosition.current);
+      return;
+    }
+    setActiveNodeId(targetNodeId);
+    scrollTo(messageElements.current.get(messageId) ?? null);
+  }
   async function refresh() {
     try {
       const v = await readConversation(nodeId);
@@ -152,6 +175,37 @@ export function ConversationPanel({ nodeId }: { nodeId: string }) {
           <p className="preview-kicker">지금 함께 보는 질문</p>
           <h1>{view.currentQuestion}</h1>
           <SessionOrigin sessionId={view.sessionId} />
+          <nav className="node-navigation" aria-label="지나온 질문 이동">
+            <div className="node-navigation-heading">
+              <strong>지나온 질문</strong>
+              <small>
+                {activeNodeId
+                  ? "같은 질문을 다시 누르면 지금 대화로 돌아가요."
+                  : "질문을 누르면 시작한 대화로 이동해요."}
+              </small>
+            </div>
+            <ol>
+              {view.nodes.map((node, index) => (
+                <li key={node.id}>
+                  <button
+                    type="button"
+                    aria-pressed={activeNodeId === node.id}
+                    aria-label={`${index + 1}번째 질문: ${node.question}${
+                      activeNodeId === node.id
+                        ? ", 선택됨. 다시 누르면 현재 대화로 이동"
+                        : ""
+                    }`}
+                    data-active={activeNodeId === node.id}
+                    data-current={node.current}
+                    onClick={() => navigateToNode(node.id, node.messageId)}
+                  >
+                    <span>{index + 1}</span>
+                    <span>{node.question}</span>
+                  </button>
+                </li>
+              ))}
+            </ol>
+          </nav>
           {view.branches.length > 0 &&
             !exitMode &&
             view.mode !== "FINISHED" && (
@@ -192,6 +246,12 @@ export function ConversationPanel({ nodeId }: { nodeId: string }) {
                 key={m.id}
                 className="preview-summary-card conversation-card"
                 data-role={m.role}
+                data-message-id={m.id}
+                tabIndex={-1}
+                ref={(element) => {
+                  if (element) messageElements.current.set(m.id, element);
+                  else messageElements.current.delete(m.id);
+                }}
               >
                 <small>{m.role === "USER" ? "내 이야기" : "누크의 질문"}</small>
                 <p className="conversation-message">{m.content}</p>
@@ -208,6 +268,12 @@ export function ConversationPanel({ nodeId }: { nodeId: string }) {
               </ul>
             </aside>
           )}
+          <div
+            ref={currentPosition}
+            className="conversation-current-position"
+            tabIndex={-1}
+            aria-label="현재 대화 위치"
+          />
           {!exitMode && view.mode === "READY" && (
             <form
               className="conversation-composer"
