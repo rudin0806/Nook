@@ -8,6 +8,7 @@ import {
   trashedSessionListItemSchema,
   type FinalizeRetentionInput,
   type RetentionListQuery,
+  type SavedSessionOrderInput,
 } from "@/schemas/retention";
 
 type Page<T> = {
@@ -26,7 +27,8 @@ const sessionCollections = {
   },
   saved: {
     table: "saved_thought_sessions",
-    columns: "id,origin_branch_id,started_at,completed_at,retention_decided_at",
+    columns:
+      "id,origin_branch_id,started_at,completed_at,retention_decided_at,shelf_position",
     order: "retention_decided_at",
   },
   trash: {
@@ -55,11 +57,18 @@ export async function listSessions(
   const settled = await supabase.rpc("settle_own_retention");
   if (settled.error) throw new RetentionDatabaseError(settled.error.message);
   const config = sessionCollections[query.collection];
-  const { data, error } = await supabase
-    .from(config.table)
-    .select(config.columns)
-    .order(config.order, { ascending: false })
-    .range(query.offset, query.offset + query.limit);
+  let request = supabase.from(config.table).select(config.columns);
+  if (query.collection === "saved") {
+    request = request
+      .order("shelf_position", { ascending: true, nullsFirst: false })
+      .order("retention_decided_at", { ascending: false });
+  } else {
+    request = request.order(config.order, { ascending: false });
+  }
+  const { data, error } = await request.range(
+    query.offset,
+    query.offset + query.limit,
+  );
 
   if (error) throw new RetentionDatabaseError(error.message);
   if (query.collection === "active") {
@@ -143,4 +152,15 @@ export async function deleteKeptBranchQuestion(
     target_branch_id: branchQuestionId,
   });
   if (error) throw new RetentionDatabaseError(error.message);
+}
+
+export async function reorderSavedSessions(
+  supabase: SupabaseClient,
+  input: SavedSessionOrderInput,
+) {
+  const { error } = await supabase.rpc("reorder_saved_sessions", {
+    p_session_ids: input.sessionIds,
+  });
+  if (error) throw new RetentionDatabaseError(error.message);
+  return { sessionIds: input.sessionIds };
 }
