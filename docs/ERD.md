@@ -2,8 +2,25 @@
 
 - `thought_sessions.shelf_position integer null`: `SAVED` 세션의 사용자별 표시 순서. 양수만 허용하며 기존·신규 null 값은 보관 결정 시각 역순 뒤에 놓는다.
 - `saved_thought_sessions`는 `security_invoker=true`를 유지하고 `shelf_position`을 노출한다.
-- `reorder_saved_sessions(uuid[])`: 소셜 계정에 연결된 사용자(실명 인증을 의미하지 않음)의 전체 SAVED 세션 집합과 요청 배열이 정확히 일치할 때만 ordinality를 저장한다. `anon` 실행 권한은 없고 `authenticated`만 호출하되 함수 내부에서 익명 사용자를 거절한다. 배열 상한은 50개다. 이 집합 검사는 순서 revision 충돌 방지가 아니므로 같은 집합의 동시 정렬은 감지하지 않는다.
-- 원격 적용 버전은 `20260916063642`, 저장소 파일 버전은 `20260916050000`이다. 현재 상세 조회 필드 누락·50개 초과 처리·동시성 결함은 [STATUS](STATUS.md)에 기록한다.
+- `reorder_saved_sessions(uuid[])`: 소셜 계정에 연결된 사용자(실명 인증을 의미하지 않음)의 전체 SAVED 세션 집합과 요청 배열이 정확히 일치할 때만 ordinality를 저장한다. `anon` 실행 권한은 없고 `authenticated`만 호출하되 함수 내부에서 익명 사용자를 거절한다. 배열 상한은 50개다. **전체 집합을 요구하면서 상한이 50이라 51권부터는 정렬이 불가능했다.** 아래 한 권 이동 방식으로 대체됐으나, 배포된 앱이 아직 이 함수를 호출하므로 삭제하지 않았다. 재배포 후 제거한다.
+- 원격 적용 버전은 `20260916063642`, 저장소 파일 버전은 `20260916050000`이다.
+
+## 2026-09-16 책장 한 권 이동 (`20260916120000_move_saved_session.sql`, 운영 적용 완료)
+
+- `move_saved_session(p_session_id uuid, p_target_position integer) returns integer`: 책 한 권과 목표 자리만 받는다. 전체 집합을 요구하지 않으므로 **책 수에 상한이 없고 페이지네이션과 양립한다.** 반환값은 실제로 배정된 자리 번호다.
+  - 인증 필수, 익명 거절(`IDENTITY_LINK_REQUIRED`), 1 미만 위치 거절(`INVALID_SHELF_POSITION`), 남의 세션·SAVED 아닌 세션 거절(`SAVED_SESSION_NOT_FOUND`).
+  - `ai_request_limits` 행을 `for update`로 잠가 다른 보관 RPC와 같은 방식으로 직렬화한다.
+  - 목표가 끝을 넘으면 마지막 자리로 클램프한다.
+  - **옛 자리와 새 자리 사이 구간만** `+1`/`-1`로 이동한다. 전체 배열을 다시 쓰지 않으므로 다른 구간의 동시 정렬을 통째로 덮지 않는다. 다만 순서 revision을 비교하지는 않으므로 같은 책에 대한 동시 이동은 마지막 쓰기가 이긴다.
+  - `anon` 권한 없음, `authenticated`만 실행 가능.
+- `normalize_shelf_positions(p_user uuid) returns integer`: 사용자의 SAVED 행에 `1..N`을 연속으로 배정한다. 정렬 기준은 `shelf_position nulls first, retention_decided_at desc, id`이므로 **자리가 없는 책이 앞에, 최근 것부터** 놓인다. 반환값은 책 수다. `service_role` 전용이며 사용자가 직접 호출하지 않는다.
+- **보관·복원·휴지통 이동이 자리를 관리한다.** 이전에는 `shelf_position`을 채우는 곳이 최초 backfill뿐이어서 새로 보관한 책은 수동 정렬 전까지 `NULL`이었다.
+  - `finalize_session_retention(..., keep_session=true)` → `shelf_position = null`로 두고 `normalize`를 호출한다. 결과적으로 새로 보관한 책이 맨 앞에 놓인다.
+  - `restore_session_from_trash` → 같은 방식으로 복원한 책이 맨 앞에 놓인다.
+  - `move_session_to_trash` → 자리를 `NULL`로 비우고 `normalize`로 남은 책의 연속성을 회복한다.
+  - 휴지통으로 가는 `finalize_session_retention(keep_session=false)`도 자리를 비운다.
+- 회귀 검증은 `supabase/tests/shelf_order.sql`이다. 60권 책장에서 앞·뒤·중간 이동, 클램프, 자리 연속성, 소유권·익명·입력 가드, 보관·복원·휴지통 자리 배정을 검사한다.
+- 남은 결함(순서 revision 미비교, 실제 브라우저 다중 이동 미검증)은 [STATUS](STATUS.md)에 기록한다.
 
 ---
 
@@ -336,7 +353,12 @@ stateDiagram-v2
 - `supabase/migrations/202609110002_nook_access_and_retention.sql` — RLS, 보관·복원·삭제 RPC, 안전한 조회 View
 - `supabase/migrations/20260912001339_fix_temporary_expiry_nullable.sql` — SAVED/TRASHED 전환 시 임시 만료 시각을 비울 수 있도록 수정
 - `supabase/migrations/20260912011744_harden_retention_rls_and_indexes.sql` — 익명 즉시 폐기, RLS 보강, FK 인덱스
-- `supabase/snippets/schedule_retention_cleanup.sql` — 7일 휴지통/24시간 임시 데이터 정리 Cron 등록
+- `supabase/migrations/20260916050000_saved_session_shelf_order.sql` — `shelf_position` 컬럼·backfill·인덱스, `saved_thought_sessions` 뷰, 전체 집합 정렬 RPC
+- `supabase/migrations/20260916120000_move_saved_session.sql` — 한 권 이동 RPC, 자리 정규화, 보관·복원·휴지통의 자리 관리
+- `supabase/tests/shelf_order.sql` — 60권 책장 이동·가드·자리 배정 회귀
+- `supabase/snippets/schedule_retention_cleanup.sql` — 7일 휴지통/24시간 임시 데이터 정리 Cron 등록. **2026-09-16에 운영에 등록 완료**(`nook-retention-cleanup-hourly`, 매시 17분). migration이 아니라 1회성 운영 설정이므로 여기 분리해 둔다. 중복 등록을 막으려면 `cron.job`을 먼저 조회한다.
+
+원격 적용 이력은 13건이다. 저장소 파일명과 원격 버전 문자열이 다른 항목이 있으므로 적용 전 [STATUS](STATUS.md)의 대조표를 확인하고 중복 적용하지 않는다.
 
 ## 11. 다음 구현에서 지킬 API 순서
 
