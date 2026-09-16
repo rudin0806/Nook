@@ -41,7 +41,20 @@ export const savedSessionListItemSchema = z.object({
   started_at: timestamp,
   completed_at: timestamp,
   retention_decided_at: timestamp,
+  shelf_position: z.number().int().positive().nullable(),
 });
+
+export const savedSessionOrderSchema = z
+  .object({
+    sessionIds: z
+      .array(sessionIdSchema)
+      .min(1)
+      .max(50)
+      .refine((ids) => new Set(ids).size === ids.length, {
+        message: "같은 이야기를 한 번만 선택해 주세요.",
+      }),
+  })
+  .strict();
 
 export const trashedSessionListItemSchema = z.object({
   id: z.uuid(),
@@ -65,3 +78,4 @@ export const keptBranchQuestionListItemSchema = z.object({
 export type FinalizeRetentionInput = z.infer<typeof finalizeRetentionSchema>;
 export type RetentionCollection = z.infer<typeof retentionCollectionSchema>;
 export type RetentionListQuery = z.infer<typeof retentionListQuerySchema>;
+export type SavedSessionOrderInput = z.infer<typeof savedSessionOrderSchema>;
