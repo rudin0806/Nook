@@ -1,30 +1,33 @@
 import Link from "next/link";
-import { ThoughtInput } from "@/components/nook/thought-input";
-
+import { AppNavigation } from "@/components/nook/app-navigation";
+import { HomeDesk } from "@/components/nook/home-desk";
+export const dynamic = "force-dynamic";
 export default function HomePage() {
   return (
-    <div className="home">
-      <header className="site-header">
-        <Link className="wordmark" href="/" aria-label="Nook 홈">
-          nook<span>.</span>
+    <div className="night-app">
+      <header className="app-header">
+        <Link href="/" className="app-wordmark" aria-label="Nook 홈">
+          <span className="logo-n">N</span><span className="logo-wide">ook</span>
         </Link>
-        <span className="header-note">생각을 잠시 놓아두는 곳</span>
+        <span className="app-header-note">생각을 위한 자리</span>
+        <Link className="header-account" href="/login">
+          내 정보
+        </Link>
       </header>
-      <main id="main-content" className="thought-space">
-        <p className="eyebrow">지금, 내 머릿속</p>
-        <h1>
-          머릿속에
-          <br className="mobile-break" /> 걸리는 게 있나요?
-        </h1>
-        <p className="introduction">정리하지 말고 생각나는 대로 적어주세요.</p>
-        <ThoughtInput />
-        <p className="release-note">
-          지금은 첫 화면을 준비하고 있어요. 대화와 저장은 아직 지원하지 않아요.
+      <AppNavigation current="write" />
+      <main id="main-content" className="desk-main">
+        <div className="desk-heading">
+          <p className="preview-kicker">새 대화</p>
+          <h1 className="desk-greeting">머릿속에 걸리는 게 있나요?</h1>
+          <p className="desk-intro">
+            정리되지 않아도 괜찮아요. 생각나는 대로 적어보세요.
+          </p>
+        </div>
+        <HomeDesk enabled={process.env.NOOK_START_API_ENABLED === "true"} />
+        <p className="desk-footnote">
+          결론이 나지 않아도 괜찮아요. 멈출 때는 내가 정해요.
         </p>
       </main>
-      <footer className="site-footer">
-        답을 주는 대신, 내가 어떤 질문을 지나왔는지.
-      </footer>
     </div>
   );
 }
