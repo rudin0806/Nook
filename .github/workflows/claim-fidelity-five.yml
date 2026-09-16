@@ -1,0 +1,41 @@
+name: Claim fidelity five-call evaluation
+on:
+  push:
+    branches: [codex/claim-fidelity-five-20260916]
+    paths: [.github/workflows/claim-fidelity-five.yml]
+permissions:
+  contents: read
+concurrency:
+  group: claim-fidelity-five-20260916
+  cancel-in-progress: false
+jobs:
+  evaluate:
+    if: github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: node --experimental-strip-types scripts/eval-claim-fidelity.mts --dry
+      - run: node --experimental-strip-types --test tests/claim-fidelity-eval.test.mts
+      - run: node --experimental-strip-types scripts/eval-claim-fidelity.mts
+        env:
+          OPENAI_API_KEY: ${{ secrets.AI_API_KEY }}
+      - name: Report synthetic evaluation results
+        if: always()
+        run: |
+          if [ -f docs/reviews/data/claim-fidelity-five.json ]; then
+            cat docs/reviews/data/claim-fidelity-five.json
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: claim-fidelity-five
+          path: docs/reviews/data/claim-fidelity-five.json
+          if-no-files-found: ignore

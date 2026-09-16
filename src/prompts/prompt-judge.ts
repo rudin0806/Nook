@@ -1,3 +1,4 @@
+import { CLAIM_FIDELITY_RULE } from "./claim-fidelity.ts";
 import type { JudgeInput } from "../schemas/judge.ts";
 
 /**
@@ -10,7 +11,8 @@ import type { JudgeInput } from "../schemas/judge.ts";
  * 이건 지시로 못 막고 구조로 막아야 한다.
  */
 
-export const JUDGE_SYSTEM = `당신은 대화를 읽고 무슨 일이 일어났는지 판정하는 분류기다.
+export const JUDGE_SYSTEM =
+  `당신은 대화를 읽고 무슨 일이 일어났는지 판정하는 분류기다.
 
 ## 절대 규칙
 
@@ -378,7 +380,8 @@ JSON만 출력한다. 설명이나 코드펜스를 붙이지 않는다.
 - action이 CLOSE면 shift_confidence는 생략한다.
 - medium_reason은 REFLECT/MEDIUM일 때만 값을 넣고, 그 외에는 null이다.
 - 없으면 빈 배열, promote_pile_item은 null.
-- evidence_turns는 SHIFT·MEDIUM 판정의 근거가 된 사용자 발화다. LOW나 CLOSE면 비워도 된다.`;
+- evidence_turns는 SHIFT·MEDIUM 판정의 근거가 된 사용자 발화다. LOW나 CLOSE면 비워도 된다.` +
+  CLAIM_FIDELITY_RULE;
 
 // ─────────────────────────────────────────────
 
