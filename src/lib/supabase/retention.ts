@@ -9,7 +9,6 @@ import {
   trashedSessionListItemSchema,
   type FinalizeRetentionInput,
   type RetentionListQuery,
-  type SavedSessionOrderInput,
   type SavedSessionPositionInput,
 } from "@/schemas/retention";
 
@@ -30,7 +29,7 @@ const sessionCollections = {
   saved: {
     table: "saved_thought_sessions",
     columns:
-      "id,origin_branch_id,started_at,completed_at,retention_decided_at,shelf_position",
+      "id,origin_branch_id,started_at,completed_at,retention_decided_at,shelf_position,shelf_revision",
     order: "retention_decided_at",
   },
   trash: {
@@ -156,29 +155,24 @@ export async function deleteKeptBranchQuestion(
   if (error) throw new RetentionDatabaseError(error.message);
 }
 
-export async function reorderSavedSessions(
-  supabase: SupabaseClient,
-  input: SavedSessionOrderInput,
-) {
-  const { error } = await supabase.rpc("reorder_saved_sessions", {
-    p_session_ids: input.sessionIds,
-  });
-  if (error) throw new RetentionDatabaseError(error.message);
-  return { sessionIds: input.sessionIds };
-}
-
 export async function moveSavedSession(
   supabase: SupabaseClient,
   sessionId: string,
   input: SavedSessionPositionInput,
 ) {
-  const { data, error } = await supabase.rpc("move_saved_session", {
+  const { data, error } = await supabase.rpc("move_saved_session_checked", {
     p_session_id: sessionId,
     p_target_position: input.position,
+    p_expected_revision: input.expectedRevision,
   });
   if (error) throw new RetentionDatabaseError(error.message);
   return {
     sessionId,
-    position: z.number().int().positive().parse(data),
+    ...z
+      .object({
+        position: z.number().int().positive(),
+        revision: z.string().regex(/^[a-f0-9]{32}$/),
+      })
+      .parse(data),
   };
 }

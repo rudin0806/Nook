@@ -25,9 +25,11 @@ const schema = z.discriminatedUnion("kind", [
 export function ResumePanel({
   sessionId,
   enabled,
+  retention = false,
 }: {
   sessionId: string;
   enabled: boolean;
+  retention?: boolean;
 }) {
   const router = useRouter();
   const [data, setData] = useState<z.infer<typeof schema> | null>(null),
@@ -35,10 +37,13 @@ export function ResumePanel({
     [error, setError] = useState(false);
   useEffect(() => {
     const c = new AbortController();
-    void fetch(`/api/sessions/${sessionId}/resume`, {
-      cache: "no-store",
-      signal: c.signal,
-    })
+    void fetch(
+      `/api/sessions/${sessionId}/resume${retention ? "?retention=1" : ""}`,
+      {
+        cache: "no-store",
+        signal: c.signal,
+      },
+    )
       .then(async (r) => {
         if (!r.ok) throw new Error();
         return schema.parse((await r.json()).data);
@@ -60,7 +65,7 @@ export function ResumePanel({
         if (!c.signal.aborted) setError(true);
       });
     return () => c.abort();
-  }, [sessionId, router]);
+  }, [sessionId, router, retention]);
   if (error)
     return (
       <p role="alert">

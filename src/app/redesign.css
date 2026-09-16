@@ -591,11 +591,11 @@ body {
   background: var(--nook-surface);
 }
 .empty-cards > i:nth-child(1) {
-  transform: rotate(-2.5deg);
+  transform: translate(-5px, -2px) rotate(-6deg);
   opacity: 0.45;
 }
 .empty-cards > i:nth-child(2) {
-  transform: rotate(1.8deg);
+  transform: translate(5px, 2px) rotate(5deg);
   opacity: 0.7;
 }
 .empty-cards > i:nth-child(3) {
@@ -604,6 +604,161 @@ body {
 }
 .empty-card-copy {
   position: relative;
+}
+
+.card-browser {
+  width: min(640px, calc(100vw - 32px));
+  max-height: calc(100dvh - 48px);
+  padding: 26px;
+  border: 0;
+  border-radius: 20px;
+  color: var(--nook-ink);
+  background: var(--nook-surface);
+  overflow: auto;
+}
+.card-browser::backdrop {
+  background: rgb(0 0 0 / 45%);
+}
+.card-stack {
+  padding: 20px 0;
+}
+.browse-card,
+.story-question-card {
+  padding: 26px;
+  border-radius: 16px;
+  background: var(--nook-raised);
+  overflow-wrap: anywhere;
+  animation: nook-card-enter 240ms ease-out;
+}
+.browse-card h3,
+.story-question-card h2 {
+  font-size: clamp(20px, 3vw, 28px);
+  line-height: 1.5;
+}
+.card-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 20px;
+}
+.card-controls button,
+.nickname-form button {
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--nook-fill);
+  color: var(--nook-ink);
+  font-weight: 600;
+}
+.card-controls button:disabled,
+.nickname-form button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.card-policy {
+  color: var(--nook-muted);
+  font-size: 13px;
+}
+.card-navigation {
+  min-width: 0;
+  touch-action: pan-y;
+}
+.card-navigation:focus-visible {
+  outline: 2px solid var(--nook-primary);
+  outline-offset: 4px;
+  border-radius: 16px;
+}
+.story-reader {
+  display: grid;
+  grid-template-columns: minmax(150px, 1fr) minmax(0, 3fr);
+  gap: 26px;
+  margin: 26px 0;
+}
+.story-index {
+  max-height: 60vh;
+  overflow: auto;
+}
+.story-index h2 {
+  font-size: 15px;
+}
+.story-index ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.story-index button {
+  width: 100%;
+  text-align: left;
+  padding: 12px;
+  border: 0;
+  border-radius: 12px;
+  color: var(--nook-muted);
+  background: transparent;
+}
+.story-index button[aria-current] {
+  background: var(--nook-raised);
+  color: var(--nook-ink);
+  font-weight: 600;
+}
+.story-question-card {
+  min-height: 260px;
+}
+.story-question-card li {
+  margin: 12px 0;
+}
+.nickname-form {
+  display: grid;
+  gap: 10px;
+  margin: 24px 0;
+}
+.nickname-form input {
+  width: 100%;
+  min-height: 44px;
+  padding: 12px;
+  border: 1px solid var(--nook-line-strong);
+  border-radius: 12px;
+  background: var(--nook-raised);
+  color: var(--nook-ink);
+  font: inherit;
+}
+.nickname-form p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--nook-muted);
+}
+@keyframes nook-card-enter {
+  from {
+    opacity: 0.4;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (max-width: 760px) {
+  .story-reader {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+  .story-index {
+    max-height: 180px;
+  }
+  .card-browser {
+    padding: 20px;
+  }
+  .browse-card,
+  .story-question-card {
+    padding: 20px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .browse-card,
+  .story-question-card {
+    animation: none;
+  }
 }
 .empty-card-copy strong {
   display: block;
@@ -729,4 +884,48 @@ body {
   .shelf-book:focus-visible {
     transform: none;
   }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+.anonymous-verification {
+  margin: 14px 0;
+}
+.anonymous-verification p {
+  font-size: 13px;
+  color: var(--nook-muted);
+}
+/* Keep conversation controls within the approved neutral action palette. */
+.conversation-composer button,
+.closure-panel button:first-of-type,
+.node-navigation button[data-active="true"] > span:first-child {
+  background: var(--nook-fill);
+  color: var(--nook-ink);
+}
+.node-navigation button[data-current="true"],
+.node-navigation button[data-active="true"],
+.branch-links a {
+  border-color: var(--nook-line-strong);
+}
+.node-navigation button[data-active="true"] {
+  background: var(--nook-raised);
+}
+.conversation-card[data-role="ASSISTANT"] small,
+.clarity-panel h2,
+.branch-links a,
+.shift-title,
+.start-status {
+  color: var(--nook-muted);
+}
+.clarity-panel {
+  border-left-color: var(--nook-line-strong);
 }

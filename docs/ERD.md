@@ -1,3 +1,10 @@
+## 2026-09-16 후속: 책장 충돌 검사·닉네임
+
+- `saved_thought_sessions`에 `shelf_revision`을 추가했다. `own_shelf_revision()`은 security invoker이며 현재 사용자 SAVED ID/자리의 MD5 fingerprint를 계산한다. 비밀이나 인증 수단이 아니다. 목록과 같은 SQL snapshot에서 읽는다.
+- `move_saved_session_checked(uuid, integer, text)`는 auth.uid/익명 검사 후 사용자 잠금 행을 생성·잠그고 fingerprint를 비교한다. 불일치 시 `SHELF_ORDER_STALE`(HTTP 409). 기존 한 권 이동을 호출하고 위치·새 fingerprint를 반환한다. SECURITY DEFINER가 필요한 이유는 기존 서버 전용 잠금·정렬 함수를 호출하기 위해서이며 소유권 검사를 유지한다.
+- 옛 `reorder_saved_sessions` 삭제는 배포 후 별도 migration. 아래의 이전 설명은 당시 이력이다.
+- 닉네임은 Supabase Auth `user_metadata.nickname` 표시 정보로 저장한다. 새 테이블·RLS 변경 없음. 권한/기록 소유권은 오직 인증된 사용자 ID로 판단한다.
+
 ## 2026-09-16 생각더미 순서
 
 - `thought_sessions.shelf_position integer null`: `SAVED` 세션의 사용자별 표시 순서. 양수만 허용하며 기존·신규 null 값은 보관 결정 시각 역순 뒤에 놓는다.

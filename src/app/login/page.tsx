@@ -1,3 +1,4 @@
+import { authReturnPath } from "@/lib/auth/return-path";
 import Link from "next/link";
 import { AccountPanel } from "@/components/nook/account-panel";
 
@@ -21,9 +22,10 @@ const messages: Record<string, string> = {
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; returnTo?: string }>;
 }) {
-  const { error } = await searchParams;
+  const { error, returnTo: candidate } = await searchParams;
+  const returnTo = authReturnPath(candidate);
   const message =
     error && Object.hasOwn(messages, error) ? messages[error] : null;
   return (
@@ -33,12 +35,15 @@ export default async function LoginPage({
           <span className="logo-n">N</span>
           <span className="logo-wide">ook</span>
         </Link>
-        <Link className="header-account" href="/">
+        <Link
+          className="header-account"
+          href={returnTo === "/drawer" ? "/" : returnTo}
+        >
           닫기 ×
         </Link>
       </header>
       <main id="main-content" className="account-layout">
-        <AccountPanel message={message} />
+        <AccountPanel message={message} returnTo={returnTo} />
       </main>
       <footer className="account-footer">
         a little room for your thoughts.

@@ -6,7 +6,7 @@ Nook은 현재의 중심 질문을 찾고, 사용자가 확정한 질문의 이�
 
 ## 현재 단계
 
-운영 주소는 [Nook](https://nook-nine-eta.vercel.app/)입니다. 현재 운영 기능 코드는 `codex/restore-node-navigation-and-shelf-order-20260916` 브랜치에 보존돼 있으며, `main`은 최신 운영 코드와 다릅니다. 배포·GitHub 구현·검증 상태를 구분한 진행 상태와 다음 작업은 [`docs/STATUS.md`](docs/STATUS.md)를 기준으로 확인합니다.
+운영 주소는 [Nook](https://nook-nine-eta.vercel.app/)입니다. 현재 운영 기준은 `main`이며 main에 push하면 Vercel Git 연동으로 자동 배포됩니다. 배포·GitHub 구현·검증 상태를 구분한 진행 상태와 다음 작업은 [`docs/STATUS.md`](docs/STATUS.md)를 기준으로 확인합니다.
 
 Codex·Claude 병행 작업의 역할과 전달 형식은 [`docs/HANDOFF.md`](docs/HANDOFF.md)를 참고합니다.
 
@@ -63,7 +63,7 @@ npm run validate
 
 ## Vercel 배포
 
-1. Vercel에서 이 비공개 GitHub 저장소를 Import합니다.
+1. Vercel에서 공개 GitHub 저장소 `rudin0806/Nook`를 연결합니다(연결 완료).
 2. Framework Preset은 Next.js, Root Directory는 저장소 루트, Node.js는 24.x를 사용합니다.
 3. Install Command: `npm ci`, Build Command: `npm run build`. Output Directory는 Next.js 기본값을 유지합니다.
 4. 실제 연결 단계에서 필요한 환경변수를 해당 배포 환경에 등록합니다.
@@ -131,7 +131,7 @@ npm run validate
 
 ### 소셜 로그인 연결
 
-`/login`에는 Google 연결 버튼이 공개돼 있습니다. Kakao는 내부 어댑터만 있으며 버튼 공개·공급자 검증은 후속입니다. 배포별 `NOOK_SITE_URL`, Supabase 공급자·Manual Linking·redirect 설정과 실제 검증 순서는 [인증 연결 안내](docs/reviews/2026-09-14-auth-flow.md)를 참고하세요. 익명 사용자 생성·CAPTCHA 검증 요구·identity linking 기반 코드는 있습니다. 실제 익명 시작 전체 왕복과 로그인 후 원래 보관 선택 복귀는 별도 미결이며, 닉네임 편집도 아직 없습니다.
+`/login`에는 Google 연결 버튼이 공개돼 있습니다. Kakao는 내부 어댑터만 있으며 버튼 공개·공급자 검증은 후속입니다. 배포별 `NOOK_SITE_URL`, Supabase 공급자·Manual Linking·redirect 설정과 실제 검증 순서는 [인증 연결 안내](docs/reviews/2026-09-14-auth-flow.md)를 참고하세요. 익명 사용자 생성·CAPTCHA 검증 요구·identity linking 기반 코드는 있습니다. 닉네임 편집과 로그인 후 원래 보관 선택 복귀·선택 유지가 구현됐습니다. 실제 익명 시작 전체 왕복과 공급자 검증 범위는 STATUS를 확인하세요. Turnstile UI에는 `NEXT_PUBLIC_TURNSTILE_SITE_KEY`와 Supabase Auth의 대응 CAPTCHA 설정이 필요합니다.
 
 ### 첫 입력과 질문 승인 API
 

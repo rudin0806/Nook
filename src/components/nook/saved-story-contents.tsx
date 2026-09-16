@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ActionButton } from "@seed-design/react";
 import { savedStorySchema, type SavedStory } from "@/schemas/saved-story";
+import { StoryReader } from "./story-reader";
 type State =
   | { kind: "loading" }
   | { kind: "error"; message: string; login: boolean }
@@ -109,38 +110,7 @@ export function SavedStoryContents({ sessionId }: { sessionId: string }) {
               </Link>
             </section>
           )}
-          {state.story.segments.map((segment) => (
-            <section
-              key={segment.id}
-              aria-label={`${segment.ordinal}번째 구간`}
-            >
-              <h2>{segment.ordinal}번째 구간</h2>
-              <ol className="drawer-list">
-                {segment.nodes.map((node) => (
-                  <li key={node.id} className="preview-summary-card">
-                    <h3>{node.final_text}</h3>
-                    <Link href={`/restart/node/${node.id}`}>
-                      이 질문으로 다시 생각하기
-                    </Link>
-                    {state.story.clarifications.some(
-                      (c) => c.node_id === node.id,
-                    ) && (
-                      <>
-                        <p>함께 분명해진 것</p>
-                        <ul>
-                          {state.story.clarifications
-                            .filter((c) => c.node_id === node.id)
-                            .map((c) => (
-                              <li key={c.id}>{c.text}</li>
-                            ))}
-                        </ul>
-                      </>
-                    )}
-                  </li>
-                ))}
-              </ol>
-            </section>
-          ))}
+          <StoryReader key={`${sessionId}:${offset}`} story={state.story} />
           <div className="preview-actions">
             {offset > 0 && (
               <ActionButton

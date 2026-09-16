@@ -6,7 +6,7 @@ import { createAdmissionContext } from "@/lib/api/ai-admission";
 import { proposalResponse } from "@/engine/start-request";
 import { storedStartResultSchema } from "@/schemas/recovery";
 export async function GET(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ sessionId: string }> },
 ) {
   const id = z.uuid().safeParse((await context.params).sessionId);
@@ -38,6 +38,22 @@ export async function GET(
     if (s.storage_state === "TRASHED") return dataResponse({ kind: "trash" });
     if (Date.parse(s.temporary_expires_at) <= Date.now())
       throw new RetentionDatabaseError("SESSION_NOT_FOUND");
+    const retentionRequested =
+      new URL(request.url).searchParams.get("retention") === "1";
+    if (retentionRequested || s.status === "COMPLETED") {
+      const branches = await client
+        .from("branch_questions")
+        .select("id,text")
+        .eq("source_session_id", s.id)
+        .eq("retention_state", "PENDING")
+        .limit(50);
+      if (branches.error) throw new Error("RECOVERY_QUERY_FAILED");
+      return dataResponse({
+        kind: "retention",
+        sessionId: s.id,
+        branches: branches.data,
+      });
+    }
     const nodes = await client
       .from("question_nodes")
       .select("id")
@@ -47,19 +63,6 @@ export async function GET(
     if (nodes.error) throw new Error("RECOVERY_QUERY_FAILED");
     if (nodes.data.length)
       return dataResponse({ kind: "talk", nodeId: nodes.data[0].id });
-    const branches = await client
-      .from("branch_questions")
-      .select("id,text")
-      .eq("source_session_id", s.id)
-      .eq("retention_state", "PENDING")
-      .limit(50);
-    if (branches.error) throw new Error("RECOVERY_QUERY_FAILED");
-    if (s.status === "COMPLETED")
-      return dataResponse({
-        kind: "retention",
-        sessionId: s.id,
-        branches: branches.data,
-      });
     const context = await createAdmissionContext();
     if (context.userId !== s.user_id)
       throw new RetentionDatabaseError("SESSION_NOT_FOUND");

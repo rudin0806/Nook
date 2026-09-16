@@ -6,8 +6,8 @@ import { ConversationRetention } from "./conversation-retention";
 import type { StartView } from "@/lib/start/client";
 import { RecoveryList } from "./recovery-list";
 import { useStartConversation } from "./use-start-conversation";
+import { AnonymousVerification } from "./anonymous-verification";
 import { NookIcon } from "./nook-icon";
-
 
 export function ThoughtInput({
   enabled = false,
@@ -24,6 +24,8 @@ export function ThoughtInput({
   source?: { kind: "node" | "branch" | "session"; id: string };
   showRecovery?: boolean;
 }) {
+  const [captchaToken, setCaptchaToken] = useState("");
+  const [verificationAttempt, setVerificationAttempt] = useState(0);
   const [exiting, setExiting] = useState(false);
   const [thought, setThought] = useState(initialThought);
   const [editedQuestion, setEditedQuestion] = useState<string | null>(null);
@@ -96,8 +98,14 @@ export function ThoughtInput({
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            if (enabled && thought.trim() && !locked)
-              flow.submit("start", { thought, ...(source ? { source } : {}) });
+            if (enabled && thought.trim() && !locked) {
+              flow.submit("start", {
+                thought,
+                ...(captchaToken ? { captchaToken } : {}),
+                ...(source ? { source } : {}),
+              });
+              setVerificationAttempt((value) => value + 1);
+            }
           }}
         >
           <TextField.Root className="writing-field">
@@ -115,6 +123,12 @@ export function ThoughtInput({
               autoComplete="off"
             />
           </TextField.Root>
+          {enabled && (
+            <AnonymousVerification
+              key={verificationAttempt}
+              onToken={setCaptchaToken}
+            />
+          )}
           <div className="paper-bottom">
             <p id="writing-availability">
               {enabled

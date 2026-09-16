@@ -2,7 +2,16 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ActionButton } from "@seed-design/react";
-export function AccountPanel({ message }: { message: string | null }) {
+import { NicknameForm } from "./nickname-form";
+import { readNickname } from "@/schemas/profile";
+export function AccountPanel({
+  message,
+  returnTo = "/drawer",
+}: {
+  message: string | null;
+  returnTo?: string;
+}) {
+  const [nickname, setNickname] = useState<string | null>(null);
   const [state, setState] = useState<
     "loading" | "signed_in" | "signed_out" | "unavailable"
   >("loading");
@@ -24,7 +33,10 @@ export function AccountPanel({ message }: { message: string | null }) {
           (body.state !== "signed_in" && body.state !== "signed_out")
         )
           throw new Error("UNAVAILABLE");
-        if (!controller.signal.aborted) setState(body.state);
+        if (!controller.signal.aborted) {
+          setState(body.state);
+          setNickname(readNickname("nickname" in body ? body.nickname : null));
+        }
       })
       .catch(() => {
         if (!controller.signal.aborted) setState("unavailable");
@@ -69,6 +81,7 @@ export function AccountPanel({ message }: { message: string | null }) {
         <>
           <form action="/api/auth/start" method="post">
             <input type="hidden" name="provider" value="google" />
+            <input type="hidden" name="returnTo" value={returnTo} />
             <button className="google-button" type="submit">
               <span aria-hidden="true">G</span>Google로 계속하기
               <span aria-hidden="true">↗</span>
@@ -78,8 +91,11 @@ export function AccountPanel({ message }: { message: string | null }) {
         </>
       ) : (
         <>
-          <Link className="account-primary" href="/drawer">
-            내 생각 더미 열기 ↗
+          <NicknameForm initial={nickname} />
+          <Link className="account-primary" href={returnTo}>
+            {returnTo === "/drawer"
+              ? "내 생각 더미 열기 ↗"
+              : "보관 선택으로 돌아가기 ↗"}
           </Link>
           <form action="/api/auth/signout" method="post">
             <button className="signout-button" type="submit">
@@ -88,8 +104,13 @@ export function AccountPanel({ message }: { message: string | null }) {
           </form>
         </>
       )}
-      <Link className="account-back" href="/">
-        ← 생각 쓰기로 돌아가기
+      <Link
+        className="account-back"
+        href={returnTo === "/drawer" ? "/" : returnTo}
+      >
+        {returnTo === "/drawer"
+          ? "← 생각 쓰기로 돌아가기"
+          : "← 보관 선택으로 돌아가기"}
       </Link>
     </section>
   );

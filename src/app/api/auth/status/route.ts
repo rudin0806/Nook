@@ -1,3 +1,4 @@
+import { readNickname } from "@/schemas/profile";
 import { NextResponse } from "next/server";
 import { createSupabaseRouteClient } from "@/lib/supabase/server";
 export async function GET() {
@@ -12,6 +13,9 @@ export async function GET() {
       );
     return NextResponse.json(
       {
+        anonymousEnabled: process.env.NOOK_ANONYMOUS_SIGN_IN_ENABLED === "true",
+        userId: data.user?.id ?? null,
+        nickname: readNickname(data.user?.user_metadata.nickname),
         state:
           data.user && !data.user.is_anonymous ? "signed_in" : "signed_out",
       },

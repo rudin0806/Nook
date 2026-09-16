@@ -13,6 +13,7 @@ const session = {
   completed_at: now,
   retention_decided_at: now,
   shelf_position: null,
+  shelf_revision: "0".repeat(32),
 };
 function fixture(
   options: {

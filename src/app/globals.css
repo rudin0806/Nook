@@ -109,7 +109,7 @@ h3 {
 }
 ::selection {
   background: var(--nook-mint);
-  color: #17231c;
+  color: var(--nook-ink);
 }
 .night-app,
 .nook-preview,
@@ -221,7 +221,7 @@ h3 {
   transition: border-color 0.2s;
 }
 .writing-surface:focus-within {
-  border-color: #7d725c;
+  border-color: var(--nook-line-strong);
 }
 .paper-top {
   display: flex;
@@ -255,7 +255,7 @@ h3 {
   line-height: 1.85;
 }
 .writing-textarea::placeholder {
-  color: #858e88;
+  color: var(--nook-muted);
 }
 .writing-surface[data-expanded="true"] .writing-textarea {
   min-height: 400px;
@@ -279,13 +279,13 @@ body button {
 }
 .paper-bottom button {
   background: var(--nook-gold);
-  color: #251b0c;
+  color: var(--nook-ink);
   flex-shrink: 0;
   min-height: 48px;
   padding: 12px 22px;
 }
 .desk-guide {
-  background: #1b1e1d;
+  background: var(--nook-raised);
   border: 1px solid var(--nook-line);
   border-radius: 24px;
   padding: 30px 24px;
@@ -403,7 +403,7 @@ body button {
   border-top-color: var(--nook-peach);
 }
 .collection-workspace [data-collection="trash"] .drawer-list > li {
-  border-top-color: #77817a;
+  border-top-color: var(--nook-muted);
 }
 .saved-entry summary {
   cursor: pointer;
@@ -562,7 +562,7 @@ body button {
 }
 .node-navigation button[data-active="true"] > span:first-child {
   background: var(--nook-gold);
-  color: #251b0c;
+  color: var(--nook-ink);
 }
 .conversation-card:focus-visible,
 .conversation-current-position:focus-visible {
@@ -599,7 +599,7 @@ body button {
 .clarity-panel {
   padding: 20px 24px;
   border-left: 3px solid var(--nook-mint);
-  background: #202c26;
+  background: var(--nook-raised);
   border-radius: 0 16px 16px 0;
   margin: 28px 0;
 }
@@ -620,7 +620,7 @@ body button {
 }
 .branch-links a {
   display: block;
-  border: 1px solid #71553e;
+  border: 1px solid var(--nook-line-strong);
   border-radius: 24px;
   padding: 7px 14px;
   font-size: 14px;
@@ -639,13 +639,13 @@ body button {
 }
 .conversation-composer button {
   background: var(--nook-gold);
-  color: #251b0c;
+  color: var(--nook-ink);
 }
 .closure-panel {
   padding: 28px;
   border-radius: 20px;
-  border: 1px solid #536c5d;
-  background: #202c26;
+  border: 1px solid var(--nook-line-strong);
+  background: var(--nook-raised);
   margin: 24px 0;
   animation: settle 0.28s ease-out;
 }
@@ -657,7 +657,7 @@ body button {
 }
 .closure-panel button:first-of-type {
   background: var(--nook-mint);
-  color: #172b20;
+  color: var(--nook-ink);
 }
 .shift-title {
   color: var(--nook-gold);
@@ -686,7 +686,7 @@ body button {
   overflow: hidden;
 }
 .account-art {
-  background: #202c26;
+  background: var(--nook-raised);
   padding: 64px 48px;
   display: flex;
   flex-direction: column;
@@ -728,7 +728,7 @@ body button {
   padding: 16px 20px;
   min-height: 56px;
   background: var(--nook-ink);
-  color: #171919;
+  color: var(--nook-ink);
   border: 0;
   border-radius: 12px;
   text-decoration: none;
@@ -747,7 +747,7 @@ body button {
 }
 .account-error {
   border-left: 2px solid var(--nook-peach);
-  background: #332920;
+  background: var(--nook-raised);
   padding: 14px;
   font-size: 14px;
 }
@@ -770,7 +770,7 @@ body button {
 @media (hover: hover) {
   .collection-workspace .drawer-list > li:hover {
     transform: translateY(-3px);
-    border-color: #708476;
+    border-color: var(--nook-line-strong);
   }
 }
 @media (min-width: 1600px) {
@@ -815,7 +815,7 @@ body button {
     flex-direction: row;
     justify-content: space-around;
     gap: 0;
-    background: #202323;
+    background: var(--nook-surface);
     border-top: 1px solid var(--nook-line);
     padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
   }
@@ -944,7 +944,7 @@ body button {
   z-index: 100;
   padding: 10px 20px;
   background: var(--nook-gold);
-  color: #171919;
+  color: var(--nook-ink);
   border-radius: 10px;
 }
 .skip-link:focus {

@@ -34,7 +34,13 @@ const questionsResponse = z.object({
 const trashResponse = z.object({
   data: z.object({ ...paging, items: trashedSessionListItemSchema.array() }),
 });
-type Item = { id: string; text: string; date: string; purgeAfter?: string };
+type Item = {
+  id: string;
+  text: string;
+  date: string;
+  purgeAfter?: string;
+  revision?: string;
+};
 type State =
   | { kind: "loading" }
   | { kind: "error"; message: string; needsLogin?: boolean }
@@ -103,6 +109,8 @@ export function DrawerContents({
             ? { id: item.id, text: item.text, date: item.kept_at }
             : {
                 id: item.id,
+                revision:
+                  "shelf_revision" in item ? item.shelf_revision : undefined,
                 text: `${dateFormat.format(new Date(item.started_at))}의 이야기`,
                 date:
                   "trashed_at" in item
@@ -205,7 +213,23 @@ export function DrawerContents({
     setBusy(true);
     setNotice(null);
     try {
-      await moveSessionToPosition(itemId, offset + boundedTarget + 1);
+      const result = await moveSessionToPosition(
+        itemId,
+        offset + boundedTarget + 1,
+        moved.revision ?? "",
+      );
+      setState((current) =>
+        current.kind === "ready"
+          ? {
+              ...current,
+              items: current.items.map((item) => ({
+                ...item,
+                revision: result.revision,
+              })),
+            }
+          : current,
+      );
+      setNotice({ text: `${result.position}번째 자리에 저장했어요.` });
     } catch (error) {
       setState((current) =>
         current.kind === "ready" ? { ...current, items: previous } : current,
@@ -459,30 +483,28 @@ export function DrawerContents({
       >
         목록 새로고침
       </ActionButton>
-      {state.kind !== "loading" &&
-        !editingOrder &&
-        (
-          <div className="preview-actions">
-            {offset > 0 && (
-              <ActionButton
-                variant="ghost"
-                disabled={busy}
-                onClick={() => page(Math.max(0, offset - 20))}
-              >
-                이전
-              </ActionButton>
-            )}
-            {state.kind === "ready" && state.hasMore && (
-              <ActionButton
-                variant="ghost"
-                disabled={busy}
-                onClick={() => page(offset + 20)}
-              >
-                다음
-              </ActionButton>
-            )}
-          </div>
-        )}
+      {state.kind !== "loading" && !editingOrder && (
+        <div className="preview-actions">
+          {offset > 0 && (
+            <ActionButton
+              variant="ghost"
+              disabled={busy}
+              onClick={() => page(Math.max(0, offset - 20))}
+            >
+              이전
+            </ActionButton>
+          )}
+          {state.kind === "ready" && state.hasMore && (
+            <ActionButton
+              variant="ghost"
+              disabled={busy}
+              onClick={() => page(offset + 20)}
+            >
+              다음
+            </ActionButton>
+          )}
+        </div>
+      )}
     </section>
   );
 }

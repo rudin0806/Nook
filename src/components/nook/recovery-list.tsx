@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ActionButton } from "@seed-design/react";
 import { recoveryPageSchema, type RecoveryItem } from "@/schemas/recovery";
+import { CardNavigation } from "./card-navigation";
 import { NookIcon } from "./nook-icon";
 export function RecoveryList() {
   const dialog = useRef<HTMLDialogElement>(null);
@@ -57,15 +58,16 @@ export function RecoveryList() {
     };
   }, []);
   const visible = items.filter((i) => Date.parse(i.expiresAt) > now);
-  const current = visible[Math.min(selected, Math.max(0, visible.length - 1))];
+  const activeIndex = Math.min(selected, Math.max(0, visible.length - 1));
+  const current = visible[activeIndex];
   return (
     <section aria-label="이어갈 대화" className="recovery-panel">
       <div className="panel-heading">
         <div className="panel-title-with-icon">
           <NookIcon name="conversation" tone="orange" />
           <div>
-          <span className="panel-eyebrow">아직 펼쳐둔 생각</span>
-          <h2>이어갈 대화</h2>
+            <span className="panel-eyebrow">아직 펼쳐둔 생각</span>
+            <h2>이어갈 대화</h2>
           </div>
         </div>
         <span>
@@ -77,11 +79,15 @@ export function RecoveryList() {
       ) : null}
       {!busy && !visible.length && !notice ? (
         <div className="recovery-empty">
-          <div className="empty-cards" aria-hidden="true"><i /><i /><i /></div>
+          <div className="empty-cards" aria-hidden="true">
+            <i />
+            <i />
+            <i />
+          </div>
           <div className="empty-card-copy">
-          <strong>아직 이어갈 대화가 없어요</strong>
-          <p>대화를 남기면 다시 묻고 싶은 질문이 카드로 쌓여요.</p>
-          <span>먼저 떠오르는 생각을 적어보세요.</span>
+            <strong>아직 이어갈 대화가 없어요</strong>
+            <p>대화를 남기면 다시 묻고 싶은 질문이 카드로 쌓여요.</p>
+            <span>먼저 떠오르는 생각을 적어보세요.</span>
           </div>
         </div>
       ) : null}
@@ -156,40 +162,52 @@ export function RecoveryList() {
         </div>
         {current ? (
           <>
-            <div className="card-stack">
-              <article className="browse-card" key={current.id}>
-                <span className="panel-eyebrow">아직 남기지 않은 생각</span>
-                <h3>{current.question}</h3>
-                <p>
-                  {new Date(current.expiresAt).toLocaleString("ko-KR", {
-                    timeZone: "Asia/Seoul",
-                  })}
-                  까지 이어갈 수 있어요.
-                </p>
-                <Link href={`/resume/${current.id}`}>이 대화 이어가기 ↗</Link>
-              </article>
-            </div>
-            <div className="card-controls">
-              <button
-                aria-label="이전 카드"
-                disabled={selected <= 0}
-                onClick={() => setSelected(Math.max(0, selected - 1))}
-              >
-                ←
-              </button>
-              <span aria-live="polite">
-                {Math.min(selected + 1, visible.length)} / {visible.length}
-              </span>
-              <button
-                aria-label="다음 카드"
-                disabled={selected >= visible.length - 1}
-                onClick={() =>
-                  setSelected(Math.min(visible.length - 1, selected + 1))
-                }
-              >
-                →
-              </button>
-            </div>
+            <CardNavigation
+              label="이어갈 대화 카드"
+              previous={
+                activeIndex > 0 ? () => setSelected(activeIndex - 1) : undefined
+              }
+              next={
+                activeIndex < visible.length - 1
+                  ? () => setSelected(activeIndex + 1)
+                  : undefined
+              }
+            >
+              <div className="card-stack">
+                <article className="browse-card" key={current.id}>
+                  <span className="panel-eyebrow">아직 남기지 않은 생각</span>
+                  <h3>{current.question}</h3>
+                  <p>
+                    {new Date(current.expiresAt).toLocaleString("ko-KR", {
+                      timeZone: "Asia/Seoul",
+                    })}
+                    까지 이어갈 수 있어요.
+                  </p>
+                  <Link href={`/resume/${current.id}`}>이 대화 이어가기 ↗</Link>
+                </article>
+              </div>
+              <div className="card-controls">
+                <button
+                  aria-label="이전 카드"
+                  disabled={activeIndex <= 0}
+                  onClick={() => setSelected(Math.max(0, activeIndex - 1))}
+                >
+                  ←
+                </button>
+                <span aria-live="polite">
+                  {Math.min(selected + 1, visible.length)} / {visible.length}
+                </span>
+                <button
+                  aria-label="다음 카드"
+                  disabled={activeIndex >= visible.length - 1}
+                  onClick={() =>
+                    setSelected(Math.min(visible.length - 1, activeIndex + 1))
+                  }
+                >
+                  →
+                </button>
+              </div>
+            </CardNavigation>
             <p className="card-policy">
               만료되면 계정에 연결된 대화는 휴지통으로 이동하고, 익명 대화는
               삭제돼요.

@@ -1,6 +1,11 @@
+import { authReturnPath } from "./return-path.ts";
 export type LoginProvider = "google" | "kakao";
 export type AuthUser = { id: string; is_anonymous?: boolean };
-export type LoginFlow = { expectedUserId: string | null; expiresAt: number };
+export type LoginFlow = {
+  expectedUserId: string | null;
+  expiresAt: number;
+  returnTo?: string;
+};
 export const FLOW_COOKIE = "nook-login-flow";
 export const FLOW_SECONDS = 600;
 
@@ -41,7 +46,7 @@ export function readFlow(
   now = Date.now(),
 ): LoginFlow | null {
   try {
-    if (!value || value.length > 300) return null;
+    if (!value || value.length > 500) return null;
     const flow: unknown = JSON.parse(value);
     if (!flow || typeof flow !== "object") return null;
     const { expectedUserId, expiresAt } = flow as LoginFlow;
@@ -57,7 +62,12 @@ export function readFlow(
       expiresAt > now + FLOW_SECONDS * 1000
     )
       return null;
-    return { expectedUserId, expiresAt };
+    const { returnTo } = flow as LoginFlow;
+    return {
+      expectedUserId,
+      expiresAt,
+      ...(returnTo === undefined ? {} : { returnTo: authReturnPath(returnTo) }),
+    };
   } catch {
     return null;
   }
