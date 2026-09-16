@@ -9,6 +9,33 @@ export class RetentionActionError extends Error {
   }
 }
 
+export async function saveSessionOrder(
+  candidateIds: string[],
+  send: typeof fetch = fetch,
+) {
+  const sessionIds = z.array(z.uuid()).min(1).max(50).parse(candidateIds);
+  const response = await send("/api/sessions/order", {
+    method: "PATCH",
+    credentials: "same-origin",
+    cache: "no-store",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ sessionIds }),
+  });
+  if (!response.ok) {
+    throw new RetentionActionError(
+      response.status === 401,
+      response.status === 401
+        ? "로그인이 만료됐어요. 계정을 다시 연결해 주세요."
+        : response.status === 409
+          ? "책장 내용이 바뀌었어요. 목록을 새로고침한 뒤 다시 정리해 주세요."
+          : "순서를 저장하지 못했어요. 목록을 확인한 뒤 다시 시도해 주세요.",
+    );
+  }
+  z.object({
+    data: z.object({ sessionIds: z.array(z.uuid()).length(sessionIds.length) }),
+  }).parse(await response.json());
+}
+
 /** Cookie authentication only. Validate acknowledgement before showing success. */
 export async function performRetentionAction(
   action: RetentionAction,
