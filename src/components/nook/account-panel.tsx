@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ActionButton } from "@seed-design/react";
 import { NicknameForm } from "./nickname-form";
+import { AccountDeletion } from "./account-deletion";
 import { readNickname } from "@/schemas/profile";
 export function AccountPanel({
   message,
@@ -88,6 +89,12 @@ export function AccountPanel({
             </button>
           </form>
           <p className="account-caption">가입과 로그인을 한 번에.</p>
+          <p className="account-legal">
+            계속하기 전에 <Link href="/terms">이용약관</Link>과{" "}
+            <Link href="/privacy">개인정보처리방침</Link>을 확인해 주세요.
+            적어둔 생각의 원문은 질문을 만들기 위해 국외의 AI 처리자에게
+            전송돼요.
+          </p>
         </>
       ) : (
         <>
@@ -102,6 +109,7 @@ export function AccountPanel({
               이 기기에서 로그아웃
             </button>
           </form>
+          <AccountDeletion />
         </>
       )}
       <Link

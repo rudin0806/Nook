@@ -151,6 +151,25 @@ where n.nspname = 'public'
 
 **2026-09-17 적용 완료.** 적용 전에 이 함수를 참조하는 다른 DB 함수가 없음을 확인했고, 적용 후 위 조회가 0행이며 `move_saved_session`·`move_saved_session_checked`·`normalize_shelf_positions`·보관/복원/휴지통 함수가 그대로 남아 있음을 확인했다. Supabase에 남은 정리 작업은 없다.
 
+### 탈퇴·정책 — 2026-09-17
+
+- `delete_own_account()` migration `20260917051500` 운영 적용 완료. 인자가 없어 호출자 본인만 삭제되고, `authenticated`만 실행할 수 있다.
+- 삭제 연쇄는 운영에서 합성 사용자로 측정했다(9개 테이블 0행, 전부 rollback). `auth.identities`까지 CASCADE다. SQL 회귀는 `supabase/tests/account_deletion.sql`.
+- 유예 기간 없음. 개인정보보호법 제21조 지체 없는 파기를 따르며 Nook에는 보존 의무 기록이 없다. 이 결정을 바꾸려면 보존 근거부터 정해야 한다.
+- `/privacy`, `/terms` 추가. 수집 항목·보유 기간·수탁자는 스키마와 리전에서 확인한 값만 적었다.
+- **사용자가 채워야 하는 자리 7곳**이 `.legal-pending`으로 표시돼 있다: 운영 주체명(2), 보호책임자 성명(1), 연락 이메일(2), 시행일(2). 지어내지 말 것.
+- 아직 없는 것: 회원가입 동의 분리(필수/선택)와 동의 기록 테이블. 현재는 로그인 화면 링크 고지만 있다.
+
+### 비로그인 플로우 — 확인된 사실
+
+- 익명 사용자는 세션 시작과 노드 도달이 가능하도록 이미 구현돼 있다. DB가 막는 지점은 `keep_session or cardinality(kept_branch_ids) > 0`, 즉 보관뿐이다.
+- 운영은 `anonymousEnabled: false`라서 익명 세션 자체가 생성되지 않고 `/api/start`가 401을 반환한다. 첫 발송에서 로그인 안내가 뜨는 원인이 이것이다.
+- 켜려면 Supabase Auth 익명 로그인 활성화 + Turnstile secret 등록·CAPTCHA 강제 + `NOOK_ANONYMOUS_SIGN_IN_ENABLED=true`, `NEXT_PUBLIC_TURNSTILE_SITE_KEY`. CAPTCHA 없이 열면 안 된다.
+
+### 폰트
+
+- 본문은 Pretendard v1.3.9(400/500/600). `layout.tsx`가 SUIT Variable도 불러오지만 어떤 `font-family`도 SUIT를 쓰지 않는다. 워드마크의 넓은 `ook`은 `scaleX(1.22)`다. 제거하거나 실제로 적용할 것.
+
 ### 남은 운영 검증
 
 - Turnstile 사이트 키·서버 secret·익명 인증 강제 설정을 확인하고 익명 시작→종료→보관 왕복을 실제로 확인한다.

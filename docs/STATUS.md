@@ -35,9 +35,20 @@
 - 옛 `/api/sessions/order`와 전체 배열 클라이언트·스키마·서버 함수 제거. DB의 옛 `reorder_saved_sessions(uuid[])` RPC 삭제 migration을 2026-09-17 운영에 **적용 완료**했다. 적용 후 `pg_proc` 조회 0행, `move_saved_session`·`move_saved_session_checked`·`normalize_shelf_positions`·보관/복원/휴지통 함수는 그대로 유지됨을 확인했다.
 - 익명 시작: 선택적 Turnstile UI·만료/오류 처리·토큰 전달 추가. `NEXT_PUBLIC_TURNSTILE_SITE_KEY`와 서버의 익명 활성화가 함께 필요하다. 실제 검증은 Supabase Auth가 담당한다.
 
+## 탈퇴·정책 — 2026-09-17 추가
+
+- 탈퇴 전까지 계정을 지울 방법이 없었다. `delete_own_account()`(migration `20260917051500`)를 추가해 운영에 적용했다. 인자가 없어 호출자는 자기 자신만 지울 수 있고, `authenticated`에만 실행 권한을 주고 `anon`에는 주지 않았다.
+- 삭제 범위는 추정이 아니라 측정이다. 운영에서 합성 사용자 한 명으로 계정·세션·구간·메시지·질문 노드·설명·질문·근거·요청 카운터를 만든 뒤 `auth.users` 한 행을 지웠더니 9개 테이블이 전부 0행이 됐다. 트랜잭션은 전부 rollback했고 실제 사용자 데이터는 바뀌지 않았다. `auth.identities`(소셜 계정 연결)·`auth.sessions`·토큰도 CASCADE다.
+- `segments_anchor_node_fk`만 NO ACTION이지만 DEFERRABLE INITIALLY DEFERRED라 커밋 시점에 검사된다. Anchor를 가진 2번째 구간을 만든 상태에서도 삭제가 성공함을 확인했다.
+- SQL 회귀 `supabase/tests/account_deletion.sql`: 로그아웃 상태 거절, subject 없는 authenticated 거절, 본인 데이터만 삭제, 타인 계정·기록·카운터 보존, 익명 사용자도 삭제 가능. PGlite에서 migration 16개·SQL suite 11개 통과.
+- 유예 기간을 두지 않는다. 개인정보보호법 제21조의 지체 없는 파기 원칙을 따르고, Nook은 전자상거래가 아니라 보존 의무 대상 기록이 없다. 탈퇴 사실을 남기는 별도 기록도 만들지 않으므로 되돌릴 수 없다.
+- UI: `/login`의 계정 삭제. 평소에는 텍스트 링크이고, 열어야 패널이 나오며, 되돌릴 수 없다는 확인란을 체크해야 제출 버튼이 활성화된다. 서버도 같은 `acknowledged` 값을 검사하므로 클라이언트만 우회해도 삭제되지 않는다.
+- 정책 문서 `/privacy`, `/terms`를 추가했다. 수집 항목·보유 기간·수탁자는 실제 스키마와 리전에서 확인한 값만 적었다. **운영 주체명·보호책임자 성명·연락처·시행일은 채워 넣지 않고 표시만 해 두었다(7곳).** 지어내면 그 자체가 허위 고지라서 사용자 확정 대기다.
+- 회원가입 동의(필수/선택 분리와 동의 기록 테이블)는 아직 없다. 지금은 로그인 화면에 두 문서 링크와 국외 이전 사실만 고지한다.
+
 ## DB·동시성
 
-- 이전 운영 migration 13건 + `shelf_conflict_guard` + `drop_legacy_reorder_saved_sessions` 적용 완료 = 15건.
+- 이전 운영 migration 13건 + `shelf_conflict_guard` + `drop_legacy_reorder_saved_sessions` + `delete_own_account` 적용 완료 = 16건.
 - `saved_thought_sessions.shelf_revision`: RLS가 적용된 단일 SELECT snapshot에서 읽는 전체 책장 ID/자리 fingerprint. 사용자 데이터 변경 없음.
 - `move_saved_session_checked`: 사용자별 잠금 후 fingerprint 비교, 일치할 때 기존 한 권 이동 함수 실행. 반환 위치·새 fingerprint 검증.
 - fingerprint는 단조 증가 revision이 아니다. 다른 탭 변경 뒤 현재 순서가 원래와 완전히 같아졌다면 충돌로 취급하지 않는다. 예전 2인자 move RPC는 새 앱의 충돌 검사와 구별된다.
@@ -47,6 +58,7 @@
 ## 검증
 
 - 단위 테스트 **157/157** (2026-09-17 재실행), `npm run validate` (타입·린트·프로덕션 빌드) 통과.
+- 탈퇴·정책 브라우저 검증(2026-09-17, Chromium, 로컬 프로덕션 빌드): 삭제 링크는 로그인 상태에서만 보이고 비로그인에는 0개, 패널은 열기 전 DOM에 없음, 체크 전 제출 비활성·체크 후 활성, 취소하면 닫히고 재개봉 시 체크 해제 상태로 초기화, form은 POST `/api/auth/account`. `/privacy`·`/terms` 데스크톱·모바일 모두 h2 9개 렌더, 표가 있어도 모바일 가로 스크롤 없음(390=390).
 - 독립 Postgres(PGlite): migration 14개, SQL suite 10개, release readiness 11 checks PASS. 기존 60권 순서 회귀 포함.
 - `npm run eval -- --dry`, `npm run eval:judge:validate` 통과. 유료 모델 호출 **0회**.
 - Cron 최근 3회(2026-09-16 11:17/12:17/13:17 UTC) `succeeded`. `1 row`는 SELECT 반환 행 수이며 삭제 건수가 아니다. 실제 만료 대상 처리 건수 관찰은 미완료.

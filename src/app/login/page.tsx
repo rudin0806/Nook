@@ -18,13 +18,20 @@ const messages: Record<string, string> = {
   anonymous:
     "아직 계정에 연결하지 않은 대화가 있어요. 기록을 남기려면 먼저 계정을 연결해 주세요.",
   signout: "로그아웃하지 못했어요. 다시 시도해 주세요.",
+  delete_confirm: "삭제를 진행하려면 되돌릴 수 없다는 확인란을 체크해 주세요.",
+  delete:
+    "계정을 삭제하지 못했어요. 기록은 그대로 있어요. 잠시 후 다시 시도해 주세요.",
 };
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; returnTo?: string }>;
+  searchParams: Promise<{
+    error?: string;
+    returnTo?: string;
+    deleted?: string;
+  }>;
 }) {
-  const { error, returnTo: candidate } = await searchParams;
+  const { error, returnTo: candidate, deleted } = await searchParams;
   const returnTo = authReturnPath(candidate);
   const message =
     error && Object.hasOwn(messages, error) ? messages[error] : null;
@@ -43,6 +50,12 @@ export default async function LoginPage({
         </Link>
       </header>
       <main id="main-content" className="account-layout">
+        {deleted === "1" && (
+          <p className="account-farewell" role="status">
+            계정과 기록을 모두 삭제했어요. 그동안 여기 적어둔 생각은 남아 있지
+            않아요.
+          </p>
+        )}
         <AccountPanel message={message} returnTo={returnTo} />
       </main>
       <footer className="account-footer">

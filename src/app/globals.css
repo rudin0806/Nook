@@ -999,6 +999,106 @@ body button {
   border: 0;
   margin-top: 20px;
 }
+.account-legal {
+  max-width: 340px;
+  margin: 14px auto 0;
+  color: var(--nook-muted);
+  font-size: 12px;
+  line-height: 1.7;
+}
+.account-legal a {
+  color: var(--nook-ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.account-farewell {
+  max-width: 420px;
+  margin: 0 auto 20px;
+  padding: 16px 18px;
+  border: 1px solid var(--nook-line);
+  border-radius: 14px;
+  background: var(--nook-surface);
+  color: var(--nook-ink);
+  font-size: 14px;
+  line-height: 1.7;
+  text-align: center;
+}
+/* Withdrawal stays out of reach of a stray tap: it is a plain link until asked
+   for, and the panel that opens is the only place the destructive button lives. */
+.account-danger-open {
+  margin-top: 8px;
+  padding: 6px 4px;
+  border: 0;
+  background: transparent;
+  color: var(--nook-muted);
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.account-danger-open:hover {
+  color: var(--nook-ink);
+}
+.account-danger {
+  margin-top: 20px;
+  padding: 18px;
+  border: 1px solid var(--nook-line-strong, var(--nook-line));
+  border-radius: 16px;
+  background: var(--nook-surface);
+  text-align: left;
+}
+.account-danger h2 {
+  margin: 0 0 8px;
+  font-size: 16px;
+  letter-spacing: -0.02em;
+}
+.account-danger p {
+  margin: 0 0 14px;
+  color: var(--nook-muted);
+  font-size: 13px;
+  line-height: 1.7;
+}
+.account-danger-confirm {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-bottom: 14px;
+  color: var(--nook-ink);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.account-danger-confirm input {
+  margin: 2px 0 0;
+  accent-color: var(--nook-open, var(--nook-peach));
+  flex-shrink: 0;
+}
+.account-danger-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.account-danger-submit {
+  padding: 10px 16px;
+  border: 1px solid var(--nook-open, var(--nook-peach));
+  border-radius: 10px;
+  background: transparent;
+  color: var(--nook-open, var(--nook-peach));
+  font-size: 14px;
+  font-weight: 600;
+}
+.account-danger-submit:disabled {
+  border-color: var(--nook-line);
+  color: var(--nook-muted);
+  cursor: not-allowed;
+}
+.account-danger-submit:not(:disabled):hover {
+  background: var(--nook-open, var(--nook-peach));
+  color: var(--nook-paper);
+}
+.account-danger-note {
+  margin: 14px 0 0;
+  font-size: 12px;
+}
 @keyframes settle {
   from {
     opacity: 0;

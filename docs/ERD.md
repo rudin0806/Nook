@@ -363,6 +363,7 @@ stateDiagram-v2
 - `supabase/migrations/20260916050000_saved_session_shelf_order.sql` — `shelf_position` 컬럼·backfill·인덱스, `saved_thought_sessions` 뷰, 전체 집합 정렬 RPC
 - `supabase/migrations/20260916120000_move_saved_session.sql` — 한 권 이동 RPC, 자리 정규화, 보관·복원·휴지통의 자리 관리
 - `supabase/migrations/20260916141829_drop_legacy_reorder_saved_sessions.sql` — 옛 전체 배열 정렬 RPC 삭제. 2026-09-17 운영 적용 완료
+- `supabase/migrations/20260917051500_delete_own_account.sql` — 탈퇴 RPC `delete_own_account()`. 2026-09-17 운영 적용 완료
 - `supabase/tests/shelf_order.sql` — 60권 책장 이동·가드·자리 배정 회귀
 - `supabase/snippets/schedule_retention_cleanup.sql` — 7일 휴지통/24시간 임시 데이터 정리 Cron 등록. **2026-09-16에 운영에 등록 완료**(`nook-retention-cleanup-hourly`, 매시 17분). migration이 아니라 1회성 운영 설정이므로 여기 분리해 둔다. 중복 등록을 막으려면 `cron.job`을 먼저 조회한다.
 
