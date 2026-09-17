@@ -97,3 +97,57 @@ Core와 Safety 결과는 분리한다. 프롬프트 문안을 줄였다는 이�
 ## 인증 구현 체크포인트 — 현재 정정
 
 Google OAuth·익명 identity linking·callback·로그아웃·익명 생성 기반은 구현됐다. Google 로그인 해결 및 운영의 인증된 목록 조회 기록이 있다. 닉네임 편집과 원래 보관 선택 복귀는 구현됐다. Kakao UI 공개와 익명 전체 왕복 검증은 남았다. 설정·검증 범위는 [인증 기록](reviews/2026-09-14-auth-flow.md)을 참고한다. Claude가 프롬프트/제품 규칙을 이 인증 구현에 맞춰 바꿀 필요는 없다.
+
+
+## 현재 인수인계 — 2026-09-17
+
+### 운영 기준
+
+- 기준 브랜치: `main`만 사용한다.
+- 기능 구현 커밋: `0da1941`.
+- 문서·정리 migration 커밋: `a154ce1`.
+- 운영 배포: `dpl_ALRimnXDkpzmXGjQ3dwUjQ6RyMC5` READY.
+- 운영 주소: https://nook-nine-eta.vercel.app/
+- 5번 상세 탐색·카드 이동, 6번 닉네임·로그인 후 보관 복귀, 책장 정렬 충돌 검사는 코드와 운영에 반영됐다.
+- 기능 코드를 다시 구현하거나 vivid UI를 되살리지 않는다. 현재 기준은 `docs/STATUS.md`, `docs/ERD.md`, `docs/design/README.md`다.
+
+### Supabase에서 마지막으로 할 일
+
+새 앱은 옛 `reorder_saved_sessions(uuid[])` RPC를 호출하지 않는다. 삭제용 migration은 저장소에 이미 있다.
+
+- 파일: `supabase/migrations/20260916141829_drop_legacy_reorder_saved_sessions.sql`
+- 프로젝트 ref: `aybyxovmabsfvcugvnst`
+- 실행 SQL:
+
+```sql
+drop function if exists public.reorder_saved_sessions(uuid[]);
+```
+
+적용 뒤 아래 조회 결과가 0행인지 확인한다.
+
+```sql
+select n.nspname as schema_name,
+       p.proname,
+       pg_get_function_identity_arguments(p.oid) as arguments
+from pg_proc p
+join pg_namespace n on n.oid = p.pronamespace
+where n.nspname = 'public'
+  and p.proname = 'reorder_saved_sessions';
+```
+
+이 정리는 앱 동작을 바꾸지 않는 레거시 RPC 삭제다. 현재 Codex 세션에서는 사용량 제한으로 Supabase 실행만 대기 중이었다. 적용 후 `docs/STATUS.md`와 `docs/ERD.md`의 “적용 대기” 문장을 “적용 완료”로 바꾸고, 그 변경을 main에 push한다.
+
+### 남은 운영 검증
+
+- Turnstile 사이트 키·서버 secret·익명 인증 강제 설정을 확인하고 익명 시작→종료→보관 왕복을 실제로 확인한다.
+- Google OAuth 성공·취소·만료와 identity linking 왕복을 확인한다. 이메일 문자열로 계정을 병합하지 않는다.
+- 실제 브라우저에서 여러 권 이동·재접속, 모바일 터치, reduced-motion을 확인한다.
+- 만료 데이터가 생긴 뒤 pg_cron 정리 실행 이력을 관찰한다. 예약 job 자체는 활성·성공 이력이 있다.
+- 위 검증은 이미 배포된 기능의 운영 확인이며, 기능 재구현이나 유료 모델 재평가가 아니다.
+
+### 확인된 검증
+
+- 단위 테스트 157/157.
+- `npm run validate` 통과.
+- PGlite migration 14개·SQL suite 10개·release readiness 11 checks 통과.
+- 공개 운영 홈 로드 및 배포 직후 runtime error 0건 확인.
