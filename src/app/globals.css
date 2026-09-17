@@ -970,12 +970,15 @@ body button {
   padding: 16px 20px;
   min-height: 56px;
   background: var(--nook-ink);
-  color: var(--nook-ink);
+  /* The label sits on the ink fill, so it has to be the page colour; using the
+     ink token for both painted the text in its own background. */
+  color: var(--nook-paper);
   border: 0;
   border-radius: 12px;
   text-decoration: none;
   margin-top: 32px;
   font-size: 15px;
+  font-weight: 600;
 }
 .account-back {
   display: inline-block;
@@ -998,6 +1001,61 @@ body button {
   color: var(--nook-muted);
   border: 0;
   margin-top: 20px;
+}
+.consent-gate {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+.consent-list {
+  margin: 0 0 18px;
+  padding: 16px;
+  border: 1px solid var(--nook-line);
+  border-radius: 14px;
+  background: var(--nook-surface);
+  text-align: left;
+}
+.consent-list legend {
+  padding: 0 6px;
+  color: var(--nook-muted);
+  font-size: 12px;
+}
+.consent-all,
+.consent-item {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  color: var(--nook-ink);
+  font-size: 13px;
+  line-height: 1.55;
+}
+.consent-all {
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--nook-line);
+  font-weight: 600;
+}
+.consent-item + .consent-item {
+  margin-top: 10px;
+}
+.consent-all input,
+.consent-item input {
+  margin: 2px 0 0;
+  flex-shrink: 0;
+  accent-color: var(--nook-primary, var(--nook-gold));
+}
+.consent-item em {
+  color: var(--nook-muted);
+  font-style: normal;
+}
+.consent-item a {
+  color: var(--nook-ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.google-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 .account-legal {
   max-width: 340px;

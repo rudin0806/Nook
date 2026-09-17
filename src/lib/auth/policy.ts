@@ -5,6 +5,9 @@ export type LoginFlow = {
   expectedUserId: string | null;
   expiresAt: number;
   returnTo?: string;
+  /** Set only when the sign-in screen collected the required agreements, so the
+   * callback records consent for a member who actually ticked them. */
+  agreed?: boolean;
 };
 export const FLOW_COOKIE = "nook-login-flow";
 export const FLOW_SECONDS = 600;
@@ -62,11 +65,12 @@ export function readFlow(
       expiresAt > now + FLOW_SECONDS * 1000
     )
       return null;
-    const { returnTo } = flow as LoginFlow;
+    const { returnTo, agreed } = flow as LoginFlow;
     return {
       expectedUserId,
       expiresAt,
       ...(returnTo === undefined ? {} : { returnTo: authReturnPath(returnTo) }),
+      ...(agreed === true ? { agreed: true } : {}),
     };
   } catch {
     return null;

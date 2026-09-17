@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ActionButton } from "@seed-design/react";
 import { NicknameForm } from "./nickname-form";
 import { AccountDeletion } from "./account-deletion";
+import { ConsentGate } from "./consent-gate";
 import { readNickname } from "@/schemas/profile";
 export function AccountPanel({
   message,
@@ -79,23 +80,7 @@ export function AccountPanel({
           </ActionButton>
         </div>
       ) : state === "signed_out" ? (
-        <>
-          <form action="/api/auth/start" method="post">
-            <input type="hidden" name="provider" value="google" />
-            <input type="hidden" name="returnTo" value={returnTo} />
-            <button className="google-button" type="submit">
-              <span aria-hidden="true">G</span>Google로 계속하기
-              <span aria-hidden="true">↗</span>
-            </button>
-          </form>
-          <p className="account-caption">가입과 로그인을 한 번에.</p>
-          <p className="account-legal">
-            계속하기 전에 <Link href="/terms">이용약관</Link>과{" "}
-            <Link href="/privacy">개인정보처리방침</Link>을 확인해 주세요.
-            적어둔 생각의 원문은 질문을 만들기 위해 국외의 AI 처리자에게
-            전송돼요.
-          </p>
-        </>
+        <ConsentGate returnTo={returnTo} />
       ) : (
         <>
           <NicknameForm initial={nickname} />

@@ -73,12 +73,6 @@
 .legal-callout p {
   margin: 0;
 }
-.legal-pending {
-  border-radius: 4px;
-  background: var(--nook-open-weak, var(--nook-raised));
-  padding: 0 4px;
-  font-weight: 600;
-}
 .legal-footer-links {
   display: flex;
   gap: 16px;

@@ -21,6 +21,7 @@ const messages: Record<string, string> = {
   delete_confirm: "삭제를 진행하려면 되돌릴 수 없다는 확인란을 체크해 주세요.",
   delete:
     "계정을 삭제하지 못했어요. 기록은 그대로 있어요. 잠시 후 다시 시도해 주세요.",
+  consent: "필수 항목에 모두 동의해야 계정을 만들 수 있어요.",
 };
 export default async function LoginPage({
   searchParams,

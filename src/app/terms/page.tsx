@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { LegalPage, Pending } from "@/components/nook/legal-page";
+import { LegalPage } from "@/components/nook/legal-page";
 import "../legal.css";
 
 export const metadata: Metadata = {
@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function TermsPage() {
   return (
-    <LegalPage title="이용약관" effectiveFrom={<Pending>[시행일]</Pending>}>
+    <LegalPage title="이용약관" effectiveFrom="2026년 9월 19일">
       <h2>1. 이 서비스가 하는 일</h2>
       <p>
         Nook은 답을 주는 도구가 아닙니다. 적어주신 생각을 질문으로 바꿔 되돌려
@@ -84,11 +84,10 @@ export default function TermsPage() {
 
       <h2>9. 문의와 준거법</h2>
       <ul>
+        <li>운영: 박수연</li>
         <li>
-          운영: <Pending>[운영 주체 성명 또는 팀명]</Pending>
-        </li>
-        <li>
-          문의: <Pending>[연락 가능한 이메일]</Pending>
+          문의: <Link href="/privacy">개인정보처리방침</Link> 11항의 연락처로
+          보내주세요.
         </li>
       </ul>
       <p>

@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import Script from "next/script";
 
-type Turnstile = {
+type CaptchaApi = {
   render(
     element: HTMLElement,
     options: {
@@ -11,24 +11,38 @@ type Turnstile = {
       "expired-callback": () => void;
       "error-callback": () => boolean;
       theme: string;
-      size: string;
+      size?: string;
     },
   ): string;
-  remove(id: string): void;
+  remove?(id: string): void;
+  reset?(id: string): void;
 };
 declare global {
   interface Window {
-    turnstile?: Turnstile;
+    turnstile?: CaptchaApi;
+    hcaptcha?: CaptchaApi;
   }
 }
 
-/** Supabase verifies the token. Client presence alone never grants a session. */
+/** Supabase verifies the token, so the provider rendered here must be the one
+ * configured in Supabase Auth: a token from the other provider is rejected.
+ * hCaptcha wins when both keys are present, because that is the explicit choice.
+ */
+const hcaptchaKey = process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY;
+const turnstileKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+const provider = hcaptchaKey ? "hcaptcha" : turnstileKey ? "turnstile" : null;
+const sitekey = hcaptchaKey || turnstileKey;
+const scriptSrc =
+  provider === "hcaptcha"
+    ? "https://js.hcaptcha.com/1/api.js?render=explicit"
+    : "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+
+/** Client presence alone never grants a session. */
 export function AnonymousVerification({
   onToken,
 }: {
   onToken: (token: string) => void;
 }) {
-  const sitekey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
   const [needed, setNeeded] = useState(false);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState(false);
@@ -47,14 +61,15 @@ export function AnonymousVerification({
       })
       .catch(() => {});
     return () => controller.abort();
-  }, [sitekey]);
+  }, []);
   useEffect(() => {
-    const api = window.turnstile;
+    const api = provider === "hcaptcha" ? window.hcaptcha : window.turnstile;
     if (!needed || !ready || !sitekey || !element.current || !api) return;
     const id = api.render(element.current, {
       sitekey,
       theme: "auto",
-      size: "flexible",
+      // Turnstile accepts a flexible width; hCaptcha does not know that value.
+      ...(provider === "turnstile" ? { size: "flexible" } : {}),
       callback: (token) => {
         onToken(token);
         setError(false);
@@ -67,16 +82,20 @@ export function AnonymousVerification({
       },
     });
     return () => {
-      api.remove(id);
+      try {
+        api.remove?.(id);
+      } catch {
+        api.reset?.(id);
+      }
       onToken("");
     };
-  }, [needed, ready, sitekey, onToken]);
+  }, [needed, ready, onToken]);
   if (!sitekey || !needed) return null;
   return (
     <div className="anonymous-verification">
       <p>계정 없이 시작하기 위한 사용자 확인</p>
       <Script
-        src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
+        src={scriptSrc}
         onReady={() => setReady(true)}
         onError={() => setError(true)}
       />

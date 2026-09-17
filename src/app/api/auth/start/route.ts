@@ -74,6 +74,10 @@ export async function POST(request: Request) {
         code: "INVALID_PROVIDER",
         message: "로그인 방법을 다시 선택해 주세요.",
       });
+    // 개인정보 보호법 제22조: the agreements are taken before the account exists,
+    // so a client that skips the boxes must not reach the provider either.
+    if (form.get("agreed") !== "on")
+      return authRedirect(origin, loginPath(returnTo, "consent"));
     const supabase = await createSupabaseRouteClient();
     const result = await startLogin(supabase.auth, provider, origin);
     if (result.kind === "existing") return authRedirect(origin, returnTo);
@@ -92,6 +96,7 @@ export async function POST(request: Request) {
       JSON.stringify({
         expectedUserId: result.expectedUserId,
         returnTo,
+        agreed: true,
         expiresAt: Date.now() + FLOW_SECONDS * 1000,
       }),
       {

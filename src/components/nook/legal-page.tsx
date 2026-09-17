@@ -1,10 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-/** Shared frame for the two published policies. The operator fields are left as
- * marked placeholders rather than invented: a policy that names the wrong
- * controller is worse than one that is visibly unfinished.
- */
+/** Shared frame for the two published policies. */
 export function LegalPage({
   title,
   effectiveFrom,
@@ -37,8 +34,4 @@ export function LegalPage({
       </main>
     </div>
   );
-}
-
-export function Pending({ children }: { children: ReactNode }) {
-  return <span className="legal-pending">{children}</span>;
 }
