@@ -5,9 +5,9 @@
 ## 버전·배포
 
 - 저장소: rudin0806/Nook, 작업·배포 브랜치 **main만 사용**.
-- 기능 기준 커밋: `0da1941`. 최신 책장 UI 커밋 `bdd98745` (`feat(ui): restore bookshelf view for saved stories`), 운영 `dpl_HbE8Ys6sHMiPp14yG8s7JuMAhxJt` READY, source git. main과 운영 일치 확인.
+- 기능 기준 커밋: `0da1941`. 책장 UI 커밋 `bdd98745` (`feat(ui): restore bookshelf view for saved stories`), 책장 미리보기 가장자리 보정 `a7aa260`. 운영 `dpl_Gbc4DFDuVTjXtUbRFyXu2ai4M1o2` READY, source git SHA `a7aa260`. main과 운영 일치 확인.
 - 기능 변경: 5번 상세 탐색, 6번 계정·보관 복귀, 정렬 동시성, 잔여 UI와 익명 확인 UI를 GitHub main과 운영에 반영했다. GitHub 쓰기 권한을 복구했고 Vercel 자동 배포가 새 SHA를 기록했다.
-- 최신 UI 변경: `bdd98745`에서 보관한 이야기(`sessions`)를 책장형 책등 그리드로 복원했다. 운영은 `dpl_HbE8Ys6sHMiPp14yG8s7JuMAhxJt`이며 main의 해당 SHA를 source git으로 사용한다.
+- 최신 UI 변경: `bdd98745`에서 보관한 이야기(`sessions`)를 책장형 책등 그리드로 복원했고, `a7aa260`에서 모바일 가로 스크롤을 만드는 미리보기 가장자리 정렬만 고쳤다. 운영은 `dpl_Gbc4DFDuVTjXtUbRFyXu2ai4M1o2`이며 main의 `a7aa260`을 source git으로 사용한다.
 - 운영: https://nook-nine-eta.vercel.app/
 - Vercel GitHub 연결 완료. main push → 자동 운영 배포. 파일 업로드 배포를 사용하지 않는다.
 
@@ -50,7 +50,7 @@
 - 독립 Postgres(PGlite): migration 14개, SQL suite 10개, release readiness 11 checks PASS. 기존 60권 순서 회귀 포함.
 - `npm run eval -- --dry`, `npm run eval:judge:validate` 통과. 유료 모델 호출 **0회**.
 - Cron 최근 3회(2026-09-16 11:17/12:17/13:17 UTC) `succeeded`. `1 row`는 SELECT 반환 행 수이며 삭제 건수가 아니다. 실제 만료 대상 처리 건수 관찰은 미완료.
-- 운영 공개 홈 로드, 제목·주 메뉴·입력·조명·책장·이어갈 대화 영역 렌더링 확인. 최신 책장 배포 `dpl_HbE8Ys6sHMiPp14yG8s7JuMAhxJt`는 READY이고 source git SHA가 `bdd98745`와 일치한다. 최근 1시간 Vercel runtime error 0건. 로그인 공급자·모바일 실기기 왕복과 책장 hover/focus 시각 확인은 아래 운영 관문으로 남긴다.
+- 운영 공개 홈 로드, 제목·주 메뉴·입력·조명·책장·이어갈 대화 영역 렌더링 확인. 최신 배포 `dpl_Gbc4DFDuVTjXtUbRFyXu2ai4M1o2`는 READY이고 source git SHA가 `a7aa260`과 일치하며 `nook-nine-eta.vercel.app`에 alias됐다. 최근 1시간 Vercel runtime error 0건. 로그인 공급자·모바일 실기기 왕복과 책장 hover/focus 시각 확인은 아래 운영 관문으로 남긴다.
 - 책장 브라우저 검증(2026-09-17, Chromium): 로컬 프로덕션 빌드(`next start`)에서 `/api/sessions` 응답만 20권으로 대체해 실제 렌더링을 측정했다. 데스크톱 1280px에서 셀 20개가 10+10 두 줄, 모바일 390px에서 5+5+5+5 네 줄. hover 시 미리보기 opacity 0→1, 책등 `translateY(-16px) scale(1.05)`, `z-index: 20`. 키보드 focus만으로도 미리보기 노출, Enter로 `/drawer/:sessionId` 이동 확인. `prefers-reduced-motion: reduce`에서 transition·transform 모두 none. 순서 편집 모드는 책장 대신 drag 가능한 목록 20개와 화살표 40개·핸들 20개를 유지했고, 질문·휴지통은 책장 없이 카드 UI를 유지했다.
 - 위 검증에서 모바일 가로 스크롤 결함을 발견해 CSS만 수정했고, 수정 후 문서 폭 390px = 화면 폭 390px, 화면 밖으로 나가는 요소 0개를 재확인했다. 책등 제목과 번호가 겹치거나 책등 밖으로 나가는 경우도 20권 전부에서 0건이다.
 - 이 검증은 API 응답을 대체한 로컬 프로덕션 빌드 기준이다. 실제 계정으로 로그인한 운영 왕복과 실기기 터치는 아래 운영 관문에 남아 있다.

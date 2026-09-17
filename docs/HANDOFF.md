@@ -107,7 +107,8 @@ Google OAuth·익명 identity linking·callback·로그아웃·익명 생성 기
 - 기능 기준 커밋: `0da1941`.
 - 최신 책장 UI 커밋: `bdd98745` (`feat(ui): restore bookshelf view for saved stories`).
 - 문서·정리 migration 기준 커밋: `a154ce1`.
-- 운영 배포: `dpl_HbE8Ys6sHMiPp14yG8s7JuMAhxJt` READY (source git, `bdd98745`).
+- 운영 배포: `dpl_Gbc4DFDuVTjXtUbRFyXu2ai4M1o2` READY (source git, `a7aa260`).
+- 책장 미리보기 가장자리 보정 커밋: `a7aa260` (`fix(ui): keep shelf previews inside the viewport on mobile`).
 - 운영 주소: https://nook-nine-eta.vercel.app/
 - 5번 상세 탐색·카드 이동, 6번 닉네임·로그인 후 보관 복귀, 책장 정렬 충돌 검사는 코드와 운영에 반영됐다.
 - 보관한 이야기 `/drawer`는 책장형 책등 그리드다. 데스크톱 10권×2줄, 모바일 5권×4줄(페이지 크기 20)이며 hover/focus 때 단일 권 미리보기, 클릭/Enter 때 `/drawer/:sessionId` 상세 이동을 제공한다. 순서 편집 모드와 질문·휴지통 컬렉션은 기존 UI를 유지한다.
@@ -117,7 +118,8 @@ Google OAuth·익명 identity linking·callback·로그아웃·익명 생성 기
 
 - `npm run validate` 통과.
 - 단위 테스트 157/157 재실행 통과.
-- Vercel `dpl_HbE8Ys6sHMiPp14yG8s7JuMAhxJt` READY, main의 `bdd98745` source git 확인.
+- Vercel `dpl_Gbc4DFDuVTjXtUbRFyXu2ai4M1o2` READY, main의 `a7aa260` source git 확인.
+- 브라우저 검증은 같은 커밋의 로컬 프로덕션 빌드(`next start`)에서 수행했다. 이 작업 환경은 프록시가 `vercel.app`을 막아 운영 주소로 브라우저를 직접 띄우지 못한다. 운영 주소 확인이 필요하면 로컬 개발 환경에서 한다.
 - 최근 1시간 Vercel runtime error 0건.
 - 브라우저 검증 완료(2026-09-17, Claude, Chromium): 데스크톱 10×2, 모바일 5×4, hover/focus 미리보기, 키보드 Enter로 `/drawer/:sessionId` 이동, reduced-motion, 편집 모드의 drag/arrow 목록, 질문·휴지통 카드 UI를 모두 측정으로 확인했다. 방법은 로컬 프로덕션 빌드에서 `/api/sessions` 응답만 20권으로 대체한 것이다.
 - 이때 모바일 책장 화면에만 가로 스크롤이 생기는 결함을 찾아 CSS만 수정했다(양끝 열 미리보기 안쪽 정렬). 마크업·동작·백엔드는 건드리지 않았고 vivid UI도 되살리지 않았다.
