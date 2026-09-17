@@ -5,8 +5,8 @@
 ## 버전·배포
 
 - 저장소: rudin0806/Nook, 작업·배포 브랜치 **main만 사용**.
-- 작업 시작 기준: `d68e3bf`, 운영 `dpl_DpDVGbUvhNfaXHr4myx3787ysQEg` READY, source git. main과 운영 일치 확인.
-- 이번 변경: 로컬 구현·검증 완료, main push 및 새 배포 확인 진행 중. 완료 정보는 아래 검증 기록에서 갱신한다.
+- 작업 시작 기준: `d68e3bf`. 이번 기능 커밋 `0da1941`, 운영 `dpl_AuMTASaKiyz17sLHy22RepFRrMkS` READY, source git. main과 운영 일치 확인.
+- 이번 변경: 5번 상세 탐색, 6번 계정·보관 복귀, 정렬 동시성, 잔여 UI와 익명 확인 UI를 GitHub main과 운영에 반영했다. GitHub 쓰기 권한을 복구했고 Vercel 자동 배포가 새 SHA를 기록했다.
 - 운영: https://nook-nine-eta.vercel.app/
 - Vercel GitHub 연결 완료. main push → 자동 운영 배포. 파일 업로드 배포를 사용하지 않는다.
 
@@ -29,7 +29,7 @@
 - 진행 중 대화도 명시적 retention 복귀 요청이면 보관 화면을 연다. SAVED/TRASHED/만료·소유권 판정은 서버가 먼저 처리한다.
 - 이어갈 대화: dialog 카드 레이아웃, 가로 스와이프·좌우키·버튼, 만료로 카드 수가 줄었을 때 인덱스 보정. 빈 상태 점선 카드 3장 구분 강화.
 - globals.css 잔여 다크 하드코딩을 테마 토큰으로 교체. 기존 팔레트·벤또·상단탭·책등 유지.
-- 옛 `/api/sessions/order`와 전체 배열 클라이언트·스키마·서버 함수 제거. DB의 옛 RPC 삭제는 새 배포 후 분리 실행한다.
+- 옛 `/api/sessions/order`와 전체 배열 클라이언트·스키마·서버 함수 제거. DB의 옛 `reorder_saved_sessions(uuid[])` RPC 삭제 migration은 작성했지만, 현재 Codex 사용량 한도로 Supabase 적용이 대기 중이다.
 - 익명 시작: 선택적 Turnstile UI·만료/오류 처리·토큰 전달 추가. `NEXT_PUBLIC_TURNSTILE_SITE_KEY`와 서버의 익명 활성화가 함께 필요하다. 실제 검증은 Supabase Auth가 담당한다.
 
 ## DB·동시성
@@ -37,7 +37,7 @@
 - 이전 운영 migration 13건 + `shelf_conflict_guard` 적용 완료 = 14건.
 - `saved_thought_sessions.shelf_revision`: RLS가 적용된 단일 SELECT snapshot에서 읽는 전체 책장 ID/자리 fingerprint. 사용자 데이터 변경 없음.
 - `move_saved_session_checked`: 사용자별 잠금 후 fingerprint 비교, 일치할 때 기존 한 권 이동 함수 실행. 반환 위치·새 fingerprint 검증.
-- fingerprint는 단조 증가 revision이 아니다. 다른 탭 변경 뒤 현재 순서가 원래와 완전히 같아졌다면 충돌로 취급하지 않는다. 예전 2인자 move RPC는 배포 호환용으로 남아 있어 새 앱의 충돌 검사와 구별한다.
+- fingerprint는 단조 증가 revision이 아니다. 다른 탭 변경 뒤 현재 순서가 원래와 완전히 같아졌다면 충돌로 취급하지 않는다. 예전 2인자 move RPC는 새 앱의 충돌 검사와 구별된다.
 - 운영 DB에서도 합성 사용자·책 2권을 넣은 트랜잭션으로 stale 요청 거절, 이후 최신 요청 성공, 타 사용자·익명 거절을 확인했다. 전부 rollback, 실제 사용자 데이터 변경 없음.
 - 새 함수 추가와 옛 RPC 삭제를 묶은 최초 요청은 자동 승인 검토가 배포 전 삭제 위험으로 거절했다. 삭제를 분리한 호환 migration은 승인·적용됐다.
 
@@ -47,7 +47,7 @@
 - 독립 Postgres(PGlite): migration 14개, SQL suite 10개, release readiness 11 checks PASS. 기존 60권 순서 회귀 포함.
 - `npm run eval -- --dry`, `npm run eval:judge:validate` 통과. 유료 모델 호출 **0회**.
 - Cron 최근 3회(2026-09-16 11:17/12:17/13:17 UTC) `succeeded`. `1 row`는 SELECT 반환 행 수이며 삭제 건수가 아니다. 실제 만료 대상 처리 건수 관찰은 미완료.
-- 로컬 브라우저는 `ERR_BLOCKED_BY_CLIENT`로 접속 불가. 운영 배포 후 실제 화면 검증 결과를 추가한다.
+- 운영 공개 홈 로드, 제목·주 메뉴·입력·조명·책장·이어갈 대화 영역 렌더링 확인. 배포 직후 Vercel runtime error 0건. 로그인 공급자·모바일 실기기 왕복은 아래 운영 관문으로 남긴다.
 
 ## 남은 운영 관문·제품 결정
 
