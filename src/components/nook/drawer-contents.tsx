@@ -349,10 +349,41 @@ export function DrawerContents({
         )}
         {state.kind === "ready" &&
           (state.items.length ? (
-            <ul
-              className={`drawer-list ${collection === "sessions" ? "saved-books" : ""}`}
-            >
-              {state.items.map((item, index) => (
+            collection === "sessions" && !editingOrder ? (
+              <div className="bookshelf" aria-label="보관한 이야기 책장">
+                <ul className="bookshelf-grid">
+                  {state.items.map((item, index) => (
+                    <li className="book-cell" key={item.id}>
+                      <Link
+                        href={`/drawer/${item.id}`}
+                        className="book-spine"
+                        data-tone={(index % 8) + 1}
+                        aria-label={`${item.text} 펼쳐보기`}
+                      >
+                        <span className="book-spine-title">{item.text}</span>
+                        <span className="book-spine-number">
+                          {String(offset + index + 1).padStart(2, "0")}
+                        </span>
+                        <span className="book-preview" aria-hidden="true">
+                          <strong>{item.text}</strong>
+                          <small>
+                            {dateFormat.format(new Date(item.date))} · 이야기
+                            열기
+                          </small>
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+                <p className="bookshelf-hint">
+                  책을 가리키거나 선택하면 한 권씩 펼쳐볼 수 있어요.
+                </p>
+              </div>
+            ) : (
+              <ul
+                className={`drawer-list ${collection === "sessions" ? "saved-books" : ""}`}
+              >
+                {state.items.map((item, index) => (
                 <li
                   key={item.id}
                   className="preview-summary-card"
@@ -452,8 +483,9 @@ export function DrawerContents({
                     </div>
                   </details>
                 </li>
-              ))}
-            </ul>
+                ))}
+              </ul>
+            )
           ) : (
             <div className="preview-summary-card">
               <h2>
