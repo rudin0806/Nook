@@ -1,12 +1,13 @@
-# Nook 현재 상태 — 2026-09-16
+# Nook 현재 상태 — 2026-09-17
 
 기능 상태의 단일 기준. 과거 완료는 새로 평가하지 않았다는 이유로 취소하지 않는다.
 
 ## 버전·배포
 
 - 저장소: rudin0806/Nook, 작업·배포 브랜치 **main만 사용**.
-- 작업 시작 기준: `d68e3bf`. 이번 기능 커밋 `0da1941`, 운영 `dpl_AuMTASaKiyz17sLHy22RepFRrMkS` READY, source git. main과 운영 일치 확인.
-- 이번 변경: 5번 상세 탐색, 6번 계정·보관 복귀, 정렬 동시성, 잔여 UI와 익명 확인 UI를 GitHub main과 운영에 반영했다. GitHub 쓰기 권한을 복구했고 Vercel 자동 배포가 새 SHA를 기록했다.
+- 기능 기준 커밋: `0da1941`. 최신 책장 UI 커밋 `bdd98745` (`feat(ui): restore bookshelf view for saved stories`), 운영 `dpl_HbE8Ys6sHMiPp14yG8s7JuMAhxJt` READY, source git. main과 운영 일치 확인.
+- 기능 변경: 5번 상세 탐색, 6번 계정·보관 복귀, 정렬 동시성, 잔여 UI와 익명 확인 UI를 GitHub main과 운영에 반영했다. GitHub 쓰기 권한을 복구했고 Vercel 자동 배포가 새 SHA를 기록했다.
+- 최신 UI 변경: `bdd98745`에서 보관한 이야기(`sessions`)를 책장형 책등 그리드로 복원했다. 운영은 `dpl_HbE8Ys6sHMiPp14yG8s7JuMAhxJt`이며 main의 해당 SHA를 source git으로 사용한다.
 - 운영: https://nook-nine-eta.vercel.app/
 - Vercel GitHub 연결 완료. main push → 자동 운영 배포. 파일 업로드 배포를 사용하지 않는다.
 
@@ -29,6 +30,7 @@
 - 진행 중 대화도 명시적 retention 복귀 요청이면 보관 화면을 연다. SAVED/TRASHED/만료·소유권 판정은 서버가 먼저 처리한다.
 - 이어갈 대화: dialog 카드 레이아웃, 가로 스와이프·좌우키·버튼, 만료로 카드 수가 줄었을 때 인덱스 보정. 빈 상태 점선 카드 3장 구분 강화.
 - globals.css 잔여 다크 하드코딩을 테마 토큰으로 교체. 기존 팔레트·벤또·상단탭·책등 유지.
+- 보관한 이야기 책장: 데스크톱은 20권 페이지를 10권×2줄로, 모바일은 5권×4줄로 배치한다. 책등 hover/focus 시 단일 권 미리보기가 앞으로 올라오며 클릭/Enter는 완료 세션 상세(`/drawer/[sessionId]`)로 이동한다. 순서 편집 모드는 기존 drag/arrow 목록을 유지하고 질문·휴지통 컬렉션은 기존 카드 UI를 유지한다. reduced-motion도 지원한다.
 - 옛 `/api/sessions/order`와 전체 배열 클라이언트·스키마·서버 함수 제거. DB의 옛 `reorder_saved_sessions(uuid[])` RPC 삭제 migration은 작성했지만, 현재 Codex 사용량 한도로 Supabase 적용이 대기 중이다.
 - 익명 시작: 선택적 Turnstile UI·만료/오류 처리·토큰 전달 추가. `NEXT_PUBLIC_TURNSTILE_SITE_KEY`와 서버의 익명 활성화가 함께 필요하다. 실제 검증은 Supabase Auth가 담당한다.
 
@@ -43,17 +45,18 @@
 
 ## 검증
 
-- 단위 테스트 **157/157**, `npm run validate` (타입·린트·프로덕션 빌드) 통과.
+- 단위 테스트 **157/157** (2026-09-17 재실행), `npm run validate` (타입·린트·프로덕션 빌드) 통과.
 - 독립 Postgres(PGlite): migration 14개, SQL suite 10개, release readiness 11 checks PASS. 기존 60권 순서 회귀 포함.
 - `npm run eval -- --dry`, `npm run eval:judge:validate` 통과. 유료 모델 호출 **0회**.
 - Cron 최근 3회(2026-09-16 11:17/12:17/13:17 UTC) `succeeded`. `1 row`는 SELECT 반환 행 수이며 삭제 건수가 아니다. 실제 만료 대상 처리 건수 관찰은 미완료.
-- 운영 공개 홈 로드, 제목·주 메뉴·입력·조명·책장·이어갈 대화 영역 렌더링 확인. 배포 직후 Vercel runtime error 0건. 로그인 공급자·모바일 실기기 왕복은 아래 운영 관문으로 남긴다.
+- 운영 공개 홈 로드, 제목·주 메뉴·입력·조명·책장·이어갈 대화 영역 렌더링 확인. 최신 책장 배포 `dpl_HbE8Ys6sHMiPp14yG8s7JuMAhxJt`는 READY이고 source git SHA가 `bdd98745`와 일치한다. 최근 1시간 Vercel runtime error 0건. 로그인 공급자·모바일 실기기 왕복과 책장 hover/focus 시각 확인은 아래 운영 관문으로 남긴다.
+- Codex 브라우저의 실제 hover/모바일 캡처는 세션 사용량 제한으로 실행하지 못했다. 코드·타입·린트·빌드·단위 테스트·배포 상태까지 확인했으며, 다음 담당자가 운영 브라우저에서 시각만 마무리하면 된다.
 
 ## 남은 운영 관문·제품 결정
 
 - Turnstile 사이트 키, Supabase 대응 secret·CAPTCHA 강제·익명 활성화 설정 확인. 기존 모델 호출 완료를 취소하는 항목이 아니다.
 - 실제 Google OAuth 취소/성공 및 익명 identity linking 전체 왕복. 테스트 코드 통과를 실제 공급자 왕복으로 보고하지 않는다.
-- 실제 여러 권 브라우저 이동·재접속 순서, 모바일 터치·reduced-motion 기기 검증.
+- 실제 여러 권 브라우저 이동·재접속 순서, 모바일 터치·reduced-motion 기기 검증. 책장 10×2/5×4 노출, hover/focus 전면 미리보기, 클릭/Enter 상세 이동도 운영 브라우저에서 확인한다.
 - 만료 데이터 발생 후 Cron 처리 관찰. 예약 실행 자체는 성공 확인했다.
 - Kakao 공급자 공개는 기존 별도 후속이며 현재 UI는 Google만 제공.
 - 예시 칩은 사용자 요청으로 제거됐지만 PRD §4/§19 문구 정정은 사용자 결정 대기. 임의로 되살리거나 PRD 요구를 바꾸지 않는다.

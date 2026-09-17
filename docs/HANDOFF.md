@@ -104,12 +104,22 @@ Google OAuth·익명 identity linking·callback·로그아웃·익명 생성 기
 ### 운영 기준
 
 - 기준 브랜치: `main`만 사용한다.
-- 기능 구현 커밋: `0da1941`.
-- 문서·정리 migration 커밋: `a154ce1`.
-- 운영 배포: `dpl_ALRimnXDkpzmXGjQ3dwUjQ6RyMC5` READY.
+- 기능 기준 커밋: `0da1941`.
+- 최신 책장 UI 커밋: `bdd98745` (`feat(ui): restore bookshelf view for saved stories`).
+- 문서·정리 migration 기준 커밋: `a154ce1`.
+- 운영 배포: `dpl_HbE8Ys6sHMiPp14yG8s7JuMAhxJt` READY (source git, `bdd98745`).
 - 운영 주소: https://nook-nine-eta.vercel.app/
 - 5번 상세 탐색·카드 이동, 6번 닉네임·로그인 후 보관 복귀, 책장 정렬 충돌 검사는 코드와 운영에 반영됐다.
+- 보관한 이야기 `/drawer`는 책장형 책등 그리드다. 데스크톱 10권×2줄, 모바일 5권×4줄(페이지 크기 20)이며 hover/focus 때 단일 권 미리보기, 클릭/Enter 때 `/drawer/:sessionId` 상세 이동을 제공한다. 순서 편집 모드와 질문·휴지통 컬렉션은 기존 UI를 유지한다.
 - 기능 코드를 다시 구현하거나 vivid UI를 되살리지 않는다. 현재 기준은 `docs/STATUS.md`, `docs/ERD.md`, `docs/design/README.md`다.
+
+### 최신 책장 UI 검증
+
+- `npm run validate` 통과.
+- 단위 테스트 157/157 재실행 통과.
+- Vercel `dpl_HbE8Ys6sHMiPp14yG8s7JuMAhxJt` READY, main의 `bdd98745` source git 확인.
+- 최근 1시간 Vercel runtime error 0건.
+- Codex 브라우저의 실제 hover/모바일 캡처는 세션 사용량 제한으로 수행하지 못했다. 다음 담당자는 운영 브라우저에서 데스크톱 10×2, 모바일 5×4, hover/focus 미리보기, 클릭/Enter 상세 이동, reduced-motion을 확인하고 필요한 경우 CSS만 조정한다. vivid UI를 되살리거나 백엔드를 다시 구현하지 않는다.
 
 ### Supabase에서 마지막으로 할 일
 
@@ -141,7 +151,7 @@ where n.nspname = 'public'
 
 - Turnstile 사이트 키·서버 secret·익명 인증 강제 설정을 확인하고 익명 시작→종료→보관 왕복을 실제로 확인한다.
 - Google OAuth 성공·취소·만료와 identity linking 왕복을 확인한다. 이메일 문자열로 계정을 병합하지 않는다.
-- 실제 브라우저에서 여러 권 이동·재접속, 모바일 터치, reduced-motion을 확인한다.
+- 실제 브라우저에서 여러 권 이동·재접속, 모바일 터치, reduced-motion을 확인한다. 책장 hover/focus/click 동작도 같은 세션에서 확인한다.
 - 만료 데이터가 생긴 뒤 pg_cron 정리 실행 이력을 관찰한다. 예약 job 자체는 활성·성공 이력이 있다.
 - 위 검증은 이미 배포된 기능의 운영 확인이며, 기능 재구현이나 유료 모델 재평가가 아니다.
 
@@ -150,4 +160,4 @@ where n.nspname = 'public'
 - 단위 테스트 157/157.
 - `npm run validate` 통과.
 - PGlite migration 14개·SQL suite 10개·release readiness 11 checks 통과.
-- 공개 운영 홈 로드 및 배포 직후 runtime error 0건 확인.
+- 공개 운영 홈 로드 및 최신 책장 배포 후 runtime error 0건 확인.
