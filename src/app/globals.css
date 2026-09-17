@@ -578,64 +578,56 @@ body button {
     transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
     box-shadow 0.3s ease;
 }
-/* Shelves look wrong when every book is identical, so widths, heights and the
-   space beside them come from a fixed set keyed to the book's position. */
-.book[data-shape="1"] {
+/* Size carries meaning: a longer conversation is a thicker, taller book. Five
+   steps, so the difference is readable without turning the shelf into a chart. */
+.book[data-size="1"] {
+  --book-w: 54px;
+  --book-h: 160px;
+}
+.book[data-size="2"] {
   --book-w: 62px;
-  --book-h: 178px;
+  --book-h: 176px;
+}
+.book[data-size="3"] {
+  --book-w: 70px;
+  --book-h: 190px;
+}
+.book[data-size="4"] {
+  --book-w: 80px;
+  --book-h: 204px;
+}
+.book[data-size="5"] {
+  --book-w: 92px;
+  --book-h: 218px;
+}
+/* The space beside a book and its lean stay positional, so a shelf of books
+   that happen to be the same size still looks like a shelf. */
+.book[data-jitter="1"],
+.book[data-jitter="6"] {
   --book-gap: 4px;
 }
-.book[data-shape="2"] {
-  --book-w: 78px;
-  --book-h: 198px;
-  --book-gap: 9px;
-}
-.book[data-shape="3"] {
-  --book-w: 56px;
-  --book-h: 178px;
-  --book-gap: 6px;
-}
-.book[data-shape="4"] {
-  --book-w: 72px;
-  --book-h: 206px;
-  --book-gap: 12px;
-}
-.book[data-shape="5"] {
-  --book-w: 84px;
-  --book-h: 182px;
-  --book-gap: 5px;
-}
-.book[data-shape="6"] {
-  --book-w: 60px;
-  --book-h: 192px;
+.book[data-jitter="2"],
+.book[data-jitter="7"] {
   --book-gap: 10px;
 }
-.book[data-shape="7"] {
-  --book-w: 74px;
-  --book-h: 176px;
-  --book-gap: 4px;
-}
-.book[data-shape="8"] {
-  --book-w: 66px;
-  --book-h: 210px;
-  --book-gap: 7px;
-}
-.book[data-shape="9"] {
-  --book-w: 88px;
-  --book-h: 188px;
-  --book-gap: 13px;
-}
-.book[data-shape="10"] {
-  --book-w: 58px;
-  --book-h: 200px;
+.book[data-jitter="3"],
+.book[data-jitter="8"] {
   --book-gap: 6px;
 }
-.book[data-shape="2"],
-.book[data-shape="7"] {
+.book[data-jitter="4"],
+.book[data-jitter="9"] {
+  --book-gap: 13px;
+}
+.book[data-jitter="5"],
+.book[data-jitter="10"] {
+  --book-gap: 8px;
+}
+.book[data-jitter="2"],
+.book[data-jitter="7"] {
   --book-tilt: -1.4deg;
 }
-.book[data-shape="5"],
-.book[data-shape="9"] {
+.book[data-jitter="5"],
+.book[data-jitter="9"] {
   --book-tilt: 1.2deg;
 }
 .book-spine {

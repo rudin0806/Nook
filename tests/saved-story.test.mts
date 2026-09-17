@@ -14,6 +14,8 @@ const session = {
   retention_decided_at: now,
   shelf_position: null,
   shelf_revision: "0".repeat(32),
+  turn_count: 6,
+  node_count: 2,
 };
 function fixture(
   options: {

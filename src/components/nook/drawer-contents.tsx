@@ -40,9 +40,24 @@ type Item = {
   text: string;
   spine: string;
   date: string;
+  /** 1 (a short exchange) to 5 (a long one). Drives how big the book is. */
+  size?: number;
   purgeAfter?: string;
   revision?: string;
 };
+
+/** A book's size reads as how much the conversation holds. Turns carry most of
+ * the weight and the questions it passed through add to it, so a session that
+ * went further looks like a thicker, taller book on the shelf.
+ */
+function sizeLevel(turns: number, nodes: number): number {
+  const weight = turns + nodes * 2;
+  if (weight <= 3) return 1;
+  if (weight <= 7) return 2;
+  if (weight <= 13) return 3;
+  if (weight <= 21) return 4;
+  return 5;
+}
 type State =
   | { kind: "loading" }
   | { kind: "error"; message: string; needsLogin?: boolean }
@@ -135,6 +150,9 @@ export function DrawerContents({
                   "shelf_revision" in item ? item.shelf_revision : undefined,
                 text: `${dateFormat.format(new Date(item.started_at))}의 이야기`,
                 spine: spineLabel(item.started_at),
+                ...("turn_count" in item
+                  ? { size: sizeLevel(item.turn_count, item.node_count) }
+                  : {}),
                 date:
                   "trashed_at" in item
                     ? item.trashed_at

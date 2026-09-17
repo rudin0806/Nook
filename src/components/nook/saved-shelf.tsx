@@ -8,6 +8,7 @@ export type ShelfItem = {
   text: string;
   spine: string;
   date: string;
+  size?: number;
 };
 export type ShelfView = "shelf" | "grid";
 
@@ -95,12 +96,11 @@ export function spineTokens(label: string): { text: string; tcy: boolean }[] {
     .map((part) => ({ text: part, tcy: /^\d{1,2}$/.test(part) }));
 }
 
-/** Shelves look wrong when every book is the same size, so each one takes a
- * width, height and gap from a fixed set. The choice is derived from the
- * position, which keeps a book the same shape on every render and gives the
- * second row a different rhythm from the first.
+/** Size means something: it comes from how much the conversation holds. The tilt
+ * and the space beside a book stay positional, so a shelf of similar-sized
+ * books still reads as a shelf rather than a chart.
  */
-function shapeOf(index: number): number {
+function jitterOf(index: number): number {
   return ((index * 7 + Math.floor(index / 5) * 3) % 10) + 1;
 }
 
@@ -181,7 +181,8 @@ export function SavedShelf({
                         href={`/drawer/${item.id}`}
                         className="book"
                         data-tone={(index % 8) + 1}
-                        data-shape={shapeOf(index)}
+                        data-size={item.size ?? 3}
+                        data-jitter={jitterOf(index)}
                         data-opening={opening === item.id || undefined}
                         aria-label={`${item.text} 펼쳐보기`}
                         onClick={(event) => open(event, item.id)}

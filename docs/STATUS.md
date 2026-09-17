@@ -35,6 +35,13 @@
 - 옛 `/api/sessions/order`와 전체 배열 클라이언트·스키마·서버 함수 제거. DB의 옛 `reorder_saved_sessions(uuid[])` RPC 삭제 migration을 2026-09-17 운영에 **적용 완료**했다. 적용 후 `pg_proc` 조회 0행, `move_saved_session`·`move_saved_session_checked`·`normalize_shelf_positions`·보관/복원/휴지통 함수는 그대로 유지됨을 확인했다.
 - 익명 시작: 선택적 Turnstile UI·만료/오류 처리·토큰 전달 추가. `NEXT_PUBLIC_TURNSTILE_SITE_KEY`와 서버의 익명 활성화가 함께 필요하다. 실제 검증은 Supabase Auth가 담당한다.
 
+## 책 크기 = 대화 분량 — 2026-09-17 3차
+
+- 책등 크기가 위치에서 계산된 장식값이었다. 사용자가 "대화 길이에 따라 높이가 달라지는 것 아니냐"고 물었고, 그게 맞는 설계라 실제 데이터에 연결했다.
+- `saved_thought_sessions` 뷰에 `turn_count`·`node_count`를 노출했다(migration `20260917080000`). 둘 다 `segments`에 이미 집계돼 있던 값이고, `security_invoker`라 호출자 RLS가 그대로 적용된다. 컬럼 추가라 구버전 앱과 호환된다.
+- 크기 등급은 `turns + nodes * 2`를 5단계로 나눈다. 폭 54→92px, 높이 160→218px. 실측으로 5단계 전부 나타나고 등급이 올라갈 때 폭·높이가 단조 증가함을 확인했다.
+- 여백과 기울기는 위치 기반(`data-jitter`)으로 남겼다. 크기가 비슷한 책만 모여도 책장처럼 보이게 하기 위함이며, 크기는 더 이상 무작위가 아니다.
+
 ## 책등 표현·탈퇴 유예 — 2026-09-17 2차
 
 - 책등 글자 깨짐의 원인은 `writing-mode: vertical-rl`의 기본 `text-orientation: mixed`였다. 한글은 세워지고 날짜의 숫자만 90° 눕혀져 한 책등 안에 두 방향이 섞였고, 날짜 문자열의 공백이 세로 빈칸을 만들었다. `text-orientation: upright`로 한 방향으로 통일하고, 숫자 묶음은 `text-combine-upright: all`(종중횡)로 한 칸에 넣었다. `26.10.10`이 8칸이 아니라 3칸을 쓴다.

@@ -43,6 +43,9 @@ export const savedSessionListItemSchema = z.object({
   retention_decided_at: timestamp,
   shelf_position: z.number().int().positive().nullable(),
   shelf_revision: z.string().regex(/^[a-f0-9]{32}$/),
+  /** How much the conversation holds, so a book can be sized by it. */
+  turn_count: z.number().int().nonnegative(),
+  node_count: z.number().int().nonnegative(),
 });
 
 export const savedSessionPositionSchema = z
