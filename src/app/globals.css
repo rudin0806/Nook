@@ -609,6 +609,7 @@ body button {
   transform: translateY(-16px) scale(1.05);
 }
 .book-preview {
+  --preview-x: -50%;
   position: absolute;
   bottom: 8px;
   left: 50%;
@@ -625,7 +626,7 @@ body button {
   color: var(--book-fg);
   opacity: 0;
   pointer-events: none;
-  transform: translate(-50%, 10px) scale(0.86);
+  transform: translate(var(--preview-x), 10px) scale(0.86);
   transform-origin: center bottom;
   transition:
     opacity 0.18s ease,
@@ -635,7 +636,19 @@ body button {
 .book-spine:hover .book-preview,
 .book-spine:focus-visible .book-preview {
   opacity: 1;
-  transform: translate(-50%, 0) scale(1);
+  transform: translate(var(--preview-x), 0) scale(1);
+}
+/* An edge column centred on its spine would hang off the page, so the first and
+   last book of each row open their preview inward instead. */
+.book-cell:nth-child(10n + 1) .book-preview {
+  --preview-x: 0;
+  right: auto;
+  left: 0;
+}
+.book-cell:nth-child(10n) .book-preview {
+  --preview-x: 0;
+  right: 0;
+  left: auto;
 }
 .book-preview strong {
   display: -webkit-box;
@@ -666,7 +679,7 @@ body button {
   }
   .book-spine:hover .book-preview,
   .book-spine:focus-visible .book-preview {
-    transform: translate(-50%, 0);
+    transform: translate(var(--preview-x), 0);
   }
 }
 @media (max-width: 760px) {
@@ -691,6 +704,21 @@ body button {
     width: min(174px, 72vw);
     min-height: 132px;
     padding: 15px;
+  }
+  .book-cell .book-preview {
+    --preview-x: -50%;
+    right: auto;
+    left: 50%;
+  }
+  .book-cell:nth-child(5n + 1) .book-preview {
+    --preview-x: 0;
+    right: auto;
+    left: 0;
+  }
+  .book-cell:nth-child(5n) .book-preview {
+    --preview-x: 0;
+    right: 0;
+    left: auto;
   }
 }
 .conversation-workspace {

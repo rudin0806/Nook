@@ -2,14 +2,14 @@
 
 - `saved_thought_sessions`에 `shelf_revision`을 추가했다. `own_shelf_revision()`은 security invoker이며 현재 사용자 SAVED ID/자리의 MD5 fingerprint를 계산한다. 비밀이나 인증 수단이 아니다. 목록과 같은 SQL snapshot에서 읽는다.
 - `move_saved_session_checked(uuid, integer, text)`는 auth.uid/익명 검사 후 사용자 잠금 행을 생성·잠그고 fingerprint를 비교한다. 불일치 시 `SHELF_ORDER_STALE`(HTTP 409). 기존 한 권 이동을 호출하고 위치·새 fingerprint를 반환한다. SECURITY DEFINER가 필요한 이유는 기존 서버 전용 잠금·정렬 함수를 호출하기 위해서이며 소유권 검사를 유지한다.
-- 옛 `reorder_saved_sessions`는 새 앱이 호출하지 않는다. 삭제 migration `20260916141829_drop_legacy_reorder_saved_sessions.sql`을 작성했으며, 현재 Supabase 적용만 사용량 한도로 대기 중이다. 아래 설명은 당시 이력이다.
+- 옛 `reorder_saved_sessions`는 새 앱이 호출하지 않는다. 삭제 migration `20260916141829_drop_legacy_reorder_saved_sessions.sql`을 **2026-09-17 운영에 적용 완료**했다. 적용 전 이 함수를 참조하는 다른 DB 함수가 없음을 확인했고, 적용 후 `pg_proc` 조회가 0행임을 확인했다. 아래 설명은 당시 이력이다.
 - 닉네임은 Supabase Auth `user_metadata.nickname` 표시 정보로 저장한다. 새 테이블·RLS 변경 없음. 권한/기록 소유권은 오직 인증된 사용자 ID로 판단한다.
 
 ## 2026-09-16 생각더미 순서
 
 - `thought_sessions.shelf_position integer null`: `SAVED` 세션의 사용자별 표시 순서. 양수만 허용하며 기존·신규 null 값은 보관 결정 시각 역순 뒤에 놓는다.
 - `saved_thought_sessions`는 `security_invoker=true`를 유지하고 `shelf_position`을 노출한다.
-- `reorder_saved_sessions(uuid[])`: 소셜 계정에 연결된 사용자(실명 인증을 의미하지 않음)의 전체 SAVED 세션 집합과 요청 배열이 정확히 일치할 때만 ordinality를 저장했다. 배열 상한 50과 전체 집합 요구가 충돌해 51권부터 정렬할 수 없었다. 한 권 이동 방식으로 대체했으며 삭제 migration 적용을 기다리고 있다.
+- `reorder_saved_sessions(uuid[])`: 소셜 계정에 연결된 사용자(실명 인증을 의미하지 않음)의 전체 SAVED 세션 집합과 요청 배열이 정확히 일치할 때만 ordinality를 저장했다. 배열 상한 50과 전체 집합 요구가 충돌해 51권부터 정렬할 수 없었다. 한 권 이동 방식으로 대체했고 2026-09-17에 운영에서 삭제했다.
 - 원격 적용 버전은 `20260916063642`, 저장소 파일 버전은 `20260916050000`이다.
 
 ## 2026-09-16 책장 한 권 이동 (`20260916120000_move_saved_session.sql`, 운영 적용 완료)
@@ -362,6 +362,7 @@ stateDiagram-v2
 - `supabase/migrations/20260912011744_harden_retention_rls_and_indexes.sql` — 익명 즉시 폐기, RLS 보강, FK 인덱스
 - `supabase/migrations/20260916050000_saved_session_shelf_order.sql` — `shelf_position` 컬럼·backfill·인덱스, `saved_thought_sessions` 뷰, 전체 집합 정렬 RPC
 - `supabase/migrations/20260916120000_move_saved_session.sql` — 한 권 이동 RPC, 자리 정규화, 보관·복원·휴지통의 자리 관리
+- `supabase/migrations/20260916141829_drop_legacy_reorder_saved_sessions.sql` — 옛 전체 배열 정렬 RPC 삭제. 2026-09-17 운영 적용 완료
 - `supabase/tests/shelf_order.sql` — 60권 책장 이동·가드·자리 배정 회귀
 - `supabase/snippets/schedule_retention_cleanup.sql` — 7일 휴지통/24시간 임시 데이터 정리 Cron 등록. **2026-09-16에 운영에 등록 완료**(`nook-retention-cleanup-hourly`, 매시 17분). migration이 아니라 1회성 운영 설정이므로 여기 분리해 둔다. 중복 등록을 막으려면 `cron.job`을 먼저 조회한다.
 

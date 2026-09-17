@@ -119,7 +119,9 @@ Google OAuth·익명 identity linking·callback·로그아웃·익명 생성 기
 - 단위 테스트 157/157 재실행 통과.
 - Vercel `dpl_HbE8Ys6sHMiPp14yG8s7JuMAhxJt` READY, main의 `bdd98745` source git 확인.
 - 최근 1시간 Vercel runtime error 0건.
-- Codex 브라우저의 실제 hover/모바일 캡처는 세션 사용량 제한으로 수행하지 못했다. 다음 담당자는 운영 브라우저에서 데스크톱 10×2, 모바일 5×4, hover/focus 미리보기, 클릭/Enter 상세 이동, reduced-motion을 확인하고 필요한 경우 CSS만 조정한다. vivid UI를 되살리거나 백엔드를 다시 구현하지 않는다.
+- 브라우저 검증 완료(2026-09-17, Claude, Chromium): 데스크톱 10×2, 모바일 5×4, hover/focus 미리보기, 키보드 Enter로 `/drawer/:sessionId` 이동, reduced-motion, 편집 모드의 drag/arrow 목록, 질문·휴지통 카드 UI를 모두 측정으로 확인했다. 방법은 로컬 프로덕션 빌드에서 `/api/sessions` 응답만 20권으로 대체한 것이다.
+- 이때 모바일 책장 화면에만 가로 스크롤이 생기는 결함을 찾아 CSS만 수정했다(양끝 열 미리보기 안쪽 정렬). 마크업·동작·백엔드는 건드리지 않았고 vivid UI도 되살리지 않았다.
+- 남은 것은 실제 계정 로그인 상태의 운영 왕복과 실기기 터치다.
 
 ### Supabase에서 마지막으로 할 일
 
@@ -145,13 +147,13 @@ where n.nspname = 'public'
   and p.proname = 'reorder_saved_sessions';
 ```
 
-이 정리는 앱 동작을 바꾸지 않는 레거시 RPC 삭제다. 현재 Codex 세션에서는 사용량 제한으로 Supabase 실행만 대기 중이었다. 적용 후 `docs/STATUS.md`와 `docs/ERD.md`의 “적용 대기” 문장을 “적용 완료”로 바꾸고, 그 변경을 main에 push한다.
+**2026-09-17 적용 완료.** 적용 전에 이 함수를 참조하는 다른 DB 함수가 없음을 확인했고, 적용 후 위 조회가 0행이며 `move_saved_session`·`move_saved_session_checked`·`normalize_shelf_positions`·보관/복원/휴지통 함수가 그대로 남아 있음을 확인했다. Supabase에 남은 정리 작업은 없다.
 
 ### 남은 운영 검증
 
 - Turnstile 사이트 키·서버 secret·익명 인증 강제 설정을 확인하고 익명 시작→종료→보관 왕복을 실제로 확인한다.
 - Google OAuth 성공·취소·만료와 identity linking 왕복을 확인한다. 이메일 문자열로 계정을 병합하지 않는다.
-- 실제 브라우저에서 여러 권 이동·재접속, 모바일 터치, reduced-motion을 확인한다. 책장 hover/focus/click 동작도 같은 세션에서 확인한다.
+- 실제 계정으로 로그인한 운영에서 여러 권 이동·재접속과 실기기 터치를 확인한다. 책장 배치·hover/focus/Enter·reduced-motion은 로컬 프로덕션 빌드 측정으로 확인됐다.
 - 만료 데이터가 생긴 뒤 pg_cron 정리 실행 이력을 관찰한다. 예약 job 자체는 활성·성공 이력이 있다.
 - 위 검증은 이미 배포된 기능의 운영 확인이며, 기능 재구현이나 유료 모델 재평가가 아니다.
 
