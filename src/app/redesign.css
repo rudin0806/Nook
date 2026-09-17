@@ -5,6 +5,7 @@
   color-scheme: light;
   --nook-paper: #f4f5f7;
   --nook-surface: #ffffff;
+  --nook-surface-solid: #ffffff;
   --nook-raised: #f1f2f5;
   --nook-ink: #17191c;
   --nook-muted: #6b7280;
@@ -61,6 +62,7 @@
   color-scheme: dark;
   --nook-paper: #14161a;
   --nook-surface: #1e2126;
+  --nook-surface-solid: #1e2126;
   --nook-raised: #262a30;
   --nook-ink: #f2f4f7;
   --nook-muted: #a2aab5;
@@ -993,4 +995,137 @@ body {
 }
 .clarity-panel {
   border-left-color: var(--nook-line-strong);
+}
+
+/* 예시 데이터 — 견본은 견본처럼 보여야 한다.
+
+   장치는 세 겹이고 각 겹이 다른 일을 한다. 반투명 종이와 점선은 0.3초 안에
+   읽히는 신호, 포인트 컬러 0은 제품 전체에 걸친 규칙, 상단 띠는 왜 견본인지
+   말로 알려주는 역할이다.
+
+   구현은 `data-sample` 스코프 안에서 토큰만 덮는 방식이다. 컴포넌트를 한 개도
+   건드리지 않고, 나중에 예시 화면에 새 컴포넌트를 붙여도 규칙이 자동으로
+   적용된다. 카드마다 예시용 클래스를 붙이는 방식이면 언젠가 하나를 빠뜨린다. */
+[data-sample] {
+  /* 종이만 반투명하게 한다. 카드에 opacity를 걸면 글자 대비까지 같이 깎여서
+     어렵게 맞춘 4.5:1이 무너진다. 배경 토큰만 바꾸면 글자는 불투명하게 남는다. */
+  --nook-surface: color-mix(
+    in srgb,
+    var(--nook-surface-solid) 56%,
+    transparent
+  );
+  --nook-raised: color-mix(in srgb, var(--nook-surface-solid) 56%, transparent);
+
+  /* 점선이 의미를 지니는 요소이므로 3:1 이상이 필요하다. muted는 라이트에서
+     페이퍼 대비 4.5:1, 다크에서는 그보다 높다. */
+  --nook-card-line: var(--nook-muted);
+
+  /* 포인트 컬러는 "내가 만든 것"에만 붙는다. 견본에는 한 점도 쓰지 않는다.
+     포커스 링은 남아야 하므로 잉크로 대체한다 — 무채색이지만 또렷하다. */
+  --nook-primary: var(--nook-ink);
+  --nook-primary-ink: var(--nook-paper);
+  --nook-primary-weak: var(--nook-fill);
+  --nook-accent: var(--nook-ink);
+  --nook-gold: var(--nook-ink);
+  --nook-saved: var(--nook-muted);
+  --nook-open: var(--nook-muted);
+  --nook-open-weak: var(--nook-fill);
+  --nook-mint: var(--nook-muted);
+  --nook-peach: var(--nook-muted);
+  --tea: var(--nook-muted);
+  --rose: var(--nook-muted);
+
+  /* 책장 톤 8종도 무채색 한 쌍으로 모은다. 견본 책장이 알록달록하면 그 자체로
+     "내 기록"처럼 보인다. */
+  --tone-1-bg: var(--nook-fill);
+  --tone-1-fg: var(--nook-ink);
+  --tone-2-bg: var(--nook-fill);
+  --tone-2-fg: var(--nook-ink);
+  --tone-3-bg: var(--nook-fill);
+  --tone-3-fg: var(--nook-ink);
+  --tone-4-bg: var(--nook-fill);
+  --tone-4-fg: var(--nook-ink);
+  --tone-5-bg: var(--nook-fill);
+  --tone-5-fg: var(--nook-ink);
+  --tone-6-bg: var(--nook-fill);
+  --tone-6-fg: var(--nook-ink);
+  --tone-7-bg: var(--nook-fill);
+  --tone-7-fg: var(--nook-ink);
+  --tone-8-bg: var(--nook-fill);
+  --tone-8-fg: var(--nook-ink);
+}
+
+/* 점선은 outline으로 그린다. border로 그리면 1px씩 박스가 커져서 책등 간격과
+   모바일 390px 폭이 다시 흔들린다 — outline은 레이아웃에 영향을 주지 않는다.
+   포커스를 받으면 포커스 링이 이 점선을 대체하는데, 그게 맞는 우선순위다. */
+[data-sample]
+  :is(
+    .writing-surface,
+    .lamp-panel,
+    .shelf-panel,
+    .recovery-panel,
+    .account-panel,
+    .preview-summary-card,
+    .card-stack-card,
+    .cover-card,
+    .conversation-card,
+    .story-question-card,
+    .book-spine,
+    .book-face
+  ) {
+  outline: 1px dashed var(--nook-card-line);
+  outline-offset: -1px;
+}
+
+/* 스크롤해도 따라오는 얇은 띠. 배지 하나만 두면 아래로 내려간 순간 근거가
+   사라진다. 나가는 문까지 이 띠가 겸해서 별도 버튼이 필요 없다. */
+.sample-band {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  padding: 10px 16px;
+  border-bottom: 1px dashed var(--nook-card-line);
+  background: var(--nook-sticky);
+  backdrop-filter: blur(8px);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--nook-muted);
+  word-break: keep-all;
+}
+.sample-band strong {
+  color: var(--nook-ink);
+  font-weight: 600;
+}
+.sample-band a {
+  margin-left: auto;
+  color: var(--nook-ink);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* 홈에서 예시로 들어가는 칩. 입력창이 계속 주인공이어야 하니 카드가 아니라
+   칩이고, 포인트 컬러를 쓰지 않는다 — 눌러야 하는 것은 입력창이다. */
+.sample-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: 1px dashed var(--nook-line-strong);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--nook-muted);
+  font-size: 13px;
+  line-height: 1.4;
+  text-decoration: none;
+  word-break: keep-all;
+}
+.sample-chip:hover,
+.sample-chip:focus-visible {
+  border-color: var(--nook-muted);
+  color: var(--nook-ink);
 }
