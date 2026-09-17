@@ -56,6 +56,25 @@ v3 원안과 구현이 어긋난 곳을 맞췄다.
 
 README 도입부를 v3 포지셔닝으로 교체하고 PRD를 가리키게 했다.
 
+### `/example` 골격 — 전사 대기
+
+`src/app/example/page.tsx`와 `src/lib/example/story.ts`를 만들었다. `force-static`이라
+요청마다 읽을 것이 없고, DB·모델 호출이 0이다. 이 구조가 가짜 기록이 실제 책장에
+흘러들 경로 자체를 없앤다.
+
+fixture는 모듈 로드 시점에 `savedStorySchema.parse`를 통과한다. 계약과 어긋나면 페이지가
+아니라 빌드가 깨진다.
+
+`StoryReader`에 `restartable` prop을 추가했다(기본 true). 예시 노드에는 세션이 없어서
+`이 질문으로 다시 생각하기`가 아무 데도 닿지 못한다. 예시 화면만 false로 끈다.
+
+**본문은 구조 확인용 placeholder다.** `transcriptPending = true`이고, 실제 대화 전사로
+교체할 때까지 홈에서 링크하지 않는다. `robots: noindex, nofollow`.
+
+브라우저 확인(1100·390): 카운터 `1 / 3` → `2 / 3`, `data-turn="next"`, 카드 점선
+`dashed 1px`, `--nook-primary` `#17191c`, 가로 오버플로 없음, `restart/node` 링크 0개,
+실제 `/drawer/:id`는 200 그대로.
+
 ### 예시 데이터 시각 장치
 
 예시 화면용 CSS를 먼저 깔았다. 화면·fixture는 아직 없다.

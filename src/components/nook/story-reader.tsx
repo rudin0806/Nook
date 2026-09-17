@@ -4,7 +4,15 @@ import Link from "next/link";
 import type { SavedStory } from "@/schemas/saved-story";
 import { CardNavigation } from "./card-navigation";
 
-export function StoryReader({ story }: { story: SavedStory }) {
+/** `restartable` is false on the example screen: a sample node has no session
+ * behind it, so offering to restart from it would lead nowhere. */
+export function StoryReader({
+  story,
+  restartable = true,
+}: {
+  story: SavedStory;
+  restartable?: boolean;
+}) {
   const cards = story.segments.flatMap((segment) =>
     segment.nodes.map((node) => ({ node, segment })),
   );
@@ -77,9 +85,11 @@ export function StoryReader({ story }: { story: SavedStory }) {
               </ul>
             </section>
           )}
-          <Link href={`/restart/node/${current.node.id}`}>
-            이 질문으로 다시 생각하기
-          </Link>
+          {restartable && (
+            <Link href={`/restart/node/${current.node.id}`}>
+              이 질문으로 다시 생각하기
+            </Link>
+          )}
         </article>
         <div className="card-controls">
           <button disabled={!previous} onClick={previous}>
