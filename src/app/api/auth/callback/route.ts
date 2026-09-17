@@ -14,6 +14,7 @@ import {
   type CallbackFailure,
 } from "@/lib/auth/callback-errors";
 import { PRIVACY_VERSION, TERMS_VERSION } from "@/lib/legal/versions";
+import { firstProviderIdentity, identityHash } from "@/lib/auth/identity-hash";
 
 function fail(origin: string, reason: CallbackFailure, returnTo: string) {
   console.warn("nook_auth_callback_failed", reason);
@@ -55,6 +56,26 @@ export async function GET(request: Request) {
       if (data.user && data.user.id !== flow.expectedUserId)
         await supabase.auth.signOut({ scope: "local" });
       return fail(origin, "identity", returnTo);
+    }
+    // A method that was used to withdraw may not rejoin until its window is up.
+    // Supabase has already created the account by this point, so it is removed
+    // again here rather than left behind.
+    const hash = identityHash(
+      firstProviderIdentity(data.user?.identities),
+      process.env.NOOK_REQUEST_HMAC_SECRET,
+    );
+    if (hash) {
+      const blocked = await supabase.rpc("rejoin_blocked_until", {
+        p_identity_hash: hash,
+      });
+      if (blocked.error) return fail(origin, "session", returnTo);
+      if (blocked.data) {
+        await supabase.rpc("delete_own_account", { p_identity_hash: hash });
+        try {
+          await supabase.auth.signOut({ scope: "local" });
+        } catch {}
+        return authRedirect(origin, loginPath(returnTo, "rejoin_blocked"));
+      }
     }
     if (flow.agreed) {
       // The member is signed in either way; a failed record is an operational

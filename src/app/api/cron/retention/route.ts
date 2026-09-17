@@ -26,13 +26,13 @@ export async function GET(request: Request) {
         .rpc("purge_expired_sessions")
         .abortSignal(AbortSignal.timeout(45000));
       if (error) throw new Error("RETENTION_RPC_FAILED");
-      // Accounts whose one-month withdrawal window has closed are removed on the
-      // same schedule; a failure here must not be reported as a clean run.
-      const accounts = await client
-        .rpc("purge_expired_accounts")
+      // Rejoin blocks are not kept past their window; a failure here must not
+      // be reported as a clean run.
+      const blocks = await client
+        .rpc("purge_expired_rejoin_blocks")
         .abortSignal(AbortSignal.timeout(45000));
-      if (accounts.error) throw new Error("ACCOUNT_PURGE_RPC_FAILED");
-      return { sessions: data, accounts: accounts.data };
+      if (blocks.error) throw new Error("REJOIN_BLOCK_PURGE_RPC_FAILED");
+      return { sessions: data, rejoinBlocks: blocks.data };
     },
   );
 }

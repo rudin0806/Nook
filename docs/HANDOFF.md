@@ -170,19 +170,23 @@ where n.nspname = 'public'
 - 책장 색은 `--tone-1..8-bg/fg` 전용 토큰이다. 의미 팔레트(`--nook-primary` 등)를 여기에 쓰지 말고, 바꿀 때는 라이트·다크 16조합 대비를 다시 재라(기준 4.5:1).
 - 워드마크는 SUIT, 본문은 Pretendard. **이건 사용자 요청이었고 이전 핸드오프에서 누락됐다.** 지우지 말 것.
 
-### 탈퇴 — 30일 유예 (2026-09-17 변경)
+### 탈퇴 — 즉시 삭제 + 재가입 30일 제한 (2026-09-17 확정)
 
-- 즉시 삭제에서 유예로 **사용자가 결정해 바꿨다.** `delete_own_account()`는 제거됐다.
-- `request_account_deletion()` → `account_deletions`에 표시 + 30일 기한 반환, 재신청은 기한을 늘리지 않는다. `cancel_account_deletion()` → 기한 내 본인만. `purge_expired_accounts()` → `service_role` 전용, 기한 지난 것만.
-- 시간당 cron(`nook-retention-cleanup-hourly`, 매시 17분)이 세션 정리와 계정 파기를 함께 호출한다. 저장소 스니펫도 갱신됐다.
-- `/api/auth/status`가 `purgeAfter`를 반환하고, 로그인 화면이 유예 중이면 취소 배너를 띄우고 삭제 신청 패널을 숨긴다.
-- 정책 문서의 보유기간·파기·권리 항목이 모두 30일 기준이다. 되돌리려면 문서부터 고쳐야 한다.
+- 중간에 30일 유예로 만들었다가 되돌렸다. 사용자의 "1달"은 유예가 아니라 보유기간 얘기였다. **유예 구조로 다시 되돌리지 말 것.**
+- `delete_own_account(p_identity_hash text)`가 해시를 먼저 기록하고 `auth.users`를 지운다. 되돌릴 수 없다.
+- 재가입 제한은 `withdrawn_identities`의 HMAC 한 줄로만 이뤄진다. 키는 `NOOK_REQUEST_HMAC_SECRET`, 입력은 provider subject(이메일 아님), 용도 라벨 `nook:rejoin-block:v1`. **이메일이나 subject를 평문으로 저장하지 말 것.**
+- 이 테이블은 정책도 GRANT도 없다. 늘리지 말 것. 컬럼 3개 제약을 SQL 테스트가 단언한다.
+- 차단 판정은 `/api/auth/callback`에서 한다. Supabase가 계정을 먼저 만들므로 차단 시 그 계정을 삭제하고 내보낸다.
+- 시간당 cron이 만료 해시를 지운다(`purge_expired_rejoin_blocks`).
+- 정책 문서에 즉시 파기 + 해시 30일 보관이 명시돼 있다. 로직을 바꾸면 문서를 같이 고쳐야 한다.
 
 ### 비로그인 플로우 — 확인된 사실
 
 - 익명 사용자는 세션 시작과 노드 도달이 가능하도록 이미 구현돼 있다. DB가 막는 지점은 `keep_session or cardinality(kept_branch_ids) > 0`, 즉 보관뿐이다.
 - 운영은 `anonymousEnabled: false`라서 익명 세션 자체가 생성되지 않고 `/api/start`가 401을 반환한다. 첫 발송에서 로그인 안내가 뜨는 원인이 이것이다.
-- 켜려면 Supabase Auth 익명 로그인 활성화 + Turnstile secret 등록·CAPTCHA 강제 + `NOOK_ANONYMOUS_SIGN_IN_ENABLED=true`, `NEXT_PUBLIC_TURNSTILE_SITE_KEY`. CAPTCHA 없이 열면 안 된다.
+- **노드 수 제한은 없다.** 익명은 세션을 끝까지 돌릴 수 있고, 막히는 지점은 보관뿐이다. "노드 1회까지만"은 사용자가 제시한 두 안 중 하나였고 채택되지 않았다. 제한을 넣으려면 새 결정이 필요하다.
+- **익명에게는 이미 즉시 완전 삭제 경로가 있다.** `finalize_session_retention`에서 익명이 `keep_session=false`를 고르면 휴지통이 아니라 하드 삭제다(로그인 사용자는 휴지통 7일). 계정 자체가 없으므로 익명용 탈퇴 UI는 중복이며 붙이지 않는다. 이전 핸드오프의 "권리 관점 구멍" 서술은 화면을 확인하지 않은 오판이었다.
+- 켜려면 Supabase Auth 익명 로그인 활성화 + hCaptcha secret 등록·CAPTCHA 강제 + **Vercel 환경변수** `NOOK_ANONYMOUS_SIGN_IN_ENABLED=true`, `NEXT_PUBLIC_HCAPTCHA_SITE_KEY`. 이 플래그는 Supabase가 아니라 Vercel 환경변수를 읽으므로 콘솔 설정만으로는 켜지지 않는다. CAPTCHA 없이 열면 안 된다.
 
 ### 폰트
 

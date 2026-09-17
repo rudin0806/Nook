@@ -29,13 +29,12 @@ export function AccountDeletion() {
     >
       <h2>계정을 삭제할까요?</h2>
       <p>
-        신청하면 바로 로그아웃되고, <strong>30일</strong> 뒤에 계정과 기록이
-        모두 지워져요. 보관한 이야기, 남겨둔 질문, 휴지통에 있는 기록, 진행 중인
-        대화가 함께 사라져요.
+        보관한 이야기, 남겨둔 질문, 휴지통에 있는 기록, 진행 중인 대화가 모두
+        지워져요. 되돌릴 수 없어요.
       </p>
       <p>
-        30일 안에 다시 로그인하면 삭제를 취소할 수 있어요. 그 날짜가 지나면
-        되돌릴 수 없어요.
+        같은 방법으로는 30일 동안 다시 가입할 수 없어요. 이를 위해 로그인 수단을
+        되돌릴 수 없는 형태로만 남겨두고, 30일이 지나면 그것도 지워져요.
       </p>
       <label className="account-danger-confirm">
         <input
@@ -44,7 +43,7 @@ export function AccountDeletion() {
           checked={acknowledged}
           onChange={(event) => setAcknowledged(event.target.checked)}
         />
-        <span>30일 뒤에는 되돌릴 수 없다는 점을 확인했어요.</span>
+        <span>되돌릴 수 없다는 점을 확인했어요.</span>
       </label>
       <div className="account-danger-actions">
         <button
@@ -52,7 +51,7 @@ export function AccountDeletion() {
           className="account-danger-submit"
           disabled={!acknowledged}
         >
-          삭제 신청하기
+          계정 삭제하기
         </button>
         <ActionButton
           type="button"
