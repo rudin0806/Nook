@@ -87,7 +87,7 @@ export default function TermsPage() {
 
       <h2>9. 문의와 준거법</h2>
       <ul>
-        <li>운영: 박수연</li>
+        <li>운영: pin</li>
         <li>
           문의: <Link href="/privacy">개인정보처리방침</Link> 11항의 연락처로
           보내주세요.

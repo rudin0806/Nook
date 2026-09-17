@@ -285,7 +285,7 @@ export default function PrivacyPage() {
 
       <h2>11. 개인정보 보호책임자와 열람 청구</h2>
       <ul>
-        <li>처리자: 박수연</li>
+        <li>개인정보처리자: pin</li>
         <li>개인정보 보호책임자: 박수연</li>
         <li>
           연락처:{" "}
