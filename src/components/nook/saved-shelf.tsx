@@ -6,12 +6,16 @@ import { useRouter } from "next/navigation";
 export type ShelfItem = {
   id: string;
   text: string;
+  spine: string;
   date: string;
 };
 export type ShelfView = "shelf" | "grid";
 
 const VIEW_KEY = "nook-shelf-view-v1";
 const OPEN_MS = 320;
+const WIDE_COLUMNS = 10;
+const NARROW_COLUMNS = 5;
+const WIDE_QUERY = "(min-width: 761px)";
 
 /** The chosen view lives in the browser, so it is read as an external store
  * rather than copied into state after mount: the server renders the shelf, and
@@ -41,6 +45,25 @@ function writeView(next: ShelfView) {
   for (const notify of listeners) notify();
 }
 
+/** Rows are built here rather than by wrapping, because a book that grows has to
+ * push its neighbours along the row, and a wrapping list would reflow into the
+ * next row instead.
+ */
+function subscribeWidth(notify: () => void) {
+  const query = window.matchMedia(WIDE_QUERY);
+  query.addEventListener("change", notify);
+  return () => query.removeEventListener("change", notify);
+}
+function readColumns(): number {
+  try {
+    return window.matchMedia(WIDE_QUERY).matches
+      ? WIDE_COLUMNS
+      : NARROW_COLUMNS;
+  } catch {
+    return WIDE_COLUMNS;
+  }
+}
+
 function prefersReducedMotion() {
   try {
     return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -49,13 +72,38 @@ function prefersReducedMotion() {
   }
 }
 
-/** Saved stories, as a shelf of spines or as a wall of covers.
- *
- * Shelf: a book is a spine until it is pointed at or focused, and then that one
- * book turns face-on in place, overlapping its neighbours rather than pushing
- * them. Choosing it plays a short opening move and then navigates, so the jump
- * into a story reads as continuous. Reduced motion skips straight to the page.
+/** A spine is tall but narrow, so the label is clipped by height. Vertical text
+ * gets no ellipsis from the browser, so the cut is made here instead of letting
+ * a glyph be sliced in half.
  */
+export function clampSpineLabel(value: string, max = 9): string {
+  const text = value.trim();
+  return [...text].length <= max
+    ? text
+    : `${[...text].slice(0, max - 1).join("")}…`;
+}
+
+/** Upright vertical text gives every character its own slot, which leaves a
+ * date reading as "2 6 . 1 . 1" down the spine. Short runs of digits are set
+ * sideways-in-vertical instead, the way a date is set on a real book spine, so
+ * "26.10.10" occupies three slots rather than eight.
+ */
+export function spineTokens(label: string): { text: string; tcy: boolean }[] {
+  return label
+    .split(".")
+    .filter((part) => part.length > 0)
+    .map((part) => ({ text: part, tcy: /^\d{1,2}$/.test(part) }));
+}
+
+/** Shelves look wrong when every book is the same size, so each one takes a
+ * width, height and gap from a fixed set. The choice is derived from the
+ * position, which keeps a book the same shape on every render and gives the
+ * second row a different rhythm from the first.
+ */
+function shapeOf(index: number): number {
+  return ((index * 7 + Math.floor(index / 5) * 3) % 10) + 1;
+}
+
 export function SavedShelf({
   items,
   offset,
@@ -67,6 +115,11 @@ export function SavedShelf({
 }) {
   const router = useRouter();
   const view = useSyncExternalStore(subscribeView, readView, () => "shelf");
+  const columns = useSyncExternalStore(
+    subscribeWidth,
+    readColumns,
+    () => WIDE_COLUMNS,
+  );
   const [opening, setOpening] = useState<string | null>(null);
   // The opening move ends in a navigation; if the list goes away first, the
   // pending jump has to go with it.
@@ -77,10 +130,6 @@ export function SavedShelf({
     },
     [],
   );
-
-  function choose(next: ShelfView) {
-    writeView(next);
-  }
 
   function open(event: React.MouseEvent, id: string) {
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0)
@@ -94,6 +143,10 @@ export function SavedShelf({
     );
   }
 
+  const rows: ShelfItem[][] = [];
+  for (let start = 0; start < items.length; start += columns)
+    rows.push(items.slice(start, start + columns));
+
   return (
     <div className="saved-shelf" data-view={view} data-opening={!!opening}>
       <div className="shelf-view-switch" role="group" aria-label="보기 방식">
@@ -101,7 +154,7 @@ export function SavedShelf({
           type="button"
           data-active={view === "shelf"}
           aria-pressed={view === "shelf"}
-          onClick={() => choose("shelf")}
+          onClick={() => writeView("shelf")}
         >
           <span aria-hidden="true">▯▯▯</span> 책장
         </button>
@@ -109,7 +162,7 @@ export function SavedShelf({
           type="button"
           data-active={view === "grid"}
           aria-pressed={view === "grid"}
-          onClick={() => choose("grid")}
+          onClick={() => writeView("grid")}
         >
           <span aria-hidden="true">▤</span> 표지
         </button>
@@ -117,35 +170,55 @@ export function SavedShelf({
 
       {view === "shelf" ? (
         <div className="bookshelf" aria-label="보관한 이야기 책장">
-          <ul className="bookshelf-grid">
-            {items.map((item, index) => (
-              <li className="book-cell" key={item.id}>
-                <Link
-                  href={`/drawer/${item.id}`}
-                  className="book"
-                  data-tone={(index % 8) + 1}
-                  data-opening={opening === item.id || undefined}
-                  aria-label={`${item.text} 펼쳐보기`}
-                  onClick={(event) => open(event, item.id)}
-                >
-                  <span className="book-spine">
-                    <span className="book-spine-title">{item.text}</span>
-                    <span className="book-spine-number">
-                      {String(offset + index + 1).padStart(2, "0")}
-                    </span>
-                  </span>
-                  <span className="book-face" aria-hidden="true">
-                    <span className="book-face-index">
-                      {String(offset + index + 1).padStart(2, "0")}
-                    </span>
-                    <strong>{item.text}</strong>
-                    <small>{formatDate(item.date)}</small>
-                    <span className="book-face-open">펼쳐보기 ↗</span>
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
+          {rows.map((row, rowIndex) => (
+            <div className="shelf-row" key={rowIndex}>
+              <ul className="shelf-books">
+                {row.map((item, column) => {
+                  const index = rowIndex * columns + column;
+                  return (
+                    <li className="book-cell" key={item.id}>
+                      <Link
+                        href={`/drawer/${item.id}`}
+                        className="book"
+                        data-tone={(index % 8) + 1}
+                        data-shape={shapeOf(index)}
+                        data-opening={opening === item.id || undefined}
+                        aria-label={`${item.text} 펼쳐보기`}
+                        onClick={(event) => open(event, item.id)}
+                      >
+                        <span className="book-spine">
+                          <span className="book-spine-title">
+                            {spineTokens(clampSpineLabel(item.spine)).map(
+                              (token, position) => (
+                                <span
+                                  className="spine-token"
+                                  data-tcy={token.tcy || undefined}
+                                  key={position}
+                                >
+                                  {token.text}
+                                </span>
+                              ),
+                            )}
+                          </span>
+                          <span className="book-spine-number">
+                            {String(offset + index + 1).padStart(2, "0")}
+                          </span>
+                        </span>
+                        <span className="book-face" aria-hidden="true">
+                          <span className="book-face-index">
+                            {String(offset + index + 1).padStart(2, "0")}
+                          </span>
+                          <strong>{item.text}</strong>
+                          <small>{formatDate(item.date)}</small>
+                          <span className="book-face-open">펼쳐보기 ↗</span>
+                        </span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))}
           <p className="bookshelf-hint">
             책을 가리키거나 키보드로 선택하면 한 권씩 앞으로 나와요.
           </p>

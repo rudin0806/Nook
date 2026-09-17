@@ -36,24 +36,25 @@
   --rose: var(--nook-open);
   --wood: var(--nook-muted);
   /* Shelf tones. Decorative, so they are kept apart from the accent that marks
-     the active tab and focus. Each pair is chosen to clear 4.5:1 for the title
-     against its own background; see the contrast check in the shelf tests. */
-  --tone-1-bg: #5b59d6;
-  --tone-1-fg: #ffffff;
-  --tone-2-bg: #e9e7ff;
-  --tone-2-fg: #2a2856;
-  --tone-3-bg: #0f7f5f;
-  --tone-3-fg: #ffffff;
-  --tone-4-bg: #d9f2e8;
-  --tone-4-fg: #10402f;
-  --tone-5-bg: #c2410c;
-  --tone-5-fg: #ffffff;
-  --tone-6-bg: #ffe8d6;
-  --tone-6-fg: #6b3410;
-  --tone-7-bg: #17191c;
-  --tone-7-fg: #f4f5f7;
-  --tone-8-bg: #d8dce3;
-  --tone-8-fg: #1b1e24;
+     the active tab and focus. Muted grounds with deep text of the same hue, so
+     the shelf reads as one family; two darker books per set give the row some
+     rhythm. Every pair clears 4.5:1 for its own text. */
+  --tone-1-bg: #dfe0f5;
+  --tone-1-fg: #3a3a72;
+  --tone-2-bg: #e6eee9;
+  --tone-2-fg: #2f4a3c;
+  --tone-3-bg: #4e6d60;
+  --tone-3-fg: #f2f7f4;
+  --tone-4-bg: #f3e7db;
+  --tone-4-fg: #5d4433;
+  --tone-5-bg: #e7e9ee;
+  --tone-5-fg: #33384a;
+  --tone-6-bg: #efe4ea;
+  --tone-6-fg: #573546;
+  --tone-7-bg: #3f4654;
+  --tone-7-fg: #eef1f6;
+  --tone-8-bg: #ece5d6;
+  --tone-8-fg: #4e4433;
 }
 
 :root[data-theme="dark"] {
@@ -88,22 +89,22 @@
   --tea: var(--nook-saved);
   --rose: var(--nook-open);
   --wood: var(--nook-muted);
-  --tone-1-bg: #8887f2;
-  --tone-1-fg: #14161a;
-  --tone-2-bg: #2b2a55;
-  --tone-2-fg: #d9d8ff;
-  --tone-3-bg: #45d3a3;
-  --tone-3-fg: #06251b;
-  --tone-4-bg: #123a2c;
-  --tone-4-fg: #bff0dd;
-  --tone-5-bg: #ffac75;
-  --tone-5-fg: #2a1206;
-  --tone-6-bg: #4a2a17;
-  --tone-6-fg: #ffd9bd;
-  --tone-7-bg: #f2f4f7;
-  --tone-7-fg: #14161a;
-  --tone-8-bg: #3c424a;
-  --tone-8-fg: #eef1f5;
+  --tone-1-bg: #3b3b66;
+  --tone-1-fg: #d6d6f2;
+  --tone-2-bg: #2f4439;
+  --tone-2-fg: #cfe5d8;
+  --tone-3-bg: #9db9ab;
+  --tone-3-fg: #16261f;
+  --tone-4-bg: #4b3a2c;
+  --tone-4-fg: #eddac6;
+  --tone-5-bg: #333846;
+  --tone-5-fg: #dde1ea;
+  --tone-6-bg: #4a3340;
+  --tone-6-fg: #eed7e3;
+  --tone-7-bg: #c9d0dc;
+  --tone-7-fg: #1b1f27;
+  --tone-8-bg: #45402f;
+  --tone-8-fg: #e7dfca;
 }
 
 body {
@@ -122,7 +123,8 @@ body {
 .app-wordmark .logo-n {
   color: var(--nook-ink);
 }
-/* SUIT has no width axis, so the wide half of the mark is scaled instead. */
+/* SUIT carries a weight axis but no width axis, so the wide half of the mark
+   is scaled horizontally rather than swapped for another family. */
 .app-wordmark .logo-wide {
   display: inline-block;
   transform: scaleX(1.22);

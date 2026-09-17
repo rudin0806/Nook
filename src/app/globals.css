@@ -127,6 +127,13 @@ h3 {
 }
 .app-wordmark,
 .wordmark {
+  /* The mark is set in SUIT; layout.tsx loads it and nothing else uses it.
+     Body copy stays on Pretendard. */
+  font-family:
+    "SUIT Variable",
+    Pretendard,
+    -apple-system,
+    sans-serif;
   font-size: 38px;
   line-height: 1;
   font-weight: 600;
@@ -511,63 +518,125 @@ body button {
 /* Shelf -------------------------------------------------------------------- */
 .bookshelf {
   margin: 16px 0 24px;
-  padding: 24px 16px 16px;
+  padding: 20px 12px 8px;
   border: 1px solid var(--nook-line);
   border-radius: 22px;
   background: var(--nook-surface);
 }
-.bookshelf-grid {
-  display: grid;
-  grid-template-columns: repeat(10, minmax(0, 1fr));
-  grid-auto-rows: minmax(198px, auto);
-  gap: 24px 8px;
+.shelf-row + .shelf-row {
+  margin-top: 6px;
+}
+/* A row is a flex line rather than a grid, so a book that opens pushes its
+   neighbours along instead of sitting on top of them. Centred, so the push
+   spreads to both sides and the row never runs off the shelf. */
+.shelf-books {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  min-height: 226px;
   margin: 0;
-  padding: 10px 4px 14px;
+  padding: 0 6px;
   list-style: none;
 }
-.book-cell {
-  position: relative;
-  min-width: 0;
-  min-height: 198px;
-}
-.book-cell::after {
-  position: absolute;
-  right: -5px;
-  bottom: 0;
-  left: -5px;
-  height: 4px;
+.shelf-row::after {
+  display: block;
+  height: 5px;
+  margin: 0 2px 26px;
   border-radius: 999px;
   background: var(--nook-line-strong);
   content: "";
 }
-/* A book is taken out of flow so that turning face-on widens it over its
-   neighbours instead of pushing the row apart. */
+.book-cell {
+  display: flex;
+  align-items: flex-end;
+  min-width: 0;
+}
 .book {
   --book-bg: var(--nook-raised);
   --book-fg: var(--nook-ink);
+  --book-w: 70px;
+  --book-h: 186px;
+  --book-gap: 5px;
   --book-tilt: 0deg;
-  --book-width: clamp(32px, 100%, 72px);
-  --open-x: -50%;
-  position: absolute;
-  z-index: 1;
-  bottom: 4px;
-  left: 50%;
+  position: relative;
   display: block;
-  width: var(--book-width);
-  height: 184px;
+  width: var(--book-w);
+  height: var(--book-h);
+  margin: 0 calc(var(--book-gap) / 2);
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--book-fg) 16%, transparent);
-  border-radius: 9px 9px 3px 3px;
+  border: 1px solid color-mix(in srgb, var(--book-fg) 14%, transparent);
+  border-radius: 8px 8px 3px 3px;
   background: var(--book-bg);
   color: var(--book-fg);
   text-decoration: none;
-  transform: translateX(-50%) rotate(var(--book-tilt));
+  transform: rotate(var(--book-tilt));
   transform-origin: center bottom;
   transition:
-    width 0.28s cubic-bezier(0.2, 0.8, 0.2, 1),
-    height 0.28s cubic-bezier(0.2, 0.8, 0.2, 1),
-    transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1),
-    box-shadow 0.28s ease;
+    width 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+    height 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+    margin 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+    transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 0.3s ease;
+}
+/* Shelves look wrong when every book is identical, so widths, heights and the
+   space beside them come from a fixed set keyed to the book's position. */
+.book[data-shape="1"] {
+  --book-w: 62px;
+  --book-h: 178px;
+  --book-gap: 4px;
+}
+.book[data-shape="2"] {
+  --book-w: 78px;
+  --book-h: 198px;
+  --book-gap: 9px;
+}
+.book[data-shape="3"] {
+  --book-w: 56px;
+  --book-h: 178px;
+  --book-gap: 6px;
+}
+.book[data-shape="4"] {
+  --book-w: 72px;
+  --book-h: 206px;
+  --book-gap: 12px;
+}
+.book[data-shape="5"] {
+  --book-w: 84px;
+  --book-h: 182px;
+  --book-gap: 5px;
+}
+.book[data-shape="6"] {
+  --book-w: 60px;
+  --book-h: 192px;
+  --book-gap: 10px;
+}
+.book[data-shape="7"] {
+  --book-w: 74px;
+  --book-h: 176px;
+  --book-gap: 4px;
+}
+.book[data-shape="8"] {
+  --book-w: 66px;
+  --book-h: 210px;
+  --book-gap: 7px;
+}
+.book[data-shape="9"] {
+  --book-w: 88px;
+  --book-h: 188px;
+  --book-gap: 13px;
+}
+.book[data-shape="10"] {
+  --book-w: 58px;
+  --book-h: 200px;
+  --book-gap: 6px;
+}
+.book[data-shape="2"],
+.book[data-shape="7"] {
+  --book-tilt: -1.4deg;
+}
+.book[data-shape="5"],
+.book[data-shape="9"] {
+  --book-tilt: 1.2deg;
 }
 .book-spine {
   position: absolute;
@@ -576,26 +645,42 @@ body button {
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  padding: 15px 8px 12px;
+  padding: 14px 6px 11px;
   opacity: 1;
   transition: opacity 0.16s ease;
   writing-mode: vertical-rl;
+  /* Mixed orientation is what broke the label: Hangul stayed upright while the
+     digits of the date lay on their side. Upright keeps one reading direction. */
+  text-orientation: upright;
 }
 .book-spine::after {
   position: absolute;
   right: 0;
-  bottom: 9px;
+  bottom: 8px;
   left: 0;
   height: 2px;
-  background: color-mix(in srgb, var(--book-fg) 35%, transparent);
+  background: color-mix(in srgb, var(--book-fg) 28%, transparent);
   content: "";
 }
 .book-spine-title {
+  display: flex;
+  /* In vertical-rl the inline axis runs top to bottom, so the main axis of a
+     row flex line is the one that stacks the date down the spine. */
+  flex-direction: row;
+  align-items: center;
+  gap: 3px;
   max-height: 100%;
   overflow: hidden;
-  font-size: clamp(12px, 1.1vw, 16px);
-  letter-spacing: -0.02em;
-  line-height: 1.12;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.04;
+}
+.spine-token[data-tcy] {
+  /* Sideways-in-vertical: a two-digit run sits in one slot instead of two. */
+  text-combine-upright: all;
+  font-size: 12px;
+  letter-spacing: -0.04em;
 }
 .book-spine-number {
   font-size: 10px;
@@ -613,8 +698,9 @@ body button {
   padding: 16px 16px 18px;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.18s ease 0.08s;
+  transition: opacity 0.18s ease 0.1s;
   writing-mode: horizontal-tb;
+  text-orientation: mixed;
 }
 .book-face-index {
   position: absolute;
@@ -628,6 +714,9 @@ body button {
   display: -webkit-box;
   overflow: hidden;
   font-size: 16px;
+  /* Korean breaks at spaces, not between syllables, so a title wraps as words
+     rather than splitting 이야기 across two lines. */
+  word-break: keep-all;
   letter-spacing: -0.02em;
   line-height: 1.35;
   -webkit-box-orient: vertical;
@@ -635,25 +724,21 @@ body button {
 }
 .book-face small {
   font-size: 12px;
+  word-break: keep-all;
 }
 .book-face-open {
   margin-top: 2px;
   font-size: 12px;
   font-weight: 600;
 }
-.book-cell:nth-child(3n) .book {
-  --book-tilt: -1.6deg;
-}
-.book-cell:nth-child(4n) .book {
-  --book-tilt: 1.4deg;
-}
 .book:hover,
 .book:focus-visible {
   --book-tilt: 0deg;
-  --book-width: 172px;
+  --book-w: 178px;
+  --book-h: 224px;
+  --book-gap: 18px;
   z-index: 20;
-  height: 214px;
-  box-shadow: 0 18px 34px color-mix(in srgb, var(--nook-ink) 24%, transparent);
+  box-shadow: 0 16px 32px color-mix(in srgb, var(--nook-ink) 20%, transparent);
 }
 .book:hover .book-spine,
 .book:focus-visible .book-spine {
@@ -663,29 +748,12 @@ body button {
 .book:focus-visible .book-face {
   opacity: 1;
 }
-/* An edge column grows inward, so a face-on book never hangs off the page. */
-.book-cell:nth-child(10n + 1) .book {
-  --open-x: 0;
-  left: 0;
-  transform: translateX(0) rotate(var(--book-tilt));
-  transform-origin: left bottom;
-}
-.book-cell:nth-child(10n) .book {
-  --open-x: 0;
-  right: 0;
-  left: auto;
-  transform: translateX(0) rotate(var(--book-tilt));
-  transform-origin: right bottom;
-}
 /* Choosing a book: it lifts clear and the shelf steps back, then the route
    changes. The timing matches OPEN_MS in saved-shelf.tsx. */
-.cover-card[data-opening] {
-  --open-x: 0;
-}
 .book[data-opening],
 .cover-card[data-opening] {
   z-index: 40;
-  box-shadow: 0 30px 60px color-mix(in srgb, var(--nook-ink) 34%, transparent);
+  box-shadow: 0 28px 56px color-mix(in srgb, var(--nook-ink) 30%, transparent);
   animation: book-open 0.32s cubic-bezier(0.3, 0, 0.2, 1) forwards;
 }
 .saved-shelf[data-opening="true"] .book:not([data-opening]),
@@ -697,15 +765,15 @@ body button {
 }
 @keyframes book-open {
   60% {
-    transform: translateX(var(--open-x, -50%)) scale(1.06);
+    transform: translateY(-10px) scale(1.05);
   }
   100% {
     opacity: 0;
-    transform: translateX(var(--open-x, -50%)) scale(1.3);
+    transform: translateY(-16px) scale(1.24);
   }
 }
 .bookshelf-hint {
-  margin: 14px 0 0;
+  margin: 4px 0 12px;
   color: var(--nook-muted);
   font-size: 13px;
   text-align: center;
@@ -757,6 +825,7 @@ body button {
   display: -webkit-box;
   overflow: hidden;
   font-size: 16px;
+  word-break: keep-all;
   letter-spacing: -0.02em;
   line-height: 1.35;
   -webkit-box-orient: vertical;
@@ -764,6 +833,7 @@ body button {
 }
 .cover-card small {
   font-size: 12px;
+  word-break: keep-all;
 }
 
 /* Tones shared by spines and covers ---------------------------------------- */
@@ -822,52 +892,47 @@ body button {
 }
 @media (max-width: 760px) {
   .bookshelf {
-    padding: 18px 8px 14px;
+    padding: 14px 6px 4px;
   }
-  .bookshelf-grid {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    grid-auto-rows: minmax(154px, auto);
-    gap: 18px 5px;
-    padding: 8px 2px 12px;
+  .shelf-books {
+    min-height: 176px;
+    padding: 0 2px;
   }
-  .book-cell {
-    min-height: 154px;
+  .shelf-row::after {
+    margin: 0 2px 20px;
   }
+  /* Five books to a row on a phone, so every shape is scaled down together
+     rather than given its own set of numbers. */
   .book {
-    --book-width: clamp(32px, 100%, 58px);
-    height: 143px;
+    width: round(down, calc(var(--book-w) * 0.78), 1px);
+    height: round(down, calc(var(--book-h) * 0.78), 1px);
+    margin: 0 calc(var(--book-gap) / 3);
   }
   .book:hover,
   .book:focus-visible {
-    --book-width: 148px;
-    height: 176px;
+    --book-w: 176px;
+    --book-h: 208px;
+    --book-gap: 12px;
+    width: 140px;
+    height: 168px;
   }
   .book-spine {
-    padding: 12px 6px 10px;
+    padding: 11px 4px 9px;
+  }
+  .book-spine-title {
+    font-size: 11px;
   }
   .book-face {
-    padding: 14px 13px 15px;
+    padding: 13px 12px 14px;
   }
-  /* Five columns on a phone, so the edges are 5n rather than 10n. */
-  .book-cell .book {
-    --open-x: -50%;
-    left: 50%;
-    right: auto;
-    transform: translateX(-50%) rotate(var(--book-tilt));
-    transform-origin: center bottom;
+  .book-face strong {
+    font-size: 13px;
+    line-height: 1.3;
+    -webkit-line-clamp: 4;
   }
-  .book-cell:nth-child(5n + 1) .book {
-    --open-x: 0;
-    left: 0;
-    transform: translateX(0) rotate(var(--book-tilt));
-    transform-origin: left bottom;
-  }
-  .book-cell:nth-child(5n) .book {
-    --open-x: 0;
-    right: 0;
-    left: auto;
-    transform: translateX(0) rotate(var(--book-tilt));
-    transform-origin: right bottom;
+  .book-face small,
+  .book-face-open {
+    font-size: 11px;
   }
   .cover-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1236,6 +1301,35 @@ body button {
 }
 /* Withdrawal stays out of reach of a stray tap: it is a plain link until asked
    for, and the panel that opens is the only place the destructive button lives. */
+.account-pending {
+  margin: 0 0 20px;
+  padding: 18px;
+  border: 1px solid var(--nook-line-strong, var(--nook-line));
+  border-radius: 16px;
+  background: var(--nook-surface);
+  text-align: left;
+}
+.account-pending h2 {
+  margin: 0 0 8px;
+  font-size: 16px;
+  letter-spacing: -0.02em;
+}
+.account-pending p {
+  margin: 0 0 14px;
+  color: var(--nook-muted);
+  font-size: 13px;
+  line-height: 1.7;
+  word-break: keep-all;
+}
+.account-pending-cancel {
+  padding: 10px 16px;
+  border: 1px solid var(--nook-ink);
+  border-radius: 10px;
+  background: var(--nook-ink);
+  color: var(--nook-paper);
+  font-size: 14px;
+  font-weight: 600;
+}
 .account-danger-open {
   margin-top: 8px;
   padding: 6px 4px;

@@ -97,11 +97,17 @@ begin
     raise exception 'FAIL authenticated holds more than SELECT on consents';
   end if;
 
-  -- Withdrawal takes the consent record with it.
+  -- Withdrawal takes the consent record with it once the grace window closes.
   perform set_config('request.jwt.claims',json_build_object('sub',member_id,'is_anonymous',false)::text,true);
   set local role authenticated;
-  perform public.delete_own_account();
+  perform public.request_account_deletion();
   reset role;
+  if not exists(select 1 from public.consents where user_id=member_id) then
+    raise exception 'FAIL consent dropped before the deadline';
+  end if;
+  update public.account_deletions set requested_at = now() - interval '31 days',
+    purge_after = now() - interval '1 minute' where user_id=member_id;
+  perform public.purge_expired_accounts();
   if exists(select 1 from public.consents where user_id=member_id) then
     raise exception 'FAIL consent survived withdrawal';
   end if;

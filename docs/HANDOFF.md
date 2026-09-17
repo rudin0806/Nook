@@ -160,6 +160,24 @@ where n.nspname = 'public'
 - **사용자가 채워야 하는 자리 7곳**이 `.legal-pending`으로 표시돼 있다: 운영 주체명(2), 보호책임자 성명(1), 연락 이메일(2), 시행일(2). 지어내지 말 것.
 - 아직 없는 것: 회원가입 동의 분리(필수/선택)와 동의 기록 테이블. 현재는 로그인 화면 링크 고지만 있다.
 
+### 책등·톤·워드마크 — 2026-09-17 2차
+
+- 책등은 `text-orientation: upright` + 숫자 묶음 `text-combine-upright: all`. `mixed`로 두면 한글은 세워지고 숫자만 누워 깨져 보인다. 되돌리지 말 것.
+- 책등 라벨은 두 자리 연도(`26.10.10`)로 8글자를 넘지 않게 고정했고, 넘칠 때는 `clampSpineLabel`이 `…`를 붙인다. 세로쓰기에는 브라우저 말줄임이 없다.
+- 세로쓰기에서 `flex-direction: column`은 가로 방향이다. 책등 안에서 위→아래로 쌓으려면 `row`다.
+- 책장은 10열 고정 그리드가 아니라 줄 단위 flex다. 책이 흐름 안에 있어야 정면으로 커질 때 이웃을 밀어낸다. 절대배치로 되돌리면 밀어내기가 사라진다.
+- 책 폭·높이·여백은 `data-shape` 10종이며 위치에서 계산한다. 균일하게 만들지 말 것.
+- 책장 색은 `--tone-1..8-bg/fg` 전용 토큰이다. 의미 팔레트(`--nook-primary` 등)를 여기에 쓰지 말고, 바꿀 때는 라이트·다크 16조합 대비를 다시 재라(기준 4.5:1).
+- 워드마크는 SUIT, 본문은 Pretendard. **이건 사용자 요청이었고 이전 핸드오프에서 누락됐다.** 지우지 말 것.
+
+### 탈퇴 — 30일 유예 (2026-09-17 변경)
+
+- 즉시 삭제에서 유예로 **사용자가 결정해 바꿨다.** `delete_own_account()`는 제거됐다.
+- `request_account_deletion()` → `account_deletions`에 표시 + 30일 기한 반환, 재신청은 기한을 늘리지 않는다. `cancel_account_deletion()` → 기한 내 본인만. `purge_expired_accounts()` → `service_role` 전용, 기한 지난 것만.
+- 시간당 cron(`nook-retention-cleanup-hourly`, 매시 17분)이 세션 정리와 계정 파기를 함께 호출한다. 저장소 스니펫도 갱신됐다.
+- `/api/auth/status`가 `purgeAfter`를 반환하고, 로그인 화면이 유예 중이면 취소 배너를 띄우고 삭제 신청 패널을 숨긴다.
+- 정책 문서의 보유기간·파기·권리 항목이 모두 30일 기준이다. 되돌리려면 문서부터 고쳐야 한다.
+
 ### 비로그인 플로우 — 확인된 사실
 
 - 익명 사용자는 세션 시작과 노드 도달이 가능하도록 이미 구현돼 있다. DB가 막는 지점은 `keep_session or cardinality(kept_branch_ids) > 0`, 즉 보관뿐이다.
@@ -168,7 +186,7 @@ where n.nspname = 'public'
 
 ### 폰트
 
-- 본문은 Pretendard v1.3.9(400/500/600). `layout.tsx`가 SUIT Variable도 불러오지만 어떤 `font-family`도 SUIT를 쓰지 않는다. 워드마크의 넓은 `ook`은 `scaleX(1.22)`다. 제거하거나 실제로 적용할 것.
+- 본문은 Pretendard v1.3.9(400/500/600), 워드마크는 SUIT Variable. 워드마크의 넓은 `ook`은 SUIT에 폭 축이 없어 `scaleX(1.22)`로 만든다.
 
 ### 남은 운영 검증
 

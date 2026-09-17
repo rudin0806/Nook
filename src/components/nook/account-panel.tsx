@@ -14,6 +14,7 @@ export function AccountPanel({
   returnTo?: string;
 }) {
   const [nickname, setNickname] = useState<string | null>(null);
+  const [purgeAfter, setPurgeAfter] = useState<string | null>(null);
   const [state, setState] = useState<
     "loading" | "signed_in" | "signed_out" | "unavailable"
   >("loading");
@@ -38,6 +39,11 @@ export function AccountPanel({
         if (!controller.signal.aborted) {
           setState(body.state);
           setNickname(readNickname("nickname" in body ? body.nickname : null));
+          setPurgeAfter(
+            "purgeAfter" in body && typeof body.purgeAfter === "string"
+              ? body.purgeAfter
+              : null,
+          );
         }
       })
       .catch(() => {
@@ -83,6 +89,26 @@ export function AccountPanel({
         <ConsentGate returnTo={returnTo} />
       ) : (
         <>
+          {purgeAfter && (
+            <div className="account-pending" role="status">
+              <h2>삭제 예정인 계정이에요</h2>
+              <p>
+                {new Date(purgeAfter).toLocaleDateString("ko-KR", {
+                  timeZone: "Asia/Seoul",
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+                에 계정과 기록이 모두 지워져요. 그 전에는 되돌릴 수 있어요.
+              </p>
+              <form action="/api/auth/account" method="post">
+                <input type="hidden" name="intent" value="cancel" />
+                <button type="submit" className="account-pending-cancel">
+                  삭제 취소하고 계속 쓰기
+                </button>
+              </form>
+            </div>
+          )}
           <NicknameForm initial={nickname} />
           <Link className="account-primary" href={returnTo}>
             {returnTo === "/drawer"
@@ -94,7 +120,7 @@ export function AccountPanel({
               이 기기에서 로그아웃
             </button>
           </form>
-          <AccountDeletion />
+          {!purgeAfter && <AccountDeletion />}
         </>
       )}
       <Link

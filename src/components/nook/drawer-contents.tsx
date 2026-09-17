@@ -38,6 +38,7 @@ const trashResponse = z.object({
 type Item = {
   id: string;
   text: string;
+  spine: string;
   date: string;
   purgeAfter?: string;
   revision?: string;
@@ -52,6 +53,21 @@ const dateFormat = new Intl.DateTimeFormat("ko-KR", {
   month: "long",
   day: "numeric",
 });
+/** A spine is only as tall as the shortest book on the shelf, so the label has
+ * to fit in eight upright glyphs whatever the date is. A two-digit year keeps
+ * "26.10.10" within that; the full label stays on the cover. */
+const spineFormat = new Intl.DateTimeFormat("ko-KR", {
+  timeZone: "Asia/Seoul",
+  year: "2-digit",
+  month: "numeric",
+  day: "numeric",
+});
+function spineLabel(value: string): string {
+  return spineFormat
+    .format(new Date(value))
+    .replace(/\s/g, "")
+    .replace(/\.$/, "");
+}
 
 export function DrawerContents({
   initialCollection = "sessions",
@@ -107,12 +123,18 @@ export function DrawerContents({
               : questionsResponse.parse(payload).data;
         const items = data.items.map((item) =>
           "text" in item
-            ? { id: item.id, text: item.text, date: item.kept_at }
+            ? {
+                id: item.id,
+                text: item.text,
+                spine: item.text,
+                date: item.kept_at,
+              }
             : {
                 id: item.id,
                 revision:
                   "shelf_revision" in item ? item.shelf_revision : undefined,
                 text: `${dateFormat.format(new Date(item.started_at))}의 이야기`,
+                spine: spineLabel(item.started_at),
                 date:
                   "trashed_at" in item
                     ? item.trashed_at
