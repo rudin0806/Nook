@@ -7,16 +7,20 @@ export function CardNavigation({
   previous,
   next,
   label,
+  turn,
 }: {
   children: ReactNode;
   previous?: () => void;
   next?: () => void;
   label: string;
+  /** Which way the last move went, so the card can travel that way. */
+  turn?: "next" | "previous" | null;
 }) {
   const start = useRef<{ x: number; y: number } | null>(null);
   return (
     <div
       className="card-navigation"
+      data-turn={turn ?? undefined}
       role="region"
       aria-label={label}
       tabIndex={0}

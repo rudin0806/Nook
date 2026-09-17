@@ -11,6 +11,8 @@ import {
   type RetentionAction,
 } from "@/lib/retention/client";
 import { SavedShelf } from "./saved-shelf";
+import { CardStack } from "./card-stack";
+import { RetentionCard } from "./retention-card";
 import {
   savedSessionListItemSchema,
   trashedSessionListItemSchema,
@@ -396,6 +398,25 @@ export function DrawerContents({
                 offset={offset}
                 formatDate={(value) => dateFormat.format(new Date(value))}
               />
+            ) : collection !== "sessions" ? (
+              // Questions and the bin are read one at a time, as a stack.
+              <CardStack
+                label={
+                  collection === "trash" ? "휴지통 카드" : "남겨둔 질문 카드"
+                }
+                cards={state.items.map((item) => ({
+                  id: item.id,
+                  content: (
+                    <RetentionCard
+                      item={item}
+                      collection={collection}
+                      busy={busy}
+                      formatDate={(value) => dateFormat.format(new Date(value))}
+                      onAct={() => void act(item)}
+                    />
+                  ),
+                }))}
+              />
             ) : (
               <ul
                 className={`drawer-list ${collection === "sessions" ? "saved-books" : ""}`}
@@ -452,55 +473,14 @@ export function DrawerContents({
                         </button>
                       </div>
                     )}
-                    <details className="saved-entry">
-                      <summary>
-                        <span className="saved-question-title">
-                          {item.text}
-                        </span>
-                      </summary>
-                      <small>
-                        {dateFormat.format(new Date(item.date))}에{" "}
-                        {collection === "trash" ? "휴지통으로 이동" : "보관"}
-                      </small>
-                      {item.purgeAfter && (
-                        <p>
-                          복원 기한:{" "}
-                          {new Date(item.purgeAfter).toLocaleString("ko-KR", {
-                            timeZone: "Asia/Seoul",
-                          })}{" "}
-                          (한국 시간)
-                        </p>
-                      )}
-                      <div>
-                        {collection === "questions" && (
-                          <p>
-                            <Link href={`/restart/branch/${item.id}`}>
-                              이 질문으로 다시 생각하기
-                            </Link>
-                          </p>
-                        )}
-                        {collection === "sessions" && (
-                          <p>
-                            <Link href={`/drawer/${item.id}`}>
-                              이야기 펼쳐보기
-                            </Link>
-                          </p>
-                        )}
-                        <ActionButton
-                          variant="neutralWeak"
-                          disabled={busy || editingOrder}
-                          onClick={() => void act(item)}
-                        >
-                          {busy
-                            ? "처리 중…"
-                            : collection === "trash"
-                              ? "복원하기"
-                              : collection === "questions"
-                                ? "질문 삭제"
-                                : "휴지통으로 이동"}
-                        </ActionButton>
-                      </div>
-                    </details>
+                    <RetentionCard
+                      item={item}
+                      collection={collection}
+                      busy={busy}
+                      disabled={editingOrder}
+                      formatDate={(value) => dateFormat.format(new Date(value))}
+                      onAct={() => void act(item)}
+                    />
                   </li>
                 ))}
               </ul>

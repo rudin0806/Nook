@@ -9,10 +9,18 @@ export function StoryReader({ story }: { story: SavedStory }) {
     segment.nodes.map((node) => ({ node, segment })),
   );
   const [index, setIndex] = useState(0);
+  // Which way the reader last moved, so the card travels that way. A jump from
+  // the table of contents carries no direction and simply appears.
+  const [turn, setTurn] = useState<"next" | "previous" | null>(null);
+  function go(to: number, direction: "next" | "previous" | null) {
+    setTurn(direction);
+    setIndex(to);
+  }
   const current = cards[index];
   if (!current) return <p>이 페이지에 남겨진 중심 질문이 없어요.</p>;
-  const previous = index > 0 ? () => setIndex(index - 1) : undefined;
-  const next = index < cards.length - 1 ? () => setIndex(index + 1) : undefined;
+  const previous = index > 0 ? () => go(index - 1, "previous") : undefined;
+  const next =
+    index < cards.length - 1 ? () => go(index + 1, "next") : undefined;
   return (
     <div className="story-reader">
       <nav className="story-index" aria-label="이야기 목차">
@@ -30,8 +38,9 @@ export function StoryReader({ story }: { story: SavedStory }) {
                         node.id === current.node.id ? "step" : undefined
                       }
                       onClick={() =>
-                        setIndex(
+                        go(
                           cards.findIndex((card) => card.node.id === node.id),
+                          null,
                         )
                       }
                     >
@@ -47,6 +56,7 @@ export function StoryReader({ story }: { story: SavedStory }) {
         label="질문 카드 · 좌우 방향키로 이동"
         previous={previous}
         next={next}
+        turn={turn}
       >
         <article className="story-question-card" key={current.node.id}>
           <p>

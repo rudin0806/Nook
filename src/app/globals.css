@@ -1289,6 +1289,223 @@ body button {
 }
 /* Withdrawal stays out of reach of a stray tap: it is a plain link until asked
    for, and the panel that opens is the only place the destructive button lives. */
+/* Card stack ---------------------------------------------------------------
+   One card at a time with the next two peeking behind it. The same shape is
+   used by the empty state and by the story detail, so they read as one object.
+   Depth is set by data-depth; the stack does not grow past three because a
+   deeper pile looks no different and would put every record in the tree. */
+.card-stack {
+  margin: 18px 0 0;
+}
+.card-stack-cards {
+  position: relative;
+  display: grid;
+  /* A card, not a banner: the stack keeps a readable measure and the peeking
+     cards need room above and beside it. */
+  max-width: 460px;
+  min-height: 176px;
+  margin: 0 auto;
+  padding: 30px 12px 10px;
+  list-style: none;
+}
+.card-stack-card {
+  --shift: 0px;
+  --lift: 0px;
+  --tilt: 0deg;
+  --scale: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  grid-area: 1 / 1;
+  padding: 22px 22px 20px;
+  border: 1px solid var(--nook-line);
+  border-radius: 18px;
+  background: var(--nook-surface);
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--nook-ink) 8%, transparent);
+  transform: translate(var(--shift), var(--lift)) rotate(var(--tilt))
+    scale(var(--scale));
+  transform-origin: center bottom;
+  transition:
+    transform 0.26s cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 0.26s ease;
+}
+/* The top card is the one that can be read and acted on. */
+.card-stack-card[data-depth="0"] {
+  z-index: 3;
+}
+/* The cards behind sit up and to the side, so a sliver of the next question is
+   visible above the one being read. */
+.card-stack-card[data-depth="1"] {
+  --shift: 9px;
+  --lift: -14px;
+  --tilt: 1.8deg;
+  --scale: 0.975;
+  z-index: 2;
+}
+.card-stack-card[data-depth="2"] {
+  --shift: -7px;
+  --lift: -25px;
+  --tilt: -1.6deg;
+  --scale: 0.95;
+  z-index: 1;
+}
+/* Moving on: the top card leaves in the direction of travel and the one
+   behind rises into its place. Timing matches SLIDE_MS in card-stack.tsx. */
+.card-stack[data-leaving="next"] .card-stack-card[data-depth="0"] {
+  opacity: 0;
+  transform: translate(-46%, -14px) rotate(-7deg) scale(0.94);
+}
+.card-stack[data-leaving="previous"] .card-stack-card[data-depth="0"] {
+  opacity: 0;
+  transform: translate(46%, -14px) rotate(7deg) scale(0.94);
+}
+.card-stack[data-leaving] .card-stack-card[data-depth="1"] {
+  --shift: 0px;
+  --lift: 0px;
+  --tilt: 0deg;
+  --scale: 1;
+}
+.card-stack[data-leaving] .card-stack-card[data-depth="2"] {
+  --shift: 9px;
+  --lift: -14px;
+  --tilt: 1.8deg;
+  --scale: 0.975;
+}
+.retention-card-title {
+  margin: 0;
+  color: var(--nook-ink);
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.45;
+  word-break: keep-all;
+}
+.card-stack-card small,
+.retention-card-deadline {
+  margin: 0;
+  color: var(--nook-muted);
+  font-size: 13px;
+  line-height: 1.6;
+  word-break: keep-all;
+}
+.retention-card-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+.retention-card-open {
+  color: var(--nook-ink);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.card-stack-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 16px;
+}
+.card-stack-controls button {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--nook-line-strong);
+  border-radius: 999px;
+  background: var(--nook-surface);
+  color: var(--nook-ink);
+  font-size: 15px;
+}
+.card-stack-controls button:disabled {
+  border-color: var(--nook-line);
+  color: var(--nook-subtle);
+  cursor: not-allowed;
+}
+.card-stack-controls p {
+  min-width: 68px;
+  margin: 0;
+  color: var(--nook-muted);
+  font-size: 13px;
+  text-align: center;
+}
+.card-stack-controls strong {
+  color: var(--nook-ink);
+}
+.card-stack-empty {
+  margin: 18px 0 0;
+  color: var(--nook-muted);
+  font-size: 14px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .card-stack-card {
+    transition: none;
+  }
+}
+@media (max-width: 760px) {
+  .card-stack-card {
+    padding: 18px 18px 16px;
+  }
+  .retention-card-title {
+    font-size: 16px;
+  }
+}
+
+/* Story detail: the questions behind this one are in the table of contents, not
+   under the card, so there is no stack to draw. Turning to another question is
+   what needs to read, and it reads as travel in the direction asked for.
+   redesign.css already carries the plain enter animation for a first paint. */
+.story-question-card {
+  position: relative;
+}
+.card-navigation[data-turn="next"] .story-question-card {
+  animation: question-turn-next 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.card-navigation[data-turn="previous"] .story-question-card {
+  animation: question-turn-previous 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@keyframes question-turn-next {
+  from {
+    opacity: 0;
+    transform: translateX(34px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes question-turn-previous {
+  from {
+    opacity: 0;
+    transform: translateX(-34px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .card-navigation[data-turn] .story-question-card {
+    animation: none;
+  }
+}
+
+/* Nothing kept yet: the same stack, drawn empty. The three layers are offset
+   the way the real cards are, or they read as one card. */
+.empty-cards > i:nth-child(1) {
+  transform: translate(-8px, 22px) rotate(-3.4deg);
+  opacity: 0.4;
+}
+.empty-cards > i:nth-child(2) {
+  transform: translate(9px, 11px) rotate(2.6deg);
+  opacity: 0.66;
+}
+.empty-cards > i:nth-child(3) {
+  transform: none;
+  opacity: 1;
+}
+
 /* A revision that changes no collected field is announced here rather than
    blocking the screen. */
 .policy-notice {
