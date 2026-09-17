@@ -10,6 +10,7 @@ import {
   moveSessionToPosition,
   type RetentionAction,
 } from "@/lib/retention/client";
+import { SavedShelf } from "./saved-shelf";
 import {
   savedSessionListItemSchema,
   trashedSessionListItemSchema,
@@ -350,139 +351,117 @@ export function DrawerContents({
         {state.kind === "ready" &&
           (state.items.length ? (
             collection === "sessions" && !editingOrder ? (
-              <div className="bookshelf" aria-label="보관한 이야기 책장">
-                <ul className="bookshelf-grid">
-                  {state.items.map((item, index) => (
-                    <li className="book-cell" key={item.id}>
-                      <Link
-                        href={`/drawer/${item.id}`}
-                        className="book-spine"
-                        data-tone={(index % 8) + 1}
-                        aria-label={`${item.text} 펼쳐보기`}
-                      >
-                        <span className="book-spine-title">{item.text}</span>
-                        <span className="book-spine-number">
-                          {String(offset + index + 1).padStart(2, "0")}
-                        </span>
-                        <span className="book-preview" aria-hidden="true">
-                          <strong>{item.text}</strong>
-                          <small>
-                            {dateFormat.format(new Date(item.date))} · 이야기
-                            열기
-                          </small>
-                        </span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-                <p className="bookshelf-hint">
-                  책을 가리키거나 선택하면 한 권씩 펼쳐볼 수 있어요.
-                </p>
-              </div>
+              <SavedShelf
+                items={state.items}
+                offset={offset}
+                formatDate={(value) => dateFormat.format(new Date(value))}
+              />
             ) : (
               <ul
                 className={`drawer-list ${collection === "sessions" ? "saved-books" : ""}`}
               >
                 {state.items.map((item, index) => (
-                <li
-                  key={item.id}
-                  className="preview-summary-card"
-                  draggable={editingOrder && !busy}
-                  data-order-editing={editingOrder || undefined}
-                  data-dragging={draggedId === item.id || undefined}
-                  onDragStart={(event) => {
-                    if (!editingOrder) return;
-                    setDraggedId(item.id);
-                    event.dataTransfer.effectAllowed = "move";
-                    event.dataTransfer.setData("text/plain", item.id);
-                  }}
-                  onDragEnd={() => setDraggedId(null)}
-                  onDragOver={(event) => {
-                    if (!editingOrder || !draggedId) return;
-                    event.preventDefault();
-                    event.dataTransfer.dropEffect = "move";
-                  }}
-                  onDrop={(event) => {
-                    if (!editingOrder) return;
-                    event.preventDefault();
-                    const sourceId =
-                      draggedId || event.dataTransfer.getData("text/plain");
-                    if (sourceId) void moveSavedItem(sourceId, index);
-                    setDraggedId(null);
-                  }}
-                >
-                  {editingOrder && (
-                    <div className="shelf-order-controls">
-                      <span className="shelf-drag-handle" aria-hidden="true">
-                        ⠿
-                      </span>
-                      <span className="shelf-position">{index + 1}번째</span>
-                      <button
-                        type="button"
-                        disabled={index === 0 || busy}
-                        aria-label={`${item.text} 위로 이동`}
-                        onClick={() => void moveSavedItem(item.id, index - 1)}
-                      >
-                        ↑
-                      </button>
-                      <button
-                        type="button"
-                        disabled={index === state.items.length - 1 || busy}
-                        aria-label={`${item.text} 아래로 이동`}
-                        onClick={() => void moveSavedItem(item.id, index + 1)}
-                      >
-                        ↓
-                      </button>
-                    </div>
-                  )}
-                  <details className="saved-entry">
-                    <summary>
-                      <span className="saved-question-title">{item.text}</span>
-                    </summary>
-                    <small>
-                      {dateFormat.format(new Date(item.date))}에{" "}
-                      {collection === "trash" ? "휴지통으로 이동" : "보관"}
-                    </small>
-                    {item.purgeAfter && (
-                      <p>
-                        복원 기한:{" "}
-                        {new Date(item.purgeAfter).toLocaleString("ko-KR", {
-                          timeZone: "Asia/Seoul",
-                        })}{" "}
-                        (한국 시간)
-                      </p>
+                  <li
+                    key={item.id}
+                    className="preview-summary-card"
+                    draggable={editingOrder && !busy}
+                    data-order-editing={editingOrder || undefined}
+                    data-dragging={draggedId === item.id || undefined}
+                    onDragStart={(event) => {
+                      if (!editingOrder) return;
+                      setDraggedId(item.id);
+                      event.dataTransfer.effectAllowed = "move";
+                      event.dataTransfer.setData("text/plain", item.id);
+                    }}
+                    onDragEnd={() => setDraggedId(null)}
+                    onDragOver={(event) => {
+                      if (!editingOrder || !draggedId) return;
+                      event.preventDefault();
+                      event.dataTransfer.dropEffect = "move";
+                    }}
+                    onDrop={(event) => {
+                      if (!editingOrder) return;
+                      event.preventDefault();
+                      const sourceId =
+                        draggedId || event.dataTransfer.getData("text/plain");
+                      if (sourceId) void moveSavedItem(sourceId, index);
+                      setDraggedId(null);
+                    }}
+                  >
+                    {editingOrder && (
+                      <div className="shelf-order-controls">
+                        <span className="shelf-drag-handle" aria-hidden="true">
+                          ⠿
+                        </span>
+                        <span className="shelf-position">{index + 1}번째</span>
+                        <button
+                          type="button"
+                          disabled={index === 0 || busy}
+                          aria-label={`${item.text} 위로 이동`}
+                          onClick={() => void moveSavedItem(item.id, index - 1)}
+                        >
+                          ↑
+                        </button>
+                        <button
+                          type="button"
+                          disabled={index === state.items.length - 1 || busy}
+                          aria-label={`${item.text} 아래로 이동`}
+                          onClick={() => void moveSavedItem(item.id, index + 1)}
+                        >
+                          ↓
+                        </button>
+                      </div>
                     )}
-                    <div>
-                      {collection === "questions" && (
+                    <details className="saved-entry">
+                      <summary>
+                        <span className="saved-question-title">
+                          {item.text}
+                        </span>
+                      </summary>
+                      <small>
+                        {dateFormat.format(new Date(item.date))}에{" "}
+                        {collection === "trash" ? "휴지통으로 이동" : "보관"}
+                      </small>
+                      {item.purgeAfter && (
                         <p>
-                          <Link href={`/restart/branch/${item.id}`}>
-                            이 질문으로 다시 생각하기
-                          </Link>
+                          복원 기한:{" "}
+                          {new Date(item.purgeAfter).toLocaleString("ko-KR", {
+                            timeZone: "Asia/Seoul",
+                          })}{" "}
+                          (한국 시간)
                         </p>
                       )}
-                      {collection === "sessions" && (
-                        <p>
-                          <Link href={`/drawer/${item.id}`}>
-                            이야기 펼쳐보기
-                          </Link>
-                        </p>
-                      )}
-                      <ActionButton
-                        variant="neutralWeak"
-                        disabled={busy || editingOrder}
-                        onClick={() => void act(item)}
-                      >
-                        {busy
-                          ? "처리 중…"
-                          : collection === "trash"
-                            ? "복원하기"
-                            : collection === "questions"
-                              ? "질문 삭제"
-                              : "휴지통으로 이동"}
-                      </ActionButton>
-                    </div>
-                  </details>
-                </li>
+                      <div>
+                        {collection === "questions" && (
+                          <p>
+                            <Link href={`/restart/branch/${item.id}`}>
+                              이 질문으로 다시 생각하기
+                            </Link>
+                          </p>
+                        )}
+                        {collection === "sessions" && (
+                          <p>
+                            <Link href={`/drawer/${item.id}`}>
+                              이야기 펼쳐보기
+                            </Link>
+                          </p>
+                        )}
+                        <ActionButton
+                          variant="neutralWeak"
+                          disabled={busy || editingOrder}
+                          onClick={() => void act(item)}
+                        >
+                          {busy
+                            ? "처리 중…"
+                            : collection === "trash"
+                              ? "복원하기"
+                              : collection === "questions"
+                                ? "질문 삭제"
+                                : "휴지통으로 이동"}
+                        </ActionButton>
+                      </div>
+                    </details>
+                  </li>
                 ))}
               </ul>
             )
