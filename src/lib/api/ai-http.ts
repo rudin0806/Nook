@@ -70,6 +70,15 @@ export async function handleAIRequest<T>(
         code,
         message: "로그인하거나 사용자 확인을 완료해 주세요.",
       });
+    // The visitor is allowed to be here; only the next question needs an
+    // account, so the code has to survive to the screen.
+    if (code === "IDENTITY_LINK_REQUIRED")
+      return problemResponse({
+        status: 401,
+        code,
+        message:
+          "이 질문으로 넘어가려면 계정을 연결해 주세요. 지금까지의 대화는 그대로 있어요.",
+      });
     if (["APPROVAL_RECEIPT_INVALID", "FOCUS_RECEIPT_INVALID"].includes(code))
       return problemResponse({
         status: 409,

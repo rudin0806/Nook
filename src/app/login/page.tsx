@@ -1,6 +1,7 @@
 import { authReturnPath } from "@/lib/auth/return-path";
 import Link from "next/link";
 import { AccountPanel } from "@/components/nook/account-panel";
+import { Wordmark } from "@/components/nook/wordmark";
 
 const messages: Record<string, string> = {
   cancelled: "로그인을 취소했어요. 원할 때 다시 연결해 주세요.",
@@ -41,10 +42,7 @@ export default async function LoginPage({
   return (
     <div className="account-page">
       <header className="app-header">
-        <Link className="app-wordmark" href="/" aria-label="Nook 홈">
-          <span className="logo-n">N</span>
-          <span className="logo-wide">ook</span>
-        </Link>
+        <Wordmark />
         <Link
           className="header-account"
           href={returnTo === "/drawer" ? "/" : returnTo}

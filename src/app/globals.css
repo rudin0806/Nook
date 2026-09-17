@@ -125,10 +125,10 @@ h3 {
   gap: 56px;
   border-bottom: 1px solid var(--nook-line);
 }
-.app-wordmark,
-.wordmark {
-  /* The mark is set in SUIT; layout.tsx loads it and nothing else uses it.
-     Body copy stays on Pretendard. */
+/* The mark: SUIT 800, ink only, no dot and no other ornament. Built in one
+   place by components/nook/wordmark.tsx — do not add a span rule that colours
+   part of it. Body copy stays on Pretendard. */
+.app-wordmark {
   font-family:
     "SUIT Variable",
     Pretendard,
@@ -136,13 +136,9 @@ h3 {
     sans-serif;
   font-size: 38px;
   line-height: 1;
-  font-weight: 600;
+  font-weight: 800;
   letter-spacing: -0.08em;
   text-decoration: none;
-}
-.app-wordmark span,
-.wordmark span {
-  color: var(--nook-gold);
 }
 .app-header-note {
   font-size: 14px;
@@ -1293,6 +1289,78 @@ body button {
 }
 /* Withdrawal stays out of reach of a stray tap: it is a plain link until asked
    for, and the panel that opens is the only place the destructive button lives. */
+/* A revision that changes no collected field is announced here rather than
+   blocking the screen. */
+.policy-notice {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  max-width: 1170px;
+  margin: 12px auto 0;
+  padding: 12px 16px;
+  border: 1px solid var(--nook-line);
+  border-radius: 12px;
+  background: var(--nook-surface);
+}
+.policy-notice p {
+  margin: 0;
+  color: var(--nook-muted);
+  font-size: 13px;
+  line-height: 1.6;
+  word-break: keep-all;
+}
+.policy-notice a {
+  color: var(--nook-ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.policy-notice button {
+  flex-shrink: 0;
+  padding: 7px 14px;
+  border: 1px solid var(--nook-line-strong);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--nook-ink);
+  font-size: 13px;
+  font-weight: 600;
+}
+.consent-again .consent-list {
+  margin-top: 20px;
+}
+.consent-again .google-button {
+  max-width: 320px;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* The one place a visitor is stopped while still in the conversation: the
+   proposed question stays on screen above this, so the ask has a reason. */
+.link-required {
+  margin: 18px 0 0;
+  padding: 18px;
+  border: 1px solid var(--nook-primary, var(--nook-line-strong));
+  border-radius: 16px;
+  background: var(--nook-primary-weak, var(--nook-surface));
+}
+.link-required p {
+  margin: 0 0 14px;
+  color: var(--nook-ink);
+  font-size: 13px;
+  line-height: 1.7;
+  word-break: keep-all;
+}
+.link-required-action {
+  display: inline-block;
+  padding: 11px 18px;
+  border-radius: 10px;
+  background: var(--nook-ink);
+  color: var(--nook-paper);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
 .account-pending {
   margin: 0 0 20px;
   padding: 18px;
@@ -1439,8 +1507,7 @@ body button {
     margin: 0 20px;
     gap: 24px;
   }
-  .app-wordmark,
-  .wordmark {
+  .app-wordmark {
     font-size: 32px;
   }
   .app-header-note {

@@ -26,6 +26,7 @@ export function ConversationPanel({ nodeId }: { nodeId: string }) {
   const [edit, setEdit] = useState<string | null>(null);
   const [notice, setNotice] = useState("");
   const [login, setLogin] = useState(false);
+  const [linkRequired, setLinkRequired] = useState(false);
   const [busy, setBusy] = useState(false);
   const [retry, setRetry] = useState(false);
   const [wait, setWait] = useState(0);
@@ -139,8 +140,11 @@ export function ConversationPanel({ nodeId }: { nodeId: string }) {
         await refresh();
         if (!alive.current || ended.current) return;
         setLogin(result.kind === "login");
+        setLinkRequired(result.kind === "link-required");
         setNotice(
-          "요청을 완료하지 못했어요. 현재 기록을 확인한 뒤 다시 입력해 주세요.",
+          result.kind === "link-required"
+            ? "여기까지는 계정 없이도 볼 수 있어요. 이 질문으로 넘어가면 이야기가 기록되기 때문에 계정을 연결해 주세요."
+            : "요청을 완료하지 못했어요. 현재 기록을 확인한 뒤 다시 입력해 주세요.",
         );
       }
     } catch {
@@ -400,6 +404,17 @@ export function ConversationPanel({ nodeId }: { nodeId: string }) {
         <p>
           <Link href="/login">계정 연결하기</Link>
         </p>
+      )}
+      {linkRequired && (
+        <div className="link-required">
+          <p>
+            지금까지 적은 내용과 이 질문은 그대로 있어요. 계정을 연결하면 여기서
+            이어서 볼 수 있어요.
+          </p>
+          <Link className="link-required-action" href="/login">
+            계정 연결하고 이어가기 ↗
+          </Link>
+        </div>
       )}
       {retry && !exitMode && (
         <ActionButton

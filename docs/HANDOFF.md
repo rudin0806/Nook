@@ -160,6 +160,25 @@ where n.nspname = 'public'
 - **사용자가 채워야 하는 자리 7곳**이 `.legal-pending`으로 표시돼 있다: 운영 주체명(2), 보호책임자 성명(1), 연락 이메일(2), 시행일(2). 지어내지 말 것.
 - 아직 없는 것: 회원가입 동의 분리(필수/선택)와 동의 기록 테이블. 현재는 로그인 화면 링크 고지만 있다.
 
+### 로고 — 확정 (2026-09-17)
+
+- **`components/nook/wordmark.tsx` 한 곳에서만 만든다. 인라인으로 다시 쓰지 말 것.** 이전에 6곳에 흩어져 있었고 그 중 3곳이 소문자 `nook` + 색 온점이라 온점이 반복해서 되살아났다.
+- 규격: **Nook 표기, SUIT 800, 잉크 단색, 온점 없음, 꾸밈 요소 없음.** 넓은 `ook`은 SUIT에 폭 축이 없어 `scaleX(1.22)`로 만든다.
+- 마크의 일부에 색을 주는 CSS 규칙을 추가하지 말 것(`--nook-gold` 온점 규칙은 삭제됐다).
+- 이건 사용자가 여러 번 요청한 사항이다. 바꾸기 전에 반드시 확인받을 것.
+
+### 비로그인 노드 1 제한 — 적용됨 (2026-09-17)
+
+- 방문자는 첫 질문까지 도달하고 그 안에서 대화한다. 두 번째 질문 승인에서 `IDENTITY_LINK_REQUIRED`로 막힌다. 가드는 `commit_conversation_step`의 `approve` 단계.
+- 제안된 질문은 거절 뒤에도 `pending`에 남는다. 이걸 지우면 "무엇을 위해 로그인하는지"가 사라진다.
+- 오류 코드가 화면까지 가려면 RPC → `src/lib/api/conversation.ts` → `ai-http.ts`(401+코드) → `src/lib/conversation/client.ts`(본문 코드 읽기) → 패널 4단이 모두 필요하다. 한 곳만 끊어도 일반 실패 문구로 되돌아간다.
+
+### 재동의 — 적용됨 (2026-09-17)
+
+- 중대 변경은 차단, 경미 변경은 배너. 기준은 `src/lib/legal/versions.ts`의 `RECONSENT_REQUIRED_FROM`.
+- 문구만 고쳤으면 `TERMS_VERSION`/`PRIVACY_VERSION`만 올린다. 수집 항목·목적·수탁자가 바뀌었으면 `RECONSENT_REQUIRED_FROM`도 같이 올려야 차단이 걸린다.
+- 게이트는 `/`, `/drawer`, `/talk/:nodeId`에만 있다. `/login`·`/privacy`·`/terms`·`/consent`를 막으면 동의 자체가 불가능해진다.
+
 ### 책등·톤·워드마크 — 2026-09-17 2차
 
 - 책등은 `text-orientation: upright` + 숫자 묶음 `text-combine-upright: all`. `mixed`로 두면 한글은 세워지고 숫자만 누워 깨져 보인다. 되돌리지 말 것.

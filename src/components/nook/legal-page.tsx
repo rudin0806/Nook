@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { Wordmark } from "./wordmark";
 
 /** Shared frame for the two published policies. */
 export function LegalPage({
@@ -14,10 +15,7 @@ export function LegalPage({
   return (
     <div className="legal-page">
       <header className="app-header">
-        <Link className="app-wordmark" href="/" aria-label="Nook 홈">
-          <span className="logo-n">N</span>
-          <span className="logo-wide">ook</span>
-        </Link>
+        <Wordmark />
         <Link className="header-account" href="/">
           닫기 ×
         </Link>

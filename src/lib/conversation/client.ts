@@ -48,7 +48,19 @@ export async function sendConversation(
     headers: { "content-type": "application/json" },
     body,
   });
-  if (response.status === 401) return { kind: "login" as const };
+  if (response.status === 401) {
+    // Reaching the second question is the one place a visitor is stopped while
+    // still signed in, so it is told apart from being signed out entirely.
+    const code = await response
+      .json()
+      .then((body: unknown) =>
+        z.object({ error: z.object({ code: z.string() }) }).safeParse(body),
+      )
+      .catch(() => null);
+    return code?.success && code.data.error.code === "IDENTITY_LINK_REQUIRED"
+      ? { kind: "link-required" as const }
+      : { kind: "login" as const };
+  }
   if (response.status >= 500) throw new Error("OUTCOME_UNKNOWN");
   if (response.status === 400 || response.status === 403)
     return { kind: "failed" as const };

@@ -58,7 +58,14 @@ export async function converse(input: ConversationRequest) {
         p_text: text,
         p_payload: payload,
       });
-      if (result.error) throw new Error("CONVERSATION_COMMIT_FAILED");
+      // A visitor who reached the first question is told to connect an account
+      // rather than shown a generic failure, so the reason is actionable.
+      if (result.error)
+        throw new Error(
+          result.error.message === "IDENTITY_LINK_REQUIRED"
+            ? "IDENTITY_LINK_REQUIRED"
+            : "CONVERSATION_COMMIT_FAILED",
+        );
       return result.data;
     },
   });

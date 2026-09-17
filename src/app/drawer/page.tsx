@@ -2,12 +2,20 @@ import Link from "next/link";
 import { AppNavigation } from "@/components/nook/app-navigation";
 import { DrawerContents } from "@/components/nook/drawer-contents";
 import "../preview/preview.css";
+import { Wordmark } from "@/components/nook/wordmark";
+import { redirect } from "next/navigation";
+import { readConsentState } from "@/lib/legal/gate";
+import { PolicyNotice } from "@/components/nook/policy-notice";
+import { POLICY_NOTICE_VERSION } from "@/lib/legal/versions";
 
 export default async function DrawerPage({
   searchParams,
 }: {
   searchParams: Promise<{ collection?: string }>;
 }) {
+  const consent = await readConsentState();
+  if (consent === "reconsent")
+    redirect(`/consent?returnTo=${encodeURIComponent("/drawer")}`);
   const { collection } = await searchParams;
   const initialCollection =
     collection === "trash"
@@ -18,11 +26,10 @@ export default async function DrawerPage({
   return (
     <div className="nook-preview">
       <header className="preview-header">
-        <Link href="/" className="wordmark">
-          nook<span>.</span>
-        </Link>
+        <Wordmark />
       </header>
       <AppNavigation current="saved" />
+      {consent === "notice" && <PolicyNotice version={POLICY_NOTICE_VERSION} />}
       <main id="main-content" className="preview-summary collection-workspace">
         <p className="preview-kicker">내가 남겨둔 이야기</p>
         <h1>생각 더미</h1>

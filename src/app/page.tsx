@@ -1,20 +1,28 @@
 import Link from "next/link";
 import { AppNavigation } from "@/components/nook/app-navigation";
 import { HomeDesk } from "@/components/nook/home-desk";
+import { Wordmark } from "@/components/nook/wordmark";
+import { redirect } from "next/navigation";
+import { readConsentState } from "@/lib/legal/gate";
+import { PolicyNotice } from "@/components/nook/policy-notice";
+import { POLICY_NOTICE_VERSION } from "@/lib/legal/versions";
 export const dynamic = "force-dynamic";
-export default function HomePage() {
+export default async function HomePage() {
+  // Reading the documents and managing the account stay reachable, or agreeing
+  // again would be impossible; the screens a member works in do not.
+  const consent = await readConsentState();
+  if (consent === "reconsent") redirect("/consent");
   return (
     <div className="night-app">
       <header className="app-header">
-        <Link href="/" className="app-wordmark" aria-label="Nook 홈">
-          <span className="logo-n">N</span><span className="logo-wide">ook</span>
-        </Link>
+        <Wordmark />
         <span className="app-header-note">생각을 위한 자리</span>
         <Link className="header-account" href="/login">
           내 정보
         </Link>
       </header>
       <AppNavigation current="write" />
+      {consent === "notice" && <PolicyNotice version={POLICY_NOTICE_VERSION} />}
       <main id="main-content" className="desk-main">
         <div className="desk-heading">
           <p className="preview-kicker">새 대화</p>

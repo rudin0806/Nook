@@ -5,6 +5,7 @@ import { AppNavigation } from "@/components/nook/app-navigation";
 import { SavedStoryContents } from "@/components/nook/saved-story-contents";
 import { sessionIdSchema } from "@/schemas/retention";
 import "../../preview/preview.css";
+import { Wordmark } from "@/components/nook/wordmark";
 export default async function SavedStoryPage({
   params,
 }: {
@@ -15,9 +16,7 @@ export default async function SavedStoryPage({
   return (
     <div className="nook-preview">
       <header className="preview-header">
-        <Link href="/" className="wordmark">
-          nook<span>.</span>
-        </Link>
+        <Wordmark />
       </header>
       <AppNavigation current="saved" />
       <main id="main-content" className="preview-summary">

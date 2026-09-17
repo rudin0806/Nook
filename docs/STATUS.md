@@ -35,6 +35,33 @@
 - 옛 `/api/sessions/order`와 전체 배열 클라이언트·스키마·서버 함수 제거. DB의 옛 `reorder_saved_sessions(uuid[])` RPC 삭제 migration을 2026-09-17 운영에 **적용 완료**했다. 적용 후 `pg_proc` 조회 0행, `move_saved_session`·`move_saved_session_checked`·`normalize_shelf_positions`·보관/복원/휴지통 함수는 그대로 유지됨을 확인했다.
 - 익명 시작: 선택적 Turnstile UI·만료/오류 처리·토큰 전달 추가. `NEXT_PUBLIC_TURNSTILE_SITE_KEY`와 서버의 익명 활성화가 함께 필요하다. 실제 검증은 Supabase Auth가 담당한다.
 
+## 로고·노드 제한·재동의 — 2026-09-17 5차
+
+### 로고
+
+- 워드마크가 **6곳에 인라인으로 흩어져 있었다.** 그 중 `/drawer`, `/drawer/[sessionId]`, `/talk/[nodeId]` 세 곳이 소문자 `nook`에 색 있는 온점(`--nook-gold`)을 쓰고 있었다. 온점이 계속 살아난 원인이 이것이다.
+- `components/nook/wordmark.tsx` 한 곳으로 합쳤다. **Nook 표기, SUIT 800, 잉크 단색, 온점 없음, 다른 장식 없음.** 넓은 `ook`은 SUIT에 폭 축이 없어 `scaleX(1.22)`다.
+- `.app-wordmark span { color: var(--nook-gold) }` 규칙과 `.wordmark` 셀렉터를 삭제했다. 부분에 색을 주는 규칙을 다시 추가하지 말 것.
+- 5개 화면에서 실측: 텍스트 `Nook`, weight 800, `SUIT Variable`, span 색이 모두 `rgb(23,25,28)` 단색, 온점 0개.
+
+### 비로그인 노드 1 제한
+
+- 정책을 살렸다. 방문자는 **첫 질문(노드 1)까지 도달해 그 안에서 대화**할 수 있고, **두 번째 질문으로 넘어가는 지점**에서 계정 연결을 요구한다.
+- 가드는 `commit_conversation_step`의 `approve` 단계에 있다(migration `20260917100000`). 함수 본문은 부분 수정이 불가해 전체를 다시 선언했고, 원본과의 차이는 `v_anonymous` 선언과 가드 4줄뿐임을 diff로 확인했다.
+- **제안된 질문은 거절 뒤에도 `conversation_runtime.pending`에 남는다.** 화면이 질문을 계속 보여준 상태로 로그인을 요구하므로, 사용자는 무엇을 위해 로그인하는지 보고 결정한다. SQL 테스트가 이 보존을 단언한다.
+- 오류 코드가 화면까지 살아남게 3단을 연결했다: RPC → 서버(`IDENTITY_LINK_REQUIRED` 그대로 전달) → HTTP 401 + 코드 → 클라이언트가 401 본문의 코드를 읽어 `link-required`와 로그아웃(`login`)을 구분 → 패널이 전용 안내와 버튼 표시.
+- SQL 회귀 `supabase/tests/anonymous_first_node.sql`: 방문자는 첫 질문 안에서 입력 성공, 두 번째 질문 승인은 `IDENTITY_LINK_REQUIRED`로 거절, 노드 수 1 유지, 제안 보존, 같은 동작이 회원에게는 성공(노드 2 생성).
+
+### 약관·처리방침 재동의
+
+- 제안한 2단 패턴을 구현했다. **중대 변경**(수집 항목·목적·수탁자 추가 등)은 차단형 재동의, **경미 변경**은 배너 고지다.
+- 기준은 `RECONSENT_REQUIRED_FROM`이다. 회원의 동의 버전이 그보다 이전이면 `reconsent`, 최신은 아니지만 그 이후면 `notice`, 현행이면 `ok`다. ISO 날짜라 문자열 비교가 시간순이다.
+- 판정 로직은 인자를 받는 순수 함수 `consentOutcome(agreed, published)`로 뺐다. 모듈 상수끼리 서로 달라야만 테스트되는 구조를 피하려고 한 것이고, 첫 시도는 리터럴 타입 비교로 typecheck가 실패했다.
+- 차단 지점은 회원이 실제로 쓰는 화면 셋(`/`, `/drawer`, `/talk/:nodeId`)의 서버 컴포넌트다. `/login`·`/privacy`·`/terms`·`/consent`는 막지 않는다. 막으면 읽고 동의하는 것 자체가 불가능해진다.
+- 로그아웃·익명 사용자는 게이트 대상이 아니다. 동의 기록이 없고 남는 것도 없다. 동의 조회가 실패하면 `ok`로 처리해 자기 기록에서 잠기지 않게 했다.
+- 배너 해제는 브라우저별이며 `TERMS+PRIVACY` 버전에 키를 둔다. 다음 개정에 다시 뜬다.
+- 단위 테스트 5개 추가(`tests/legal-versions.test.mts`), 160 → **165**.
+
 ## 탈퇴 정책 확정 — 2026-09-17 4차
 
 - 30일 유예는 **오해로 만든 것**이었다. 사용자의 "1달"은 유예가 아니라 개인정보 보유기간 얘기였고, 최종 결정은 **즉시 탈퇴 + 동일 수단 재가입 30일 제한**이다.
