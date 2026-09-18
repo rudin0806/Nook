@@ -524,9 +524,6 @@ body {
 .lamp-panel[data-lit="true"] .lamp-toggle > span {
   transform: translateX(21px);
 }
-.lamp-panel[data-lit="true"] .nook-icon {
-  color: var(--nook-open);
-}
 
 .shelf-panel {
   display: flex;
@@ -591,28 +588,43 @@ body {
 .empty-books {
   display: flex;
   align-items: flex-end;
-  gap: 8px;
-  min-height: 92px;
-  padding: 0 8px 10px;
+  gap: 5px;
+  padding: 0 10px 8px;
   border-bottom: 2px solid var(--nook-line-strong);
 }
 .empty-books > i {
-  width: 20px;
-  border-radius: 3px 4px 1px 1px;
-  background: var(--nook-raised);
+  --lean: 0deg;
+  position: relative;
+  width: 17px;
+  border-radius: 2px 3px 1px 1px;
+  background: var(--nook-fill-press);
+  transform: rotate(var(--lean));
+  transform-origin: bottom center;
+}
+/* The band down the spine is what says "book" at this size. */
+.empty-books > i::after {
+  content: "";
+  position: absolute;
+  inset: 22% 3px auto;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--nook-surface);
+  opacity: 0.75;
 }
 .empty-books > i:nth-child(1) {
-  height: 58px;
+  height: 48px;
 }
 .empty-books > i:nth-child(2) {
-  height: 74px;
+  width: 21px;
+  height: 62px;
   background: var(--nook-primary-weak);
 }
 .empty-books > i:nth-child(3) {
-  height: 48px;
+  height: 41px;
+  --lean: 7deg;
 }
 .shelf-empty > div:last-child {
-  margin-top: 14px;
+  margin-top: 10px;
 }
 .shelf-empty strong {
   display: block;
@@ -1192,15 +1204,24 @@ body {
    The tile leans, the glyph does not — the counter-rotation keeps it upright
    so it reads as a sticker rather than a mistake. */
 .nook-icon[data-tile] {
+  --tilt: -5deg;
   width: 38px;
   height: 38px;
-  padding: 8px;
+  padding: 4px;
   border-radius: 12px;
-  transform: rotate(-5deg);
+  transform: rotate(var(--tilt));
   color: var(--nook-tile-ink);
 }
 .nook-icon[data-tile] svg {
-  transform: rotate(5deg);
+  transform: rotate(calc(var(--tilt) * -1));
+}
+/* Each one leans its own way. Three identical tilts read as a mistake
+   repeated; different ones read as placed by hand. */
+.nook-icon[data-tile][data-tone="lime"] {
+  --tilt: 6deg;
+}
+.nook-icon[data-tile][data-tone="orange"] {
+  --tilt: -7deg;
 }
 .nook-icon[data-tile][data-tone="blue"] {
   background: var(--nook-primary);
@@ -1367,4 +1388,58 @@ body {
 }
 .paper-top .seed-action-button:hover {
   color: var(--nook-ink);
+}
+
+/* The heading was sitting right under the tab row with nothing between them. */
+.desk-heading {
+  margin-top: 8px;
+}
+
+/* Left and right ended at different heights with a column of dead page under
+   the writing panel. The two columns are the same height now, and the panel
+   spends the extra height on the field rather than on emptiness — a taller
+   place to write is the one thing this screen can always use more of. */
+.home-bento {
+  align-items: stretch;
+}
+.home-writing {
+  display: flex;
+}
+.home-writing > .writing-surface {
+  flex: 1;
+  min-height: 0;
+}
+.writing-surface > form {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+.writing-surface > form > .writing-field {
+  flex: 1;
+  min-height: 0;
+}
+.writing-surface > form > .writing-field > textarea {
+  align-self: stretch;
+}
+/* On the home desk the column sizes the field, so the 240px floor that makes it
+   usable elsewhere would pin it short. The textarea stretches as a flex item
+   rather than through height: 100%, which resolved against the wrong box and
+   left the field mostly empty. */
+/* SEED owns the box inside the field, and neither height: 100%, a flex stretch
+   nor an absolute inset reached the textarea reliably. So the home desk asks
+   for the height outright instead of deriving it: tall enough that a matched
+   column is mostly writing surface rather than blank panel. */
+.home-writing .writing-field textarea.writing-textarea {
+  min-height: 420px;
+}
+
+/* The empty card stack had shrunk to a strip. It is the panel's whole content
+   when there is nothing to continue, so it gets room to read as cards. */
+.recovery-empty {
+  min-height: 176px;
+  padding: 30px 18px;
+}
+.empty-cards {
+  inset: 18px 18px 14px;
 }

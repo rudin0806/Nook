@@ -3,13 +3,12 @@ import "@seed-design/css/all.css";
 import "./globals.css";
 import "./redesign.css";
 
-
 export const metadata: Metadata = {
-  title: "Nook — 생각을 잠시 놓아두는 곳",
-  description: "답을 주는 대신, 내가 어떤 질문을 지나왔는지.",
+  title: "Nook — 복잡한 생각, 말하면서 정리해요",
+  description:
+    "복잡한 생각, 말하면서 정리해요. 생각나는 대로 이야기하면 Nook이 지금 고민하고 있는 질문을 함께 정리합니다.",
   robots: { index: false, follow: false },
 };
-
 
 export default function RootLayout({
   children,
