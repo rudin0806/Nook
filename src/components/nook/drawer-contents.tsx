@@ -369,6 +369,31 @@ export function DrawerContents({
         >
           휴지통
         </ActionButton>
+        {/* 목록을 다시 읽는 일은 탭을 고르는 일과 같은 줄에 있다. 아래에 글씨로
+            놓여 있을 때는 이 화면의 마지막 동작처럼 보였고, 무엇을 새로고침하는지도
+            탭에서 멀어 알기 어려웠다. */}
+        <button
+          type="button"
+          className="collection-refresh"
+          aria-label="목록 새로고침"
+          title="목록 새로고침"
+          disabled={busy || editingOrder || state.kind === "loading"}
+          onClick={() => {
+            setState({ kind: "loading" });
+            setAttempt((n) => n + 1);
+          }}
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M20 12a8 8 0 1 1-2.34-5.66M20 4v5h-5"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
       </div>
       {notice && (
         <div role="status">
@@ -546,16 +571,6 @@ export function DrawerContents({
             </div>
           ))}
       </div>
-      <ActionButton
-        variant="ghost"
-        disabled={busy || editingOrder || state.kind === "loading"}
-        onClick={() => {
-          setState({ kind: "loading" });
-          setAttempt((n) => n + 1);
-        }}
-      >
-        목록 새로고침
-      </ActionButton>
       {state.kind !== "loading" && !editingOrder && (
         <div className="preview-actions">
           {offset > 0 && (

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { AppNavigation } from "@/components/nook/app-navigation";
 import { DrawerContents } from "@/components/nook/drawer-contents";
 import "../preview/preview.css";
@@ -43,11 +42,6 @@ export default async function DrawerPage({
           initialCollection={initialCollection}
           key={initialCollection}
         />
-        <p className="collection-footer">
-          <Link className="quiet-link" href="/login">
-            내 정보
-          </Link>
-        </p>
       </main>
     </div>
   );

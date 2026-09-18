@@ -2327,3 +2327,112 @@ body {
   flex-wrap: wrap;
   row-gap: 6px;
 }
+
+/* 한 기록은 한 줄이다. 카드 둘이 한 줄에 놓이고 각자 180px 높이를 가지면서, 제목
+   한 줄과 날짜 한 줄을 담으려고 아래를 절반쯤 비워 두고 있었다. 제목·날짜·동작을
+   가로로 세우면 같은 자리에 더 많은 기록이 들어가고 훑기도 쉽다. 순서 편집 목록
+   (`.saved-books`)은 끌어 옮기는 손잡이가 있으므로 그대로 둔다. */
+.collection-workspace .drawer-list:not(.saved-books) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+}
+/* 넷째 칸은 동작, 앞의 셋은 글이다. 날짜와 복원 기한이 각각 한 칸을 가져야 둘째
+   줄에서 겹치지 않는다 — 같은 칸에 넣었더니 글자가 서로 위에 그려졌다. */
+.collection-workspace .drawer-list:not(.saved-books) > li {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px 14px;
+  min-height: 0;
+  padding: 14px 18px;
+}
+.collection-workspace .drawer-list:not(.saved-books) .retention-card-title {
+  grid-column: 1 / 4;
+  grid-row: 1;
+  margin: 0;
+  font-size: 15px;
+}
+.collection-workspace .drawer-list:not(.saved-books) > li > small {
+  grid-column: 1;
+  grid-row: 2;
+}
+.collection-workspace .drawer-list:not(.saved-books) .retention-card-deadline {
+  grid-column: 2;
+  grid-row: 2;
+  justify-self: start;
+  margin: 0;
+  padding-left: 14px;
+  border-left: 1px solid var(--nook-card-line);
+}
+.collection-workspace .drawer-list:not(.saved-books) > li > small,
+.collection-workspace .drawer-list:not(.saved-books) .retention-card-deadline {
+  display: inline;
+  font-size: 12px;
+  color: var(--nook-muted);
+}
+.collection-workspace .drawer-list:not(.saved-books) .retention-card-actions {
+  grid-column: 4;
+  grid-row: 1 / span 2;
+  margin: 0;
+  align-self: center;
+}
+/* 한 줄에 넷을 세울 폭이 없으면 각자 한 줄을 갖는다. 날짜 옆에 복원 기한을 그대로
+   두면 좁은 칸에서 네 줄로 감기고, 그 옆의 세로선은 나란한 둘을 가르는 표시라
+   위아래로 쌓인 뒤에는 할 일이 없다. */
+@media (max-width: 600px) {
+  .collection-workspace .drawer-list:not(.saved-books) > li {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+  .collection-workspace .drawer-list:not(.saved-books) .retention-card-title,
+  .collection-workspace .drawer-list:not(.saved-books) > li > small,
+  .collection-workspace
+    .drawer-list:not(.saved-books)
+    .retention-card-deadline {
+    grid-column: 1;
+  }
+  .collection-workspace
+    .drawer-list:not(.saved-books)
+    .retention-card-deadline {
+    grid-row: 3;
+    padding-left: 0;
+    border-left: 0;
+  }
+  .collection-workspace .drawer-list:not(.saved-books) .retention-card-actions {
+    grid-column: 1;
+    grid-row: 4;
+    justify-self: start;
+    margin-top: 6px;
+  }
+}
+
+/* 새로고침은 탭과 같은 줄의 아이콘 하나다. */
+.collection-refresh {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  margin-left: auto;
+  padding: 0;
+  border: 1px solid var(--nook-card-line);
+  border-radius: 999px;
+  background: var(--nook-surface);
+  color: var(--nook-muted);
+  cursor: pointer;
+  transition:
+    color 0.18s,
+    border-color 0.18s;
+}
+.collection-refresh svg {
+  width: 17px;
+  height: 17px;
+}
+.collection-refresh:hover:not(:disabled) {
+  border-color: var(--nook-line-strong);
+  color: var(--nook-ink);
+}
+.collection-refresh:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
