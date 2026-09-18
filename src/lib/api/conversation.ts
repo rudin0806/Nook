@@ -1,4 +1,5 @@
 import "server-only";
+import { randomUUID } from "node:crypto";
 import { createAdmissionContext } from "./ai-admission";
 import { loadConversation } from "./conversation-context";
 import { runConversationRequest } from "@/engine/conversation-request";
@@ -8,42 +9,53 @@ import { createOpenAIClient } from "@/lib/openai/server";
 import { getConversationEnvironment } from "@/lib/env/server";
 import type { ConversationRequest } from "@/schemas/conversation";
 
-/** How long each stage of a turn takes, and nothing else.
- *
- * A measured turn averages 15.3s end to end while `judge_logs` accounts for
- * 6.4s of it, so two thirds of the wait had no record anywhere. This adds no
- * model call: it times the calls that already happen. Only a stage name, a
- * duration and the configured model are written — no utterance, no identifier,
- * no request body — which keeps the operational log separate from the user's
- * record. Read it in the Vercel runtime log, filtered on `nook_stage`.
- */
-function stage<T>(name: string, model: string | null, run: () => Promise<T>) {
-  const started = Date.now();
-  const done = (outcome: "ok" | "failed") =>
-    console.log(
-      JSON.stringify({
-        evt: "nook_stage",
-        stage: name,
-        ms: Date.now() - started,
-        ...(model ? { model } : {}),
-        outcome,
-      }),
-    );
-  return run().then(
-    (value) => {
-      done("ok");
-      return value;
-    },
-    (error) => {
-      done("failed");
-      throw error;
-    },
-  );
-}
-
 export async function converse(input: ConversationRequest) {
   const ctx = await createAdmissionContext();
   let sessionId: string | undefined;
+
+  /** How long each stage of a turn takes, and nothing else.
+   *
+   * A measured turn averages 15.3s end to end while `judge_logs` accounts for
+   * 6.4s of it, so two thirds of the wait had no record anywhere. This adds no
+   * model call: it times the calls that already happen.
+   *
+   * The row carries a stage name, a duration, the configured model and whether
+   * it succeeded. No utterance, no user, no session, no request body. `turn` is
+   * a number made here and kept nowhere else — it groups one turn's four rows
+   * and leads back to no one, so the operational record stays separate from the
+   * user's. A failed write is swallowed: a measurement must never be the reason
+   * a turn fails.
+   */
+  const turn = randomUUID();
+  const stage = <T>(
+    name: string,
+    model: string | null,
+    run: () => Promise<T>,
+  ) => {
+    const started = Date.now();
+    const done = async (outcome: "ok" | "failed") => {
+      const ms = Date.now() - started;
+      console.log(
+        JSON.stringify({ evt: "nook_stage", stage: name, ms, model, outcome }),
+      );
+      try {
+        await ctx.admin
+          .from("ai_stage_timings")
+          .insert({ turn, stage: name, ms, model, outcome });
+      } catch {}
+    };
+    return run().then(
+      async (value) => {
+        await done("ok");
+        return value;
+      },
+      async (error) => {
+        await done("failed");
+        throw error;
+      },
+    );
+  };
+
   const load = async () =>
     stage("LOAD", null, async () => {
       const s = await loadConversation(ctx.auth, input.nodeId);
