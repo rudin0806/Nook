@@ -16,6 +16,8 @@ export function ThoughtInput({
   initialSessionId,
   source,
   showRecovery = false,
+  expanded: controlledExpanded,
+  onExpandedChange,
 }: {
   enabled?: boolean;
   initialThought?: string;
@@ -23,13 +25,20 @@ export function ThoughtInput({
   initialSessionId?: string;
   source?: { kind: "node" | "branch" | "session"; id: string };
   showRecovery?: boolean;
+  /** The home desk owns this, because widening the panel is a change to the
+   * page grid rather than to the panel. Left out elsewhere, where the panel is
+   * already the whole column and manages the state itself. */
+  expanded?: boolean;
+  onExpandedChange?: (next: boolean) => void;
 }) {
   const [captchaToken, setCaptchaToken] = useState("");
   const [verificationAttempt, setVerificationAttempt] = useState(0);
   const [exiting, setExiting] = useState(false);
   const [thought, setThought] = useState(initialThought);
   const [editedQuestion, setEditedQuestion] = useState<string | null>(null);
-  const [expanded, setExpanded] = useState(false);
+  const [ownExpanded, setOwnExpanded] = useState(false);
+  const expanded = controlledExpanded ?? ownExpanded;
+  const setExpanded = onExpandedChange ?? setOwnExpanded;
   const flow = useStartConversation(initialView, initialSessionId);
   const { view, locked } = flow;
   const heading = useRef<HTMLHeadingElement>(null);
@@ -68,6 +77,10 @@ export function ThoughtInput({
       onKeyDown={(e) => {
         if (e.key === "Escape") setExpanded(false);
       }}
+      onFocusCapture={(e) => {
+        // Focus reaching the field is the same intent as pressing 넓게 쓰기.
+        if (e.target instanceof HTMLTextAreaElement) setExpanded(true);
+      }}
     >
       <div className="paper-top">
         <span>지금, 내 머릿속</span>
@@ -77,11 +90,11 @@ export function ThoughtInput({
           aria-expanded={expanded}
           onClick={() => setExpanded(!expanded)}
         >
-          {expanded ? "접어두기 ↙" : "넓게 쓰기 ↗"}
+          {expanded ? "접어두기" : "넓게 쓰기"}
         </ActionButton>
       </div>
       <div className="panel-title-with-icon">
-        <NookIcon name="write" tone="blue" />
+        <NookIcon name="write" tone="blue" tile />
         <h2 ref={heading} tabIndex={-1}>
           {view.kind === "input"
             ? "생각 적기"
@@ -146,7 +159,7 @@ export function ThoughtInput({
               variant="neutralSolid"
               disabled={!enabled || !thought.trim() || locked}
             >
-              {flow.busy ? "살펴보는 중…" : "시작하기 ↗"}
+              {flow.busy ? "살펴보는 중…" : "시작하기 ›"}
             </ActionButton>
           </div>
         </form>

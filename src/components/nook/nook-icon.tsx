@@ -1,14 +1,6 @@
-type IconName =
-  | "write"
-  | "lamp"
-  | "pile"
-  | "conversation"
-  | "home"
-  | "account";
-
+type IconName = "write" | "lamp" | "pile" | "conversation" | "home" | "account";
 
 type IconTone = "blue" | "orange" | "lime";
-
 
 const paths: Record<IconName, React.ReactNode> = {
   write: (
@@ -56,21 +48,27 @@ const paths: Record<IconName, React.ReactNode> = {
   ),
 };
 
-
 export function NookIcon({
   name,
   tone,
   compact = false,
+  tile = false,
 }: {
   name: IconName;
   tone: IconTone;
   compact?: boolean;
+  /** A panel heading sets this: the glyph sits white inside a tinted, slightly
+   * tilted square instead of floating as a coloured outline. At 26px a line
+   * icon on paper reads as debris next to a heading; a filled tile gives it a
+   * shape and lets the tone carry meaning without tinting the text. */
+  tile?: boolean;
 }) {
   return (
     <span
       className="nook-icon"
       data-tone={tone}
       data-compact={compact || undefined}
+      data-tile={tile || undefined}
       aria-hidden="true"
     >
       <svg viewBox="0 0 48 48" fill="none">

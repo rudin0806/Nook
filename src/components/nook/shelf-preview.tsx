@@ -69,11 +69,11 @@ export function ShelfPreview() {
     <section className="shelf-panel" aria-label="생각 더미 미리보기">
       <div className="panel-heading">
         <div className="panel-title-with-icon">
-          <NookIcon name="pile" tone="lime" />
+          <NookIcon name="pile" tone="lime" tile />
           <h2>생각 더미</h2>
         </div>
         <Link className="quiet-link" href="/drawer">
-          전체 보기 ↗
+          전체 보기
         </Link>
       </div>
       <div className="shelf-books" hidden={!books.length}>
@@ -93,10 +93,20 @@ export function ShelfPreview() {
       </div>
       {empty || guest ? (
         <div className="shelf-empty">
-          <div className="empty-books" aria-hidden="true"><i /><i /><i /></div>
+          <div className="empty-books" aria-hidden="true">
+            <i />
+            <i />
+            <i />
+          </div>
           <div>
-            <strong>{guest ? "대화를 남길 책장이에요" : "아직 책장이 비어 있어요"}</strong>
-            <p role="status">{guest ? "로그인하면 남긴 책을 여기서 볼 수 있어요." : "남긴 대화가 한 권씩 시간순으로 쌓여요."}</p>
+            <strong>
+              {guest ? "대화를 남길 책장이에요" : "아직 책장이 비어 있어요"}
+            </strong>
+            <p role="status">
+              {guest
+                ? "로그인하면 남긴 책을 여기서 볼 수 있어요."
+                : "남긴 대화가 한 권씩 시간순으로 쌓여요."}
+            </p>
             {guest ? (
               <Link className="shelf-cta" href="/login">
                 계정 연결하기

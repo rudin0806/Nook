@@ -40,7 +40,7 @@ export function ThemeControl() {
       data-lit={!dark}
       aria-label="조명과 화면 테마"
     >
-      <NookIcon name="lamp" tone="lime" />
+      <NookIcon name="lamp" tone="orange" tile />
       <div className="lamp-copy">
         <h2>조명</h2>
         <p>

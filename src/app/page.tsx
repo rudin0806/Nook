@@ -32,9 +32,6 @@ export default async function HomePage() {
           </p>
         </div>
         <HomeDesk enabled={process.env.NOOK_START_API_ENABLED === "true"} />
-        <p className="desk-footnote">
-          결론이 나지 않아도 괜찮아요. 멈출 때는 내가 정해요.
-        </p>
       </main>
     </div>
   );

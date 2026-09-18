@@ -22,8 +22,11 @@
   --nook-open: #ff9a57;
   --nook-open-weak: #fff2e8;
 
-  --nook-card-line: transparent;
+  --nook-card-line: #e9ebef;
   --nook-sticky: rgba(244, 245, 247, 0.82);
+  --nook-card-shadow:
+    0 1px 2px rgb(16 20 28 / 4%), 0 8px 24px rgb(16 20 28 / 5%);
+  --nook-tile-ink: #ffffff;
 
   /* globals.css and the other routes still read these, so they follow the
      new palette instead of keeping the old dark-only values. */
@@ -79,8 +82,10 @@
   --nook-open: #ffac75;
   --nook-open-weak: rgba(255, 172, 117, 0.14);
 
-  --nook-card-line: rgba(255, 255, 255, 0.06);
+  --nook-card-line: rgba(255, 255, 255, 0.08);
   --nook-sticky: rgba(20, 22, 26, 0.82);
+  --nook-card-shadow: 0 1px 2px rgb(0 0 0 / 30%), 0 10px 28px rgb(0 0 0 / 22%);
+  --nook-tile-ink: #14161a;
 
   --nook-gold: var(--nook-primary);
   --nook-mint: var(--nook-saved);
@@ -310,30 +315,48 @@ body {
   color: var(--nook-subtle);
 }
 
+/* Two columns, not a four-area map: the side panels move together, so they are
+   one thing the grid can take away. */
 .home-bento {
   display: grid;
-  grid-template-areas:
-    "input lamp"
-    "input shelf"
-    "input recovery";
-  grid-template-columns: minmax(0, 2.1fr) minmax(300px, 1fr);
-  grid-template-rows: auto auto 1fr;
+  grid-template-columns: minmax(0, 2.1fr) minmax(0, 1fr);
   gap: 14px;
-  align-items: stretch;
+  align-items: start;
   margin-top: 26px;
+  transition: grid-template-columns 360ms cubic-bezier(0.22, 0.8, 0.3, 1);
+}
+.home-writing {
+  min-width: 0;
+}
+.home-aside {
+  display: grid;
+  gap: 14px;
+  min-width: 300px;
+  transition:
+    opacity 200ms ease,
+    transform 360ms cubic-bezier(0.22, 0.8, 0.3, 1);
 }
 
-.home-bento > .writing-surface {
-  grid-area: input;
+/* Writing takes the width. The side column keeps its own width while the track
+   closes, so it slides out instead of being squashed on the way out. */
+.home-bento[data-expanded] {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0fr);
 }
-.home-bento > .lamp-panel {
-  grid-area: lamp;
+.home-bento[data-expanded] .home-aside {
+  opacity: 0;
+  transform: translateX(28px);
+  pointer-events: none;
+  overflow: hidden;
 }
-.home-bento > .shelf-panel {
-  grid-area: shelf;
+.home-bento[data-expanded] .writing-surface {
+  border-color: var(--nook-line-strong);
 }
-.home-bento > .recovery-panel {
-  grid-area: recovery;
+
+@media (prefers-reduced-motion: reduce) {
+  .home-bento,
+  .home-aside {
+    transition: none;
+  }
 }
 
 .writing-surface,
@@ -344,8 +367,8 @@ body {
   background: var(--nook-surface);
   border: 1px solid var(--nook-card-line);
   border-radius: 20px;
-  box-shadow: none;
-  padding: 24px 26px;
+  box-shadow: var(--nook-card-shadow);
+  padding: 22px 24px;
 }
 
 .writing-surface {
@@ -600,17 +623,6 @@ body {
   margin: 5px 0 0;
   font-size: 13px;
   color: var(--nook-muted);
-}
-.shelf-empty .shelf-cta {
-  display: inline-block;
-  margin-top: 12px;
-  padding: 9px 16px;
-  border-radius: 999px;
-  background: var(--nook-primary-weak);
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--nook-primary);
-  text-decoration: none;
 }
 .shelf-status {
   margin: 16px 0 0;
@@ -870,14 +882,20 @@ body {
 }
 
 @media (max-width: 900px) {
-  .home-bento {
-    grid-template-areas:
-      "input"
-      "lamp"
-      "shelf"
-      "recovery";
+  /* One column on a phone, and no widening to do — the panel is already the
+     whole width, so the side column simply stacks under it. */
+  .home-bento,
+  .home-bento[data-expanded] {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: none;
+  }
+  .home-aside {
+    min-width: 0;
+  }
+  .home-bento[data-expanded] .home-aside {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+    overflow: visible;
   }
   .desk-greeting {
     font-size: 27px;
@@ -1164,4 +1182,189 @@ body {
 }
 .account-danger-dialog::backdrop {
   background: rgb(0 0 0 / 45%);
+}
+
+/* ── 홈 화면 품질 ───────────────────────────────────────────────────────── */
+
+/* A tinted tile instead of a loose coloured outline. At 26px on paper the line
+   icons read as debris beside a heading; a filled square gives each panel a
+   fixed anchor and lets the tone mean something without tinting the text.
+   The tile leans, the glyph does not — the counter-rotation keeps it upright
+   so it reads as a sticker rather than a mistake. */
+.nook-icon[data-tile] {
+  width: 38px;
+  height: 38px;
+  padding: 8px;
+  border-radius: 12px;
+  transform: rotate(-5deg);
+  color: var(--nook-tile-ink);
+}
+.nook-icon[data-tile] svg {
+  transform: rotate(5deg);
+}
+.nook-icon[data-tile][data-tone="blue"] {
+  background: var(--nook-primary);
+}
+.nook-icon[data-tile][data-tone="lime"] {
+  background: var(--nook-saved);
+}
+.nook-icon[data-tile][data-tone="orange"] {
+  background: var(--nook-open);
+}
+
+/* Every panel heading is the same row: tile, title block, one action on the
+   right. They were drifting apart, which is most of why the column looked
+   unfinished. */
+.panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 38px;
+}
+.panel-title-with-icon {
+  min-width: 0;
+  gap: 12px;
+}
+.panel-title-with-icon h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.panel-eyebrow {
+  display: block;
+  margin-bottom: 1px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--nook-subtle);
+}
+
+/* The chip was carrying "↗", which sits above the baseline and pushed the
+   label off centre. A chevron in its own span keeps the label still. */
+.quiet-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px 6px 12px;
+  border: 1px solid var(--nook-card-line);
+  background: transparent;
+  line-height: 1;
+}
+.quiet-link::after {
+  content: "›";
+  font-size: 15px;
+  line-height: 1;
+  color: var(--nook-subtle);
+}
+.quiet-link:hover::after {
+  color: var(--nook-ink);
+}
+
+/* An empty panel is a held space, not a gap: one dashed frame with the message
+   inside it, rather than a message floating in whitespace. */
+.shelf-empty,
+.recovery-empty {
+  box-sizing: border-box;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 22px 18px;
+  min-height: 0;
+  border-radius: 14px;
+  text-align: center;
+}
+/* Only the shelf gets a frame. The recovery panel already draws dashed cards
+   of its own, and a dashed box around dashed cards is two of the same signal. */
+.shelf-empty {
+  border: 1px dashed var(--nook-line-strong);
+}
+/* No fill: the book bars are drawn in --nook-raised, which sat at the same
+   value as the tint and made two of the three disappear. */
+.shelf-empty strong,
+.recovery-empty strong,
+.empty-card-copy strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+}
+.shelf-empty p,
+.recovery-empty p,
+.empty-card-copy p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--nook-muted);
+  word-break: keep-all;
+}
+
+/* The stacked outlines belong to the recovery panel's own frame now, so they
+   are sized against it rather than against the whole panel. */
+.empty-cards {
+  inset: 14px 16px;
+}
+.empty-card-copy {
+  position: relative;
+  max-width: 26em;
+}
+
+/* Signing in is the one thing this panel wants, so it looks like it. It was a
+   pale tinted link sitting mid-panel with nothing marking it as the action. */
+.shelf-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 12px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  background: var(--nook-primary);
+  color: var(--nook-primary-ink);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.shelf-cta::after {
+  content: "›";
+  font-size: 15px;
+  line-height: 1;
+}
+.shelf-cta:hover {
+  filter: brightness(0.94);
+}
+
+/* The submit carries the screen, so it is filled with the point colour and its
+   label is paper. It was reading as a disabled chip: a tinted block with dark
+   text at the same weight as the ghost actions beside it. */
+.paper-bottom .seed-action-button[type="submit"],
+.start-response .seed-action-button[type="submit"] {
+  padding-inline: 18px;
+  border-radius: 999px;
+  background: var(--nook-primary);
+  color: var(--nook-primary-ink);
+  font-weight: 600;
+}
+.paper-bottom .seed-action-button[type="submit"]:hover:not([disabled]),
+.start-response .seed-action-button[type="submit"]:hover:not([disabled]) {
+  filter: brightness(0.94);
+}
+.paper-bottom .seed-action-button[type="submit"][disabled],
+.start-response .seed-action-button[type="submit"][disabled] {
+  background: var(--nook-fill);
+  color: var(--nook-subtle);
+}
+
+/* "넓게 쓰기" is a mode switch, not a link out, so it reads as a small control
+   rather than a sentence with an arrow stuck to it. */
+.paper-top .seed-action-button {
+  padding: 5px 11px;
+  border: 1px solid var(--nook-card-line);
+  border-radius: 999px;
+  font-size: 12px;
+  color: var(--nook-muted);
+}
+.paper-top .seed-action-button:hover {
+  color: var(--nook-ink);
 }

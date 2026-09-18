@@ -64,7 +64,7 @@ export function RecoveryList() {
     <section aria-label="이어갈 대화" className="recovery-panel">
       <div className="panel-heading">
         <div className="panel-title-with-icon">
-          <NookIcon name="conversation" tone="orange" />
+          <NookIcon name="conversation" tone="orange" tile />
           <div>
             <span className="panel-eyebrow">아직 펼쳐둔 생각</span>
             <h2>이어갈 대화</h2>
@@ -87,7 +87,6 @@ export function RecoveryList() {
           <div className="empty-card-copy">
             <strong>아직 이어갈 대화가 없어요</strong>
             <p>대화를 남기면 다시 묻고 싶은 질문이 카드로 쌓여요.</p>
-            <span>먼저 떠오르는 생각을 적어보세요.</span>
           </div>
         </div>
       ) : null}
