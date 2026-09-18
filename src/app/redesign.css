@@ -581,12 +581,14 @@ body {
   transform: translateY(-5px);
 }
 
+/* Only `flex: 1` is live here — it makes the empty state fill the panel as a
+   flex item of `.shelf-panel`. The rest described a flex column, but the rule
+   further down turns this into a grid, and `justify-content: flex-end` survived
+   that switch: in grid it stopped the single auto column from stretching and
+   pinned it to the right edge, which is why the drawing and the copy sat 41px
+   right of centre inside a centred frame. */
 .shelf-empty {
-  display: flex;
-  flex-direction: column;
   flex: 1;
-  justify-content: flex-end;
-  margin-top: 18px;
 }
 .empty-books {
   display: flex;
@@ -1674,16 +1676,36 @@ body {
 /* The two speakers were offset by percentages of that full width — the user's
    card sat 12% in and the question 8% out — which read as two unrelated
    columns. They share one column now and differ by surface, which is what
-   tells them apart at a glance. */
+   tells them apart at a glance.
+   That surface never arrived for Nook's turn: globals.css draws
+   `.conversation-card` transparent and gives only the USER role a background,
+   so one speaker had a bubble and the other was loose text running the whole
+   column. An exchange needs two things that look like turns. The tone is
+   --nook-fill-press rather than --nook-fill, which sits three values from the
+   page and would have disappeared into it. */
 .conversation-card[data-role="USER"] {
   margin-left: auto;
-  max-width: 86%;
+  /* A lane, not a variable width: the same speaker was swinging between 276px
+     and 671px in an 780px column, so the side told you nothing. */
+  max-width: 76%;
   border-radius: 16px;
 }
 .conversation-card[data-role="ASSISTANT"] {
-  margin-right: 0;
-  max-width: 100%;
-  padding-left: 0;
+  margin-right: auto;
+  max-width: 76%;
+  padding: 18px 20px;
+  border-color: transparent;
+  border-radius: 16px;
+  background: var(--nook-fill-press);
+}
+.conversation-card[data-role="USER"] {
+  padding: 18px 20px;
+}
+/* Turns in a thread sit close; 16px plus each card's own padding read as four
+   separate blocks rather than one exchange. */
+.conversation-workspace .drawer-list {
+  gap: 10px;
+  margin: 18px 0 0;
 }
 .conversation-card > small {
   display: block;
@@ -1713,13 +1735,29 @@ body {
   background: var(--nook-fill);
   color: var(--nook-subtle);
 }
+/* The composer was a white card holding a field that draws its own grey box —
+   a card inside a card, and the heaviest surface on a page whose job is the
+   conversation above it. The field is the surface; the frame around it goes. */
 .conversation-composer {
   display: grid;
   justify-items: end;
   gap: 12px;
+  margin: 22px 0 0;
+  padding: 0;
+  border: 0;
+  background: none;
 }
 .conversation-composer .writing-field {
   width: 100%;
+}
+/* The field is drawn in --nook-raised, which is three values from --nook-paper.
+   Inside the white panel on the home screen that reads as a writing surface;
+   on this page it dissolved into the background. It takes the surface the
+   user's own turn uses — what you type looks like the bubble it becomes — and
+   a hairline so it has an edge before focus. */
+.conversation-composer .writing-field textarea.writing-textarea {
+  background: var(--nook-surface);
+  box-shadow: inset 0 0 0 1px var(--nook-card-line);
 }
 
 /* 나가기 and 현재 기록 다시 확인 were ghost buttons stacked at the left
@@ -1744,6 +1782,16 @@ body {
 
 /* The node card held one chip and a sentence across the whole width: the hint
    was pushed to the far right edge with a field of nothing between. */
+/* Four fixed columns meant one node left three empty cells — 182px of card
+   holding a single chip. The list is as wide as the questions in it. */
+.node-navigation ol {
+  display: flex;
+  flex-wrap: wrap;
+}
+.node-navigation ol > li {
+  flex: 1 1 150px;
+  max-width: 220px;
+}
 .node-navigation {
   padding: 16px 18px;
   border-radius: 16px;

@@ -43,7 +43,7 @@ export default async function DrawerPage({
         />
         <p className="collection-footer">
           <Link className="quiet-link" href="/login">
-            계정 연결 · 로그아웃
+            내 정보
           </Link>
         </p>
       </main>
