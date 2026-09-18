@@ -1547,3 +1547,93 @@ body {
   font-weight: 500;
   color: var(--nook-muted);
 }
+
+/* ── 빈 상태 일러스트 ───────────────────────────────────────────────────── */
+
+/* All three share the language: thin shapes in the fill tone, one piece tinted,
+   a slight lean. Drawn from divs so they follow the theme and load nothing. */
+.empty-art {
+  margin-bottom: 8px;
+}
+
+/* 남겨둔 질문 — cards kept for later, stacked and offset like the card stack
+   the questions actually live in. The top one carries two ruled lines. */
+.empty-questions {
+  position: relative;
+  width: 96px;
+  height: 78px;
+}
+.empty-questions > i {
+  position: absolute;
+  inset: auto 0 0;
+  height: 58px;
+  border-radius: 9px;
+  background: var(--nook-fill-press);
+}
+.empty-questions > i:nth-child(1) {
+  transform: translate(-13px, -14px) rotate(-8deg);
+  opacity: 0.55;
+}
+.empty-questions > i:nth-child(2) {
+  transform: translate(9px, -7px) rotate(5deg);
+  opacity: 0.75;
+}
+.empty-questions > i:nth-child(3) {
+  display: grid;
+  align-content: center;
+  gap: 7px;
+  padding: 0 12px;
+  background: var(--nook-primary-weak);
+}
+.empty-questions > i:nth-child(3) > b {
+  height: 3px;
+  border-radius: 2px;
+  background: var(--nook-primary);
+  opacity: 0.45;
+}
+.empty-questions > i:nth-child(3) > b:last-child {
+  width: 58%;
+}
+
+/* 휴지통 — a lid and a tapered body with two strokes, so it reads as a bin
+   rather than a box at this size. */
+.empty-trash {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  width: 96px;
+}
+.empty-trash-lid {
+  width: 62px;
+  height: 7px;
+  border-radius: 3px;
+  background: var(--nook-fill-press);
+}
+.empty-trash-body {
+  display: grid;
+  justify-content: center;
+  align-content: center;
+  gap: 6px;
+  width: 54px;
+  height: 58px;
+  padding-top: 4px;
+  /* Narrower at the bottom: that taper is what makes it a bin. */
+  clip-path: polygon(0 0, 100% 0, 88% 100%, 12% 100%);
+  background: var(--nook-fill-press);
+}
+.empty-trash-body > b {
+  width: 3px;
+  height: 30px;
+  border-radius: 2px;
+  background: var(--nook-primary);
+  opacity: 0.35;
+}
+.empty-trash-body > b:first-child {
+  justify-self: start;
+  margin-left: 14px;
+}
+.empty-trash-body > b:last-child {
+  justify-self: end;
+  margin-right: 14px;
+  height: 24px;
+}

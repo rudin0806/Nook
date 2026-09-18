@@ -11,6 +11,7 @@ import {
   type RetentionAction,
 } from "@/lib/retention/client";
 import { SavedShelf } from "./saved-shelf";
+import { EmptyArt } from "./empty-art";
 import { CardStack } from "./card-stack";
 import { RetentionCard } from "./retention-card";
 import {
@@ -84,6 +85,24 @@ function spineLabel(value: string): string {
     .format(new Date(value))
     .replace(/\s/g, "")
     .replace(/\.$/, "");
+}
+
+/** Each tab draws its own thing: books for stories, stacked cards for the
+ * questions kept for later, a bin for the bin. */
+function emptyArtKind(collection: Collection) {
+  return collection === "sessions"
+    ? "books"
+    : collection === "trash"
+      ? "trash"
+      : "questions";
+}
+
+function signedOutHint(collection: Collection) {
+  return collection === "sessions"
+    ? "로그인하면 남긴 이야기가 여기 한 권씩 쌓여요."
+    : collection === "trash"
+      ? "지운 기록은 7일 동안 여기서 되돌릴 수 있어요."
+      : "다시 묻고 싶어 남겨둔 질문이 여기 모여요.";
 }
 
 export function DrawerContents({
@@ -376,17 +395,15 @@ export function DrawerContents({
             className="collection-empty"
             role={state.needsLogin ? undefined : "alert"}
           >
-            <div className="empty-books" aria-hidden="true">
-              <i />
-              <i />
-              <i />
-            </div>
+            <EmptyArt kind={emptyArtKind(collection)} />
             <strong>
               {state.needsLogin
                 ? "계정을 연결하면 열려요"
                 : "지금은 열 수 없어요"}
             </strong>
-            <p>{state.message}</p>
+            <p>
+              {state.needsLogin ? signedOutHint(collection) : state.message}
+            </p>
             {state.needsLogin ? (
               <Link className="shelf-cta" href="/login">
                 계정 연결하기
@@ -500,16 +517,17 @@ export function DrawerContents({
               </ul>
             )
           ) : (
-            <div className="preview-summary-card">
-              <h2>
+            <div className="collection-empty">
+              <EmptyArt kind={emptyArtKind(collection)} />
+              <strong>
                 {offset
-                  ? "이 페이지에는 기록이 없어요."
+                  ? "이 페이지에는 기록이 없어요"
                   : collection === "sessions"
-                    ? "아직 넣어둔 이야기가 없어요."
+                    ? "아직 넣어둔 이야기가 없어요"
                     : collection === "trash"
-                      ? "휴지통이 비어 있어요."
-                      : "아직 남겨둔 질문이 없어요."}
-              </h2>
+                      ? "휴지통이 비어 있어요"
+                      : "아직 남겨둔 질문이 없어요"}
+              </strong>
               <p>
                 {collection === "trash"
                   ? "휴지통으로 옮긴 이야기가 여기에 모여요."
