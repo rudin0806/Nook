@@ -272,6 +272,26 @@ Anchor FK는 `ON DELETE NO ACTION DEFERRABLE`을 쓴다. 개별 Anchor Node 삭�
 | `trigger_source` | 감지 출처 | Moderation, Classifier, 둘 다               |
 | `created_at`     | 발생 시각 | 원문 없이 시각만                            |
 
+### `ai_stage_timings` — 턴의 단계별 소요 시간
+
+사용자 기록이 아니라 운영 기록이다. 어떤 테이블도 참조하지 않으며 발화·사용자·세션을
+담지 않는다. `judge_logs`가 Judge 하나만 설명하는 데 비해 한 턴 전체를 네 단계로 쪼갠다.
+
+| 컬럼         | 자연어 뜻   | 규칙                                                 |
+| ------------ | ----------- | ---------------------------------------------------- |
+| `id`         | 행 ID       | UUID 기본키                                          |
+| `turn`       | 턴 묶음     | 요청 안에서 만든 난수. 사용자·세션으로 이어지지 않음 |
+| `stage`      | 단계        | `LOAD / SAFETY / GENERATE / COMMIT`                  |
+| `ms`         | 소요 시간   | 0 이상                                               |
+| `model`      | 설정된 모델 | DB 단계는 `NULL`                                     |
+| `outcome`    | 성패        | `ok / failed`                                        |
+| `created_at` | 기록 시각   | 감사용                                               |
+
+`GENERATE`는 Judge와 뒤따르는 Reframe·Reflection을 합한 값이다. `judge_logs.latency_ms`를
+빼면 생성 단계가 남는다. 정책을 두지 않고 `anon`·`authenticated`에서 모든 권한을
+회수했으므로 입구는 서버 전용 키뿐이다. migration은 `20260918120000_ai_stage_timings`이며
+2026-09-18 운영에 적용했다.
+
 ## 5. 상태 변화
 
 ### 정상 종료와 보관
@@ -322,7 +342,7 @@ stateDiagram-v2
 - `anon` 역할에는 Nook 개인 데이터 권한을 주지 않는다.
 - 사용자는 자신의 일반 세션, 생각 더미, 휴지통, 보관 질문만 읽을 수 있다.
 - `SAFETY_STOPPED`와 `HANDOFF_STOPPED` 세션은 사용자 목록 조회에서 숨긴다.
-- `judge_logs`와 `safety_events`는 브라우저에 노출하지 않는다.
+- `judge_logs`·`safety_events`·`ai_stage_timings`는 브라우저에 노출하지 않는다.
 - 메시지·Node·Edge·Judge/Safety 기록은 Next.js 서버만 쓴다. 서버는 Supabase secret key를 사용하되, 먼저 로그인 사용자와 대상 세션 소유권을 검증한다.
 - 보관 결정·휴지통 이동·복원·질문 hard delete는 `SECURITY DEFINER` RPC가 `auth.uid()`를 다시 확인한다.
 - 다른 사용자의 Session/Node/Branch ID를 알아도 FK 연결을 만들 수 없도록 복합 FK와 제약 트리거를 함께 쓴다.

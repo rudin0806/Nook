@@ -71,6 +71,11 @@
 - 프록시가 `api.openai.com`과 `*.vercel.app`을 **403으로 막는다.** 유료 호출과 운영 주소
   브라우저 접속이 불가능하다. 브라우저 검증은 로컬 프로덕션 빌드(`next start`)로 한다.
 - Supabase 자격 증명과 hCaptcha 사이트 키가 없어 **로그인이 필요한 화면을 띄울 수 없다.**
+  로그인 뒤 화면은 `/api/**`를 목으로 막아 띄운다. Playwright는 나중에 등록한 route를
+  먼저 적용하므로 구체적인 목을 catch-all 뒤에 등록한다.
+- **Supabase MCP로 운영 DB를 읽을 수 있고, Vercel 접근 수단은 없다.** 그래서 운영에서
+  관찰할 값은 Vercel 런타임 로그가 아니라 DB에 남긴다 — 단계 지연이
+  `ai_stage_timings`에 있는 이유다. 사람이 대시보드를 열어 복붙하지 않아도 된다.
 - 엔진(`src/engine/`)은 순수 함수이고 `JsonTransport`만 받는다. 키가 닿는 환경에서는
   DB·Next.js 없이 운영과 같은 프롬프트를 돌릴 수 있다.
 

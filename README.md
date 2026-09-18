@@ -13,7 +13,7 @@ Nook은 복잡한 생각을 대화로 풀어놓고, 지금 무엇을 고민하�
 
 ## 현재 단계
 
-운영 주소는 [Nook](https://nook-nine-eta.vercel.app/)입니다. 현재 운영 기준은 `main`이며 main에 push하면 Vercel Git 연동으로 자동 배포됩니다. 배포·GitHub 구현·검증 상태를 구분한 진행 상태와 다음 작업은 [`docs/STATUS.md`](docs/STATUS.md)를 기준으로 확인합니다.
+운영 주소는 [Nook](https://nook-nine-eta.vercel.app/)입니다. 현재 운영 기준은 `main`이며 main에 push하면 Vercel Git 연동으로 자동 배포됩니다. 함수 리전은 `vercel.json`이 `icn1`(서울)로 고정합니다 — Supabase가 `ap-northeast-2`라 DB 왕복을 같은 리전에서 끝내기 위한 설정이며, Hobby 플랜은 리전 하나만 허용합니다. 배포·GitHub 구현·검증 상태를 구분한 진행 상태와 다음 작업은 [`docs/STATUS.md`](docs/STATUS.md)를 기준으로 확인합니다.
 
 Codex·Claude 병행 작업의 역할과 전달 형식은 [`docs/HANDOFF.md`](docs/HANDOFF.md)를 참고합니다.
 
@@ -55,6 +55,10 @@ GitHub Actions의 저장소 secret 이름은 `AI_API_KEY`이며 평가 workflow 
 세 종류의 Judge 설정도 빈 값 없이 명시해야 합니다.
 
 로그인 사용자의 기록 보관·휴지통·복원 API 계약과 현재 검증 범위는 [구현 기록](docs/reviews/2026-09-13-retention-api.md)을 참고합니다.
+
+### 응답 지연 관찰
+
+한 턴은 Safety Gate → Turn Judge → Reframe/Reflection을 순서대로 돕니다. 각 단계가 얼마나 걸렸는지는 `ai_stage_timings`에 `LOAD / SAFETY / GENERATE / COMMIT` 네 줄로 남고, `GENERATE`에서 `judge_logs.latency_ms`를 빼면 생성 단계가 떨어집니다. 모델 호출을 추가하지 않고 이미 일어나는 호출의 시간만 재며, 발화·사용자·세션은 담지 않습니다. 같은 값이 표준 출력에도 `nook_stage`로 나갑니다. 측정값과 남은 관문은 [STATUS](docs/STATUS.md)를 따릅니다.
 
 ## 검증
 
