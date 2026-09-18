@@ -35,6 +35,31 @@
 - 옛 `/api/sessions/order`와 전체 배열 클라이언트·스키마·서버 함수 제거. DB의 옛 `reorder_saved_sessions(uuid[])` RPC 삭제 migration을 2026-09-17 운영에 **적용 완료**했다. 적용 후 `pg_proc` 조회 0행, `move_saved_session`·`move_saved_session_checked`·`normalize_shelf_positions`·보관/복원/휴지통 함수는 그대로 유지됨을 확인했다.
 - 익명 시작: 선택적 Turnstile UI·만료/오류 처리·토큰 전달 추가. `NEXT_PUBLIC_TURNSTILE_SITE_KEY`와 서버의 익명 활성화가 함께 필요하다. 실제 검증은 Supabase Auth가 담당한다.
 
+## 이어갈 대화의 생성 시점 — 2026-09-18 12차
+
+`list_recoverable_sessions`에 노드 개수 조건은 없다. 조건은
+`status in ('ACTIVE','COMPLETED') and storage_state='TEMPORARY' and
+temporary_expires_at > now()`뿐이다.
+
+그리고 `commit_start_input`이 **첫 입력을 받은 순간** `thought_sessions` 행을 만든다
+(`insert into public.thought_sessions(id,user_id)`가 `p_source_message is null` 분기에
+있다). 즉 질문 노드가 없는 세션이 실재하며, 그것이 목록에 들어온다.
+
+이 동작을 유지한다. 노드 0은 **글은 저장됐는데 첫 질문을 확정하지 않은 상태**이고,
+목록에서 빼면 그 글에 다시 닿는 화면이 사라진다 — 24시간 뒤 조용히 정리된다. "삭제
+방지 쿠션"이라는 목적과 정면으로 어긋난다.
+
+대신 카드가 구분되게 했다. RPC가 `nodeId`를 null로 주므로:
+
+- 캡션: `펼쳐보기 ›` / **`첫 질문 정하기 ›`**
+- 다이얼로그 eyebrow: `아직 남기지 않은 생각` / **`첫 질문을 정하기 전에 적은 생각`**
+- 링크: `이 대화 이어가기 ›` / **`여기서 이어 적기 ›`**
+
+확정된 질문이 아닌 문장이 Nook이 정한 질문처럼 보이던 문제도 같이 해결된다.
+측정으로 두 카드가 다르게 렌더되는 것을 확인했다.
+
+PRD §17에 생성 시점을 명시했다.
+
 ## 홈 2차 손질·탭 제목 — 2026-09-18 11차
 
 ### 조명 아이콘이 안 보인 이유

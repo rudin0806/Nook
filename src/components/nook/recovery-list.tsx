@@ -104,7 +104,9 @@ export function RecoveryList() {
               {String(index + 1).padStart(2, "0")}
             </span>
             <strong>{item.question}</strong>
-            <span className="card-caption">펼쳐보기 ↗</span>
+            <span className="card-caption">
+              {item.nodeId ? "펼쳐보기 ›" : "첫 질문 정하기 ›"}
+            </span>
           </button>
         ))}
       </div>
@@ -174,7 +176,11 @@ export function RecoveryList() {
             >
               <div className="card-stack">
                 <article className="browse-card" key={current.id}>
-                  <span className="panel-eyebrow">아직 남기지 않은 생각</span>
+                  <span className="panel-eyebrow">
+                    {current.nodeId
+                      ? "아직 남기지 않은 생각"
+                      : "첫 질문을 정하기 전에 적은 생각"}
+                  </span>
                   <h3>{current.question}</h3>
                   <p>
                     {new Date(current.expiresAt).toLocaleString("ko-KR", {
@@ -182,7 +188,11 @@ export function RecoveryList() {
                     })}
                     까지 이어갈 수 있어요.
                   </p>
-                  <Link href={`/resume/${current.id}`}>이 대화 이어가기 ↗</Link>
+                  <Link href={`/resume/${current.id}`}>
+                    {current.nodeId
+                      ? "이 대화 이어가기 ›"
+                      : "여기서 이어 적기 ›"}
+                  </Link>
                 </article>
               </div>
               <div className="card-controls">
