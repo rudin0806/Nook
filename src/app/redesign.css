@@ -19,9 +19,10 @@
   --nook-primary-ink: #ffffff;
   --nook-primary-weak: #eeeefc;
   --nook-saved: #2fbf8f;
-  /* 타일을 채우는 톤. 형제 색보다 혼자 밝아 다른 세트처럼 보였다 —
-     상대휘도 0.451 → 0.317로 내려 primary(0.195)·saved(0.398) 사이에 둔다. */
-  --nook-open: #e07636;
+  /* 타일을 채우는 톤. 상대휘도 0.393으로 saved(0.398)와 같은 선에 둔다 — 따뜻한 쪽과
+     찬 쪽이 같은 높이에 있고 primary(0.195)만 아래에서 주 동작을 맡는 구조다. 흰 글리프
+     2.37:1은 같은 자리의 saved 타일과 같은 값이다. */
+  --nook-open: #fb8b3c;
   /* 글자용. 채움 톤은 흰 카드 위에서 2.10:1이라 글자로 쓸 수 없다. */
   --nook-open-ink: #ad4f22;
   --nook-open-weak: #fff2e8;
@@ -2501,11 +2502,19 @@ body {
   filter: brightness(1.06);
 }
 
-/* 남은 기간은 지나면 사라진다는 뜻이므로 본문과 같은 무게로 두지 않는다.
-   --nook-open은 타일을 채우는 톤이라 흰 카드 위 글자로는 2.10:1밖에 나오지 않는다.
-   글자용 주황을 따로 둔다 — 흰 카드 5.36:1, 종이 4.91:1. */
+/* 남은 기간은 지나면 사라진다는 뜻이라 본문과 같은 무게로 두지 않는다.
+   흰 바탕 위 글자로 쓰려면 주황을 어둡게 해야 하는데 주황은 어두워지면 갈색이 된다.
+   색공간이 그래서 피할 길이 없고, 민트로 바꿔도 같은 일이 일어난다(원색 2.34:1).
+   게다가 초록은 이 제품에서 보관됨을 뜻하므로 삭제 예고에는 뜻이 어긋난다.
+   그래서 글자 색을 바꾸는 대신 칩으로 둔다. 말랑한 주황은 채움으로 나타나고 글자는
+   연한 바탕 위에 앉는다 — 라이트 4.88:1, 다크 7.60:1. */
 /* 위쪽 메타 규칙이 `:not(.saved-books)`를 달고 있어 그만큼 구체적이어야 이긴다. */
 .collection-workspace .drawer-list:not(.saved-books) .retention-card-deadline {
+  justify-self: start;
+  padding: 3px 10px;
+  border-left: 0;
+  border-radius: 999px;
+  background: var(--nook-open-weak);
   color: var(--nook-open-ink);
   font-weight: 600;
 }
