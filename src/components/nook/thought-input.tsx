@@ -123,7 +123,13 @@ export function ThoughtInput({
               autoComplete="off"
             />
           </TextField.Root>
-          {enabled && (
+          {/* Not before the first keystroke. A visitor who has written nothing
+              was being shown a CAPTCHA under an empty box, which is the
+              opposite of "적기 전에 정리하지 않아도 된다". It mounts as soon as
+              they start typing, so it has the whole time they are writing to
+              load and solve. The server contract is unchanged: Supabase still
+              verifies the token, and a submit without one still fails. */}
+          {enabled && thought.length > 0 && (
             <AnonymousVerification
               key={verificationAttempt}
               onToken={setCaptchaToken}
@@ -137,7 +143,7 @@ export function ThoughtInput({
             </p>
             <ActionButton
               type="submit"
-              variant="neutralWeak"
+              variant="neutralSolid"
               disabled={!enabled || !thought.trim() || locked}
             >
               {flow.busy ? "살펴보는 중…" : "시작하기 ↗"}
@@ -175,7 +181,7 @@ export function ThoughtInput({
           }}
         >
           {view.evidence && <p>{view.evidence}</p>}
-          <TextField.Root className="writing-field">
+          <TextField.Root className="writing-field question-field">
             <TextField.Textarea
               aria-label="첫 질문 수정"
               className="writing-textarea"
@@ -186,10 +192,10 @@ export function ThoughtInput({
               autoComplete="off"
             />
           </TextField.Root>
-          <p>내 뜻과 맞게 수정할 수 있어요. 아직 확정된 기록은 아니에요.</p>
+          <p>고치고 싶으면 그대로 고쳐도 돼요.</p>
           <ActionButton
             type="submit"
-            variant="neutralWeak"
+            variant="neutralSolid"
             disabled={locked || !finalText.trim()}
           >
             {flow.busy ? "확인하는 중…" : "이 질문으로 확정하기"}
