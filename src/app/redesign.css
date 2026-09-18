@@ -597,12 +597,16 @@ body {
   padding: 0 10px 8px;
   border-bottom: 2px solid var(--nook-line-strong);
 }
+/* 카드 더미가 겹치는 자리에 두르던 흰 링을 책등과 휴지통에도 준다. 링이 없으면
+   같은 톤의 도형들이 서로 붙은 자리에서 한 덩어리로 녹아 윤곽이 풀리고, 그래서
+   책 셋이 회색 막대 하나처럼 보였다. 세 그림이 같은 수법을 쓴다. */
 .empty-books > i {
   --lean: 0deg;
   position: relative;
   width: 17px;
   border-radius: 2px 3px 1px 1px;
   background: var(--nook-fill-press);
+  box-shadow: 0 0 0 2px var(--nook-surface);
   transform: rotate(var(--lean));
   transform-origin: bottom center;
 }
@@ -1628,6 +1632,7 @@ body {
   margin-bottom: 3px;
   border-radius: 3px 3px 1px 1px;
   background: var(--nook-fill-press);
+  box-shadow: 0 0 0 2px var(--nook-surface);
 }
 .empty-trash-lid::before {
   content: "";
@@ -1639,6 +1644,7 @@ body {
   margin-bottom: 2px;
   border-radius: 2px 2px 0 0;
   background: var(--nook-fill-press);
+  box-shadow: 0 0 0 2px var(--nook-surface);
   transform: translateX(-50%);
 }
 .empty-trash-body {
@@ -1651,6 +1657,8 @@ body {
   height: 50px;
   /* Narrower at the bottom: that taper is what makes it a bin. */
   clip-path: polygon(0 0, 100% 0, 91% 100%, 9% 100%);
+  /* clip-path는 바깥 그림자까지 잘라내므로 여기서는 링을 안쪽에 그린다. */
+  box-shadow: inset 0 0 0 2px var(--nook-surface);
   background: var(--nook-fill-press);
 }
 .empty-trash-body > b {

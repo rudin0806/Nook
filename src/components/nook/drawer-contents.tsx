@@ -17,10 +17,12 @@ import { RetentionCard } from "./retention-card";
 import {
   savedSessionListItemSchema,
   trashedSessionListItemSchema,
-  keptBranchQuestionListItemSchema,
 } from "@/schemas/retention";
 
-type Collection = "sessions" | "recovery" | "questions" | "trash";
+/** 곁가지 질문은 여기 없다. 대화가 갈라진 자리에서만 보이고 별도 진입점을 두지
+ * 않는 것이 제작 의도이며, 그 질문에서 실제로 대화를 시작했다면 그 세션이
+ * `recovery`로 올라온다. */
+type Collection = "sessions" | "recovery" | "trash";
 const paging = {
   hasMore: z.boolean(),
   offset: z.number().int(),
@@ -28,12 +30,6 @@ const paging = {
 };
 const sessionsResponse = z.object({
   data: z.object({ ...paging, items: savedSessionListItemSchema.array() }),
-});
-const questionsResponse = z.object({
-  data: z.object({
-    ...paging,
-    items: keptBranchQuestionListItemSchema.array(),
-  }),
 });
 const recoveryResponse = z.object({ data: recoveryPageSchema });
 const trashResponse = z.object({
@@ -103,9 +99,7 @@ function signedOutHint(collection: Collection) {
     ? "로그인하면 남긴 이야기가 여기 한 권씩 쌓여요."
     : collection === "trash"
       ? "지운 기록은 7일 동안 여기서 되돌릴 수 있어요."
-      : collection === "recovery"
-        ? "아직 마치지 않은 대화를 24시간 안에 여기서 이어갈 수 있어요."
-        : "다시 묻고 싶어 남겨둔 질문이 여기 모여요.";
+      : "아직 마치지 않은 대화를 24시간 안에 여기서 이어갈 수 있어요.";
 }
 
 export function DrawerContents({
@@ -130,11 +124,9 @@ export function DrawerContents({
     async function load() {
       try {
         const url =
-          collection === "questions"
-            ? `/api/branch-questions?limit=20&offset=${offset}`
-            : collection === "recovery"
-              ? `/api/recovery?limit=20&offset=${offset}`
-              : `/api/sessions?collection=${collection === "trash" ? "trash" : "saved"}&limit=20&offset=${offset}`;
+          collection === "recovery"
+            ? `/api/recovery?limit=20&offset=${offset}`
+            : `/api/sessions?collection=${collection === "trash" ? "trash" : "saved"}&limit=20&offset=${offset}`;
         const response = await fetch(url, {
           signal: controller.signal,
           cache: "no-store",
@@ -161,9 +153,7 @@ export function DrawerContents({
             ? sessionsResponse.parse(payload).data
             : collection === "trash"
               ? trashResponse.parse(payload).data
-              : collection === "recovery"
-                ? recoveryResponse.parse(payload).data
-                : questionsResponse.parse(payload).data;
+              : recoveryResponse.parse(payload).data;
         const items = data.items.map((item) =>
           // The same rows the home panel shows, read through this list's shape.
           "expiresAt" in item
@@ -174,29 +164,22 @@ export function DrawerContents({
                 date: item.expiresAt,
                 nodeId: item.nodeId,
               }
-            : "text" in item
-              ? {
-                  id: item.id,
-                  text: item.text,
-                  spine: item.text,
-                  date: item.kept_at,
-                }
-              : {
-                  id: item.id,
-                  revision:
-                    "shelf_revision" in item ? item.shelf_revision : undefined,
-                  text: `${dateFormat.format(new Date(item.started_at))}의 이야기`,
-                  spine: spineLabel(item.started_at),
-                  ...("turn_count" in item
-                    ? { size: sizeLevel(item.turn_count, item.node_count) }
-                    : {}),
-                  date:
-                    "trashed_at" in item
-                      ? item.trashed_at
-                      : item.retention_decided_at,
-                  purgeAfter:
-                    "purge_after" in item ? item.purge_after : undefined,
-                },
+            : {
+                id: item.id,
+                revision:
+                  "shelf_revision" in item ? item.shelf_revision : undefined,
+                text: `${dateFormat.format(new Date(item.started_at))}의 이야기`,
+                spine: spineLabel(item.started_at),
+                ...("turn_count" in item
+                  ? { size: sizeLevel(item.turn_count, item.node_count) }
+                  : {}),
+                date:
+                  "trashed_at" in item
+                    ? item.trashed_at
+                    : item.retention_decided_at,
+                purgeAfter:
+                  "purge_after" in item ? item.purge_after : undefined,
+              },
         );
         if (!controller.signal.aborted)
           setState({ kind: "ready", items, hasMore: data.hasMore });
@@ -230,15 +213,9 @@ export function DrawerContents({
   async function act(item: Item) {
     if (mutationLock.current) return;
     const action: RetentionAction =
-      collection === "trash"
-        ? "restore"
-        : collection === "questions"
-          ? "delete-question"
-          : "trash";
+      collection === "trash" ? "restore" : "trash";
     const question =
-      action === "delete-question"
-        ? "이 질문을 영구 삭제할까요? 삭제한 질문은 복원할 수 없어요. 이 질문에서 시작한 다른 이야기는 유지돼요."
-        : "이 이야기를 휴지통으로 옮길까요? 7일 동안 복원할 수 있어요. 별도로 보관한 질문은 유지돼요.";
+      "이 이야기를 휴지통으로 옮길까요? 7일 동안 복원할 수 있어요.";
     if (action !== "restore" && !window.confirm(question)) return;
     mutationLock.current = true;
     setBusy(true);
@@ -248,10 +225,8 @@ export function DrawerContents({
       setNotice({
         text:
           action === "restore"
-            ? "생각 더미로 복원했어요."
-            : action === "trash"
-              ? "휴지통으로 옮겼어요."
-              : "질문을 삭제했어요.",
+            ? "내 서랍으로 복원했어요."
+            : "휴지통으로 옮겼어요.",
       });
       setState({ kind: "loading" });
       setOffset(0);
@@ -343,7 +318,7 @@ export function DrawerContents({
           aria-pressed={collection === "sessions"}
           onClick={() => select("sessions")}
         >
-          보관한 이야기
+          내 서랍
         </ActionButton>
         <ActionButton
           variant={collection === "recovery" ? "neutralSolid" : "neutralWeak"}
@@ -352,14 +327,6 @@ export function DrawerContents({
           onClick={() => select("recovery")}
         >
           이어갈 대화
-        </ActionButton>
-        <ActionButton
-          variant={collection === "questions" ? "neutralSolid" : "neutralWeak"}
-          disabled={busy}
-          aria-pressed={collection === "questions"}
-          onClick={() => select("questions")}
-        >
-          남겨둔 질문
         </ActionButton>
         <ActionButton
           variant={collection === "trash" ? "neutralSolid" : "neutralWeak"}
@@ -559,9 +526,7 @@ export function DrawerContents({
                     ? "아직 넣어둔 이야기가 없어요"
                     : collection === "trash"
                       ? "휴지통이 비어 있어요"
-                      : collection === "recovery"
-                        ? "이어갈 대화가 없어요"
-                        : "아직 남겨둔 질문이 없어요"}
+                      : "이어갈 대화가 없어요"}
               </strong>
               <p>
                 {collection === "trash"

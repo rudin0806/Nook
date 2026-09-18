@@ -20,11 +20,9 @@ export default async function DrawerPage({
   const initialCollection =
     collection === "trash"
       ? "trash"
-      : collection === "questions"
-        ? "questions"
-        : collection === "recovery"
-          ? "recovery"
-          : "sessions";
+      : collection === "recovery"
+        ? "recovery"
+        : "sessions";
   return (
     <div className="nook-preview">
       <header className="preview-header">
