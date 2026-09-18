@@ -23,7 +23,9 @@ export default async function DrawerPage({
       ? "trash"
       : collection === "questions"
         ? "questions"
-        : "sessions";
+        : collection === "recovery"
+          ? "recovery"
+          : "sessions";
   return (
     <div className="nook-preview">
       <header className="preview-header">

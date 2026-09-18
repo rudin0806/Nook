@@ -2296,3 +2296,34 @@ body {
     color: var(--nook-muted);
   }
 }
+
+/* ── 생각 더미 목록 ─────────────────────────────────────────────────────── */
+
+/* 컬렉션마다 3px 색 띠를 두던 옛 팔레트의 잔재. 민트·피치는 걷어낸 vivid 세트의
+   색이고, 목록의 성격은 탭이 이미 말하고 있어서 띠가 더 말할 것이 없었다. 카드가
+   다른 화면의 카드와 같은 면·같은 헤어라인을 쓴다. */
+.collection-workspace .drawer-list > li {
+  border-top: 1px solid var(--nook-card-line);
+  border-radius: 16px;
+}
+.collection-workspace [data-collection="questions"] .drawer-list > li,
+.collection-workspace [data-collection="trash"] .drawer-list > li,
+.collection-workspace [data-collection="recovery"] .drawer-list > li {
+  border-top-color: var(--nook-card-line);
+}
+/* `.preview-summary-card a`가 더 구체적이어서 카드 안의 링크가 민트로 그려졌다. */
+.collection-workspace .preview-summary-card .retention-card-open {
+  color: var(--nook-ink);
+  text-decoration-color: var(--nook-line-strong);
+}
+.collection-workspace .preview-summary-card .retention-card-open:hover {
+  color: var(--nook-primary);
+  text-decoration-color: var(--nook-primary);
+}
+
+/* 탭이 넷이 되면서 390px에서 두 줄로 감긴다. 감기는 것 자체는 그대로 두되(넷 다
+   보이는 편이 스크롤 뒤로 숨는 것보다 낫다) 두 줄이 한 덩어리로 읽히게 붙인다. */
+[aria-label="보관 종류"] {
+  flex-wrap: wrap;
+  row-gap: 6px;
+}

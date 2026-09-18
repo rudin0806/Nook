@@ -12,7 +12,7 @@ import {
 } from "@/lib/retention/client";
 import { SavedShelf } from "./saved-shelf";
 import { EmptyArt } from "./empty-art";
-import { CardStack } from "./card-stack";
+import { recoveryPageSchema } from "@/schemas/recovery";
 import { RetentionCard } from "./retention-card";
 import {
   savedSessionListItemSchema,
@@ -20,7 +20,7 @@ import {
   keptBranchQuestionListItemSchema,
 } from "@/schemas/retention";
 
-type Collection = "sessions" | "questions" | "trash";
+type Collection = "sessions" | "recovery" | "questions" | "trash";
 const paging = {
   hasMore: z.boolean(),
   offset: z.number().int(),
@@ -35,6 +35,7 @@ const questionsResponse = z.object({
     items: keptBranchQuestionListItemSchema.array(),
   }),
 });
+const recoveryResponse = z.object({ data: recoveryPageSchema });
 const trashResponse = z.object({
   data: z.object({ ...paging, items: trashedSessionListItemSchema.array() }),
 });
@@ -102,7 +103,9 @@ function signedOutHint(collection: Collection) {
     ? "로그인하면 남긴 이야기가 여기 한 권씩 쌓여요."
     : collection === "trash"
       ? "지운 기록은 7일 동안 여기서 되돌릴 수 있어요."
-      : "다시 묻고 싶어 남겨둔 질문이 여기 모여요.";
+      : collection === "recovery"
+        ? "아직 마치지 않은 대화를 24시간 안에 여기서 이어갈 수 있어요."
+        : "다시 묻고 싶어 남겨둔 질문이 여기 모여요.";
 }
 
 export function DrawerContents({
@@ -129,7 +132,9 @@ export function DrawerContents({
         const url =
           collection === "questions"
             ? `/api/branch-questions?limit=20&offset=${offset}`
-            : `/api/sessions?collection=${collection === "trash" ? "trash" : "saved"}&limit=20&offset=${offset}`;
+            : collection === "recovery"
+              ? `/api/recovery?limit=20&offset=${offset}`
+              : `/api/sessions?collection=${collection === "trash" ? "trash" : "saved"}&limit=20&offset=${offset}`;
         const response = await fetch(url, {
           signal: controller.signal,
           cache: "no-store",
@@ -156,31 +161,42 @@ export function DrawerContents({
             ? sessionsResponse.parse(payload).data
             : collection === "trash"
               ? trashResponse.parse(payload).data
-              : questionsResponse.parse(payload).data;
+              : collection === "recovery"
+                ? recoveryResponse.parse(payload).data
+                : questionsResponse.parse(payload).data;
         const items = data.items.map((item) =>
-          "text" in item
+          // The same rows the home panel shows, read through this list's shape.
+          "expiresAt" in item
             ? {
                 id: item.id,
-                text: item.text,
-                spine: item.text,
-                date: item.kept_at,
+                text: item.question,
+                spine: item.question,
+                date: item.expiresAt,
+                nodeId: item.nodeId,
               }
-            : {
-                id: item.id,
-                revision:
-                  "shelf_revision" in item ? item.shelf_revision : undefined,
-                text: `${dateFormat.format(new Date(item.started_at))}의 이야기`,
-                spine: spineLabel(item.started_at),
-                ...("turn_count" in item
-                  ? { size: sizeLevel(item.turn_count, item.node_count) }
-                  : {}),
-                date:
-                  "trashed_at" in item
-                    ? item.trashed_at
-                    : item.retention_decided_at,
-                purgeAfter:
-                  "purge_after" in item ? item.purge_after : undefined,
-              },
+            : "text" in item
+              ? {
+                  id: item.id,
+                  text: item.text,
+                  spine: item.text,
+                  date: item.kept_at,
+                }
+              : {
+                  id: item.id,
+                  revision:
+                    "shelf_revision" in item ? item.shelf_revision : undefined,
+                  text: `${dateFormat.format(new Date(item.started_at))}의 이야기`,
+                  spine: spineLabel(item.started_at),
+                  ...("turn_count" in item
+                    ? { size: sizeLevel(item.turn_count, item.node_count) }
+                    : {}),
+                  date:
+                    "trashed_at" in item
+                      ? item.trashed_at
+                      : item.retention_decided_at,
+                  purgeAfter:
+                    "purge_after" in item ? item.purge_after : undefined,
+                },
         );
         if (!controller.signal.aborted)
           setState({ kind: "ready", items, hasMore: data.hasMore });
@@ -330,6 +346,14 @@ export function DrawerContents({
           보관한 이야기
         </ActionButton>
         <ActionButton
+          variant={collection === "recovery" ? "neutralSolid" : "neutralWeak"}
+          disabled={busy}
+          aria-pressed={collection === "recovery"}
+          onClick={() => select("recovery")}
+        >
+          이어갈 대화
+        </ActionButton>
+        <ActionButton
           variant={collection === "questions" ? "neutralSolid" : "neutralWeak"}
           disabled={busy}
           aria-pressed={collection === "questions"}
@@ -354,6 +378,9 @@ export function DrawerContents({
       )}
       {collection === "trash" && (
         <p>휴지통으로 옮긴 이야기는 7일 동안 복원할 수 있어요.</p>
+      )}
+      {collection === "recovery" && (
+        <p>홈에서 보던 그 목록이에요. 24시간 안에 이어갈 수 있어요.</p>
       )}
       {collection === "sessions" &&
         state.kind === "ready" &&
@@ -428,25 +455,6 @@ export function DrawerContents({
                 items={state.items}
                 offset={offset}
                 formatDate={(value) => dateFormat.format(new Date(value))}
-              />
-            ) : collection !== "sessions" ? (
-              // Questions and the bin are read one at a time, as a stack.
-              <CardStack
-                label={
-                  collection === "trash" ? "휴지통 카드" : "남겨둔 질문 카드"
-                }
-                cards={state.items.map((item) => ({
-                  id: item.id,
-                  content: (
-                    <RetentionCard
-                      item={item}
-                      collection={collection}
-                      busy={busy}
-                      formatDate={(value) => dateFormat.format(new Date(value))}
-                      onAct={() => void act(item)}
-                    />
-                  ),
-                }))}
               />
             ) : (
               <ul
@@ -526,7 +534,9 @@ export function DrawerContents({
                     ? "아직 넣어둔 이야기가 없어요"
                     : collection === "trash"
                       ? "휴지통이 비어 있어요"
-                      : "아직 남겨둔 질문이 없어요"}
+                      : collection === "recovery"
+                        ? "이어갈 대화가 없어요"
+                        : "아직 남겨둔 질문이 없어요"}
               </strong>
               <p>
                 {collection === "trash"
