@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { AppNavigation } from "@/components/nook/app-navigation";
 import { DrawerContents } from "@/components/nook/drawer-contents";
 import "../preview/preview.css";
@@ -27,6 +28,9 @@ export default async function DrawerPage({
     <div className="nook-preview">
       <header className="preview-header">
         <Wordmark />
+        <Link className="header-account" href="/login">
+          내 정보
+        </Link>
       </header>
       <AppNavigation current="saved" />
       {consent === "notice" && <PolicyNotice version={POLICY_NOTICE_VERSION} />}

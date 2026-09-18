@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { AppNavigation } from "@/components/nook/app-navigation";
 import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
@@ -18,6 +19,9 @@ export default async function TalkPage({
     <div className="nook-preview">
       <header className="preview-header">
         <Wordmark />
+        <Link className="header-account" href="/login">
+          내 정보
+        </Link>
       </header>
       <AppNavigation current="write" />
       <main
