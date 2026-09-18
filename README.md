@@ -66,7 +66,7 @@ npm run validate
 `validate`는 `typecheck` → `lint` → `build` 순서입니다.
 `typecheck`는 깨끗한 체크아웃에서도 동작하도록 Next.js 라우트 타입 생성 후 TypeScript를 검사합니다.
 
-[`docs/EVALSET.md`](docs/EVALSET.md)는 평가 계약을 정의합니다. 사용자 제공 JSONL은 `eval/`에 있으며 `npm run eval:validate`로 구조·참조·패치·현재 매핑 호환성을 검사합니다. 확인된 계약 충돌이 남아 있으면 이 명령은 실패로 종료합니다. `npm run eval`로 Judge 모델 평가를 실행할 수 있습니다. `gpt-5.6-sol` reasoning high의 최종 Judge 회귀는 strict 31/31을 통과했으며, 실행 범위와 한계는 [조정 기록](docs/reviews/2026-09-14-judge-sol-tuning.md)에 남겼습니다. 이 결과는 Start·Safety·Prompt C/D나 실사용 정확도까지 보장하지 않습니다.
+[`docs/EVALSET.md`](docs/EVALSET.md)는 평가 계약을 정의합니다. 사용자 제공 JSONL은 `eval/`에 있으며 `npm run eval:validate`로 구조·참조·패치·현재 매핑 호환성을 검사합니다. 확인된 계약 충돌이 남아 있으면 이 명령은 실패로 종료합니다. `npm run eval`로 Judge 모델 평가를 실행할 수 있습니다. `gpt-5.6-sol` reasoning high의 최종 Judge 회귀는 strict 31/31을 통과했으며, 실행 범위와 한계는 [조정 기록](docs/reviews/2026-09-14-judge-sol-tuning.md)에 남겼습니다. 이 결과는 Start·Safety·Prompt C/D나 실사용 정확도까지 보장하지 않습니다. **2026-09-18에 운영 Judge의 reasoning effort를 `medium`으로 내렸으므로 이 회귀는 현재 운영 설정을 보증하지 않습니다.** 근거와 재평가 여부는 [STATUS](docs/STATUS.md)를 따릅니다.
 
 ## Vercel 배포
 

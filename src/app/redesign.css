@@ -1996,8 +1996,11 @@ body {
   display: grid;
   gap: 14px;
 }
-/* One column below the point where a 300px map stops earning its place. The
-   DOM keeps the map ahead of the stream, so it stacks where it already was. */
+/* One column below the point where a 300px map stops earning its place.
+   The map follows the stream in the DOM and grid puts it back beside the
+   talking on wide screens, so a phone gets 질문 → 대화 → 지도: the first screen
+   is the conversation, and the map reads as the reference it is. Three tall
+   panels above the first message meant a phone opened on the index instead. */
 @media (max-width: 1100px) {
   .conversation-layout {
     grid-template-columns: minmax(0, 1fr);
@@ -2009,6 +2012,33 @@ body {
   .conversation-stream {
     grid-row: auto;
     position: static;
+  }
+  /* One block rather than three cards: the panels lose their own frames and
+     share a single hairline, and the questions wrap as chips. */
+  .conversation-side {
+    gap: 0;
+    margin-top: 26px;
+    border: 1px solid var(--nook-card-line);
+    border-radius: 16px;
+    background: var(--nook-surface);
+  }
+  .conversation-side > * {
+    border: 0;
+    border-radius: 0;
+    background: none;
+    padding: 14px 16px;
+  }
+  .conversation-side > * + * {
+    border-top: 1px solid var(--nook-card-line);
+  }
+  .conversation-side .node-navigation ol {
+    flex-direction: row;
+  }
+  .conversation-side .node-navigation ol > li {
+    flex: 1 1 160px;
+  }
+  .conversation-side .node-navigation-heading small {
+    display: none;
   }
 }
 
@@ -2147,4 +2177,89 @@ body {
 }
 .closure-panel button {
   justify-self: start;
+}
+
+/* ── 생각 중 ────────────────────────────────────────────────────────────── */
+
+/* Fifteen seconds is the measured average of a turn, so the wait is part of the
+   conversation rather than a status line under it. It sits on Nook's side, in
+   the tone Nook's turns use, so the thread reads as an answer being written. */
+.conversation-stream .thinking {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: fit-content;
+  max-width: 76%;
+  margin: 0;
+  padding: 16px 20px;
+  border-radius: 16px;
+  background: var(--nook-fill-press);
+}
+.thinking-dots {
+  display: flex;
+  gap: 4px;
+}
+.thinking-dots > i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--nook-primary);
+  animation: thinking-dot 1.25s ease-in-out infinite;
+}
+.thinking-dots > i:nth-child(2) {
+  animation-delay: 0.16s;
+}
+.thinking-dots > i:nth-child(3) {
+  animation-delay: 0.32s;
+}
+@keyframes thinking-dot {
+  0%,
+  70%,
+  100% {
+    opacity: 0.28;
+    transform: translateY(0);
+  }
+  35% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+/* The sweep is drawn on the text itself rather than as a bar over it, so the
+   words stay readable the whole time. */
+.thinking-label {
+  background: linear-gradient(
+    100deg,
+    var(--nook-muted) 30%,
+    var(--nook-ink) 48%,
+    var(--nook-muted) 66%
+  );
+  background-size: 260% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-size: 14px;
+  font-weight: 500;
+  animation: thinking-sweep 2.1s linear infinite;
+}
+@keyframes thinking-sweep {
+  from {
+    background-position: 160% 0;
+  }
+  to {
+    background-position: -60% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .thinking-dots > i,
+  .thinking-label {
+    animation: none;
+  }
+  .thinking-dots > i {
+    opacity: 0.6;
+  }
+  .thinking-label {
+    background: none;
+    -webkit-text-fill-color: var(--nook-muted);
+    color: var(--nook-muted);
+  }
 }

@@ -40,6 +40,10 @@
   `src/lib/supabase/reader.ts`(`setAll`이 no-op)로 읽는다. 렌더 중 쿠키 쓰기는 Next.js가
   금지하고, Supabase는 리프레시 토큰을 회전시키므로 렌더에서 갱신하면 회원이 조용히
   로그아웃된다.
+- **Judge reasoning effort는 `medium`이다** (2026-09-18 결정, 모델은 `gpt-5.6-sol` 그대로).
+  운영 실측에서 한 턴이 평균 15.3초(n=7, 최소 9.7 / 최대 19.2)였고 그중 Judge 하나가
+  평균 6.4초(입력 평균 5,998토큰 → 출력 257토큰)였다. **strict 31/31은 high에서 나온
+  결과이므로 현재 설정을 보증하지 않는다.** 재평가는 유료 호출이며 아직 실행하지 않았다.
 - **모델 슬롯 6개가 독립**이다(`NOOK_{SAFETY,START,NODE_ZERO,JUDGE,REFRAME,REFLECT}_*`).
   `judge_logs`에만 모델명이 기록되며 거기 `gpt-5.6-sol`이 찍혀 있다. 나머지 5개의 실제
   값은 Vercel 환경변수에만 있다.

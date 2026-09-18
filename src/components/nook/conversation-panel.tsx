@@ -188,69 +188,6 @@ export function ConversationPanel({ nodeId }: { nodeId: string }) {
           {/* The map of the thinking — where the question has been, what split
               off it, what became clear — stands beside the talking rather than
               on top of it. */}
-          <div className="conversation-side">
-            <nav className="node-navigation" aria-label="지나온 질문 이동">
-              <div className="node-navigation-heading">
-                <strong>지나온 질문</strong>
-                <small>
-                  {activeNodeId
-                    ? "같은 질문을 다시 누르면 지금 대화로 돌아가요."
-                    : "질문을 누르면 시작한 대화로 이동해요."}
-                </small>
-              </div>
-              <ol>
-                {view.nodes.map((node, index) => (
-                  <li key={node.id}>
-                    <button
-                      type="button"
-                      aria-pressed={activeNodeId === node.id}
-                      aria-label={`${index + 1}번째 질문: ${node.question}${
-                        activeNodeId === node.id
-                          ? ", 선택됨. 다시 누르면 현재 대화로 이동"
-                          : ""
-                      }`}
-                      data-active={activeNodeId === node.id}
-                      data-current={node.current}
-                      onClick={() => navigateToNode(node.id, node.messageId)}
-                    >
-                      <span>{index + 1}</span>
-                      <span>{node.question}</span>
-                    </button>
-                  </li>
-                ))}
-              </ol>
-            </nav>
-            {view.branches.length > 0 &&
-              !exitMode &&
-              view.mode !== "FINISHED" && (
-                <aside
-                  className="branch-links"
-                  aria-label="다른 생각으로 이어지는 질문"
-                >
-                  {/* The chips were unlabelled on screen — only the aria-label
-                    said what they were, so sighted readers got a bare link
-                    floating between the question list and the first message. */}
-                  <span className="panel-eyebrow">여기서 갈라진 질문</span>
-                  <ul>
-                    {view.branches.map((b) => (
-                      <li key={b.id}>
-                        <Link href={`/restart/branch/${b.id}`}>{b.text}</Link>
-                      </li>
-                    ))}
-                  </ul>
-                </aside>
-              )}
-            {view.clarifications.length > 0 && (
-              <aside className="clarity-panel" aria-label="분명해진 것">
-                <h2>분명해진 것</h2>
-                <ul>
-                  {view.clarifications.map((c) => (
-                    <li key={c.id}>{c.text}</li>
-                  ))}
-                </ul>
-              </aside>
-            )}
-          </div>
           <div className="conversation-stream">
             {exitMode && (
               <ConversationRetention
@@ -290,6 +227,20 @@ export function ConversationPanel({ nodeId }: { nodeId: string }) {
                 </li>
               ))}
             </ol>
+            {/* A turn takes about fifteen seconds end to end, and the only sign
+                of it was one static line under a locked field. The wait sits
+                where the answer will appear, in Nook's own place in the
+                exchange, so the thread shows something is being written. */}
+            {busy && (
+              <p className="thinking" role="status" aria-live="polite">
+                <span className="thinking-dots" aria-hidden="true">
+                  <i />
+                  <i />
+                  <i />
+                </span>
+                <span className="thinking-label">이야기를 살펴보고 있어요</span>
+              </p>
+            )}
             <div
               ref={currentPosition}
               className="conversation-current-position"
@@ -385,6 +336,69 @@ export function ConversationPanel({ nodeId }: { nodeId: string }) {
               />
             )}
           </div>
+          <div className="conversation-side">
+            <nav className="node-navigation" aria-label="지나온 질문 이동">
+              <div className="node-navigation-heading">
+                <strong>지나온 질문</strong>
+                <small>
+                  {activeNodeId
+                    ? "같은 질문을 다시 누르면 지금 대화로 돌아가요."
+                    : "질문을 누르면 시작한 대화로 이동해요."}
+                </small>
+              </div>
+              <ol>
+                {view.nodes.map((node, index) => (
+                  <li key={node.id}>
+                    <button
+                      type="button"
+                      aria-pressed={activeNodeId === node.id}
+                      aria-label={`${index + 1}번째 질문: ${node.question}${
+                        activeNodeId === node.id
+                          ? ", 선택됨. 다시 누르면 현재 대화로 이동"
+                          : ""
+                      }`}
+                      data-active={activeNodeId === node.id}
+                      data-current={node.current}
+                      onClick={() => navigateToNode(node.id, node.messageId)}
+                    >
+                      <span>{index + 1}</span>
+                      <span>{node.question}</span>
+                    </button>
+                  </li>
+                ))}
+              </ol>
+            </nav>
+            {view.branches.length > 0 &&
+              !exitMode &&
+              view.mode !== "FINISHED" && (
+                <aside
+                  className="branch-links"
+                  aria-label="다른 생각으로 이어지는 질문"
+                >
+                  {/* The chips were unlabelled on screen — only the aria-label
+                    said what they were, so sighted readers got a bare link
+                    floating between the question list and the first message. */}
+                  <span className="panel-eyebrow">여기서 갈라진 질문</span>
+                  <ul>
+                    {view.branches.map((b) => (
+                      <li key={b.id}>
+                        <Link href={`/restart/branch/${b.id}`}>{b.text}</Link>
+                      </li>
+                    ))}
+                  </ul>
+                </aside>
+              )}
+            {view.clarifications.length > 0 && (
+              <aside className="clarity-panel" aria-label="분명해진 것">
+                <h2>분명해진 것</h2>
+                <ul>
+                  {view.clarifications.map((c) => (
+                    <li key={c.id}>{c.text}</li>
+                  ))}
+                </ul>
+              </aside>
+            )}
+          </div>
         </>
       )}
       {stopped && (
@@ -414,7 +428,7 @@ export function ConversationPanel({ nodeId }: { nodeId: string }) {
         </div>
       )}
       <div role="status" aria-live="polite">
-        {busy && <p>이야기를 살펴보고 있어요…</p>}
+        {!view && busy && <p>이야기를 살펴보고 있어요</p>}
         {notice && <p>{notice}</p>}
       </div>
       {login && (
