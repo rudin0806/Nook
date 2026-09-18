@@ -1556,86 +1556,107 @@ body {
   margin-bottom: 8px;
 }
 
-/* 남겨둔 질문 — cards kept for later, stacked and offset like the card stack
-   the questions actually live in. The top one carries two ruled lines. */
+/* 남겨둔 질문 — the same geometry as the card stack the questions actually live
+   in (globals.css `.card-stack-card`): alternating sides, a tilt under 2deg,
+   each card behind a touch smaller. The illustration used ±8deg and faded the
+   back cards with opacity, which read as blur rather than depth. Same-tone
+   cards would merge where they overlap, so each carries a ring in the surface
+   tone — the seam that keeps three cards countable. */
 .empty-questions {
   position: relative;
-  width: 96px;
-  height: 78px;
+  display: grid;
+  justify-items: center;
+  align-content: end;
+  width: 85px;
+  height: 74px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--nook-line-strong);
 }
 .empty-questions > i {
   position: absolute;
-  inset: auto 0 0;
-  height: 58px;
-  border-radius: 9px;
+  inset: auto 0 8px;
+  width: 62px;
+  height: 48px;
+  margin: auto;
+  border-radius: 6px;
   background: var(--nook-fill-press);
+  box-shadow: 0 0 0 2px var(--nook-surface);
+  transform-origin: center bottom;
 }
 .empty-questions > i:nth-child(1) {
-  transform: translate(-13px, -14px) rotate(-8deg);
-  opacity: 0.55;
+  transform: translate(-6px, -20px) rotate(-1.6deg) scale(0.94);
 }
 .empty-questions > i:nth-child(2) {
-  transform: translate(9px, -7px) rotate(5deg);
-  opacity: 0.75;
+  transform: translate(7px, -11px) rotate(1.8deg) scale(0.97);
 }
 .empty-questions > i:nth-child(3) {
   display: grid;
   align-content: center;
   gap: 7px;
-  padding: 0 12px;
+  padding: 0 11px;
   background: var(--nook-primary-weak);
 }
 .empty-questions > i:nth-child(3) > b {
   height: 3px;
   border-radius: 2px;
   background: var(--nook-primary);
-  opacity: 0.45;
+  opacity: 0.55;
 }
 .empty-questions > i:nth-child(3) > b:last-child {
   width: 58%;
 }
 
 /* 휴지통 — a lid and a tapered body with two strokes, so it reads as a bin
-   rather than a box at this size. */
+   rather than a box at this size. The lid was a bar floating 4px clear of the
+   body with nothing above it; a handle and a 3px gap are what make the same
+   two shapes read as a lid. The two strokes were different heights at opposite
+   margins, which looked accidental rather than drawn. */
 .empty-trash {
   display: grid;
   justify-items: center;
-  gap: 4px;
-  width: 96px;
+  align-content: end;
+  width: 85px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--nook-line-strong);
 }
 .empty-trash-lid {
+  position: relative;
   width: 62px;
-  height: 7px;
-  border-radius: 3px;
+  height: 6px;
+  margin-bottom: 3px;
+  border-radius: 3px 3px 1px 1px;
   background: var(--nook-fill-press);
+}
+.empty-trash-lid::before {
+  content: "";
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  width: 22px;
+  height: 4px;
+  margin-bottom: 2px;
+  border-radius: 2px 2px 0 0;
+  background: var(--nook-fill-press);
+  transform: translateX(-50%);
 }
 .empty-trash-body {
   display: grid;
+  grid-auto-flow: column;
   justify-content: center;
   align-content: center;
-  gap: 6px;
+  gap: 12px;
   width: 54px;
-  height: 58px;
-  padding-top: 4px;
+  height: 50px;
   /* Narrower at the bottom: that taper is what makes it a bin. */
-  clip-path: polygon(0 0, 100% 0, 88% 100%, 12% 100%);
+  clip-path: polygon(0 0, 100% 0, 91% 100%, 9% 100%);
   background: var(--nook-fill-press);
 }
 .empty-trash-body > b {
   width: 3px;
-  height: 30px;
+  height: 24px;
   border-radius: 2px;
   background: var(--nook-primary);
-  opacity: 0.35;
-}
-.empty-trash-body > b:first-child {
-  justify-self: start;
-  margin-left: 14px;
-}
-.empty-trash-body > b:last-child {
-  justify-self: end;
-  margin-right: 14px;
-  height: 24px;
+  opacity: 0.45;
 }
 
 /* ── 대화 화면 ──────────────────────────────────────────────────────────── */
