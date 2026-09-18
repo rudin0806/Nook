@@ -173,200 +173,218 @@ export function ConversationPanel({ nodeId }: { nodeId: string }) {
   const locked = busy || retry;
   const stopped = view?.mode === "STOP" || view?.mode === "HANDOFF";
   return (
-    <section aria-label="이야기 나누기" aria-busy={busy}>
+    <section
+      className="conversation-layout"
+      aria-label="이야기 나누기"
+      aria-busy={busy}
+    >
       {view && !stopped && (
         <>
-          <p className="preview-kicker">지금 함께 보는 질문</p>
-          <h1>{view.currentQuestion}</h1>
-          <SessionOrigin sessionId={view.sessionId} />
-          <nav className="node-navigation" aria-label="지나온 질문 이동">
-            <div className="node-navigation-heading">
-              <strong>지나온 질문</strong>
-              <small>
-                {activeNodeId
-                  ? "같은 질문을 다시 누르면 지금 대화로 돌아가요."
-                  : "질문을 누르면 시작한 대화로 이동해요."}
-              </small>
-            </div>
-            <ol>
-              {view.nodes.map((node, index) => (
-                <li key={node.id}>
-                  <button
-                    type="button"
-                    aria-pressed={activeNodeId === node.id}
-                    aria-label={`${index + 1}번째 질문: ${node.question}${
-                      activeNodeId === node.id
-                        ? ", 선택됨. 다시 누르면 현재 대화로 이동"
-                        : ""
-                    }`}
-                    data-active={activeNodeId === node.id}
-                    data-current={node.current}
-                    onClick={() => navigateToNode(node.id, node.messageId)}
-                  >
-                    <span>{index + 1}</span>
-                    <span>{node.question}</span>
-                  </button>
-                </li>
-              ))}
-            </ol>
-          </nav>
-          {view.branches.length > 0 &&
-            !exitMode &&
-            view.mode !== "FINISHED" && (
-              <aside
-                className="branch-links"
-                aria-label="다른 생각으로 이어지는 질문"
-              >
-                {/* The chips were unlabelled on screen — only the aria-label
+          <header className="conversation-head">
+            <p className="preview-kicker">지금 함께 보는 질문</p>
+            <h1>{view.currentQuestion}</h1>
+            <SessionOrigin sessionId={view.sessionId} />
+          </header>
+          {/* The map of the thinking — where the question has been, what split
+              off it, what became clear — stands beside the talking rather than
+              on top of it. */}
+          <div className="conversation-side">
+            <nav className="node-navigation" aria-label="지나온 질문 이동">
+              <div className="node-navigation-heading">
+                <strong>지나온 질문</strong>
+                <small>
+                  {activeNodeId
+                    ? "같은 질문을 다시 누르면 지금 대화로 돌아가요."
+                    : "질문을 누르면 시작한 대화로 이동해요."}
+                </small>
+              </div>
+              <ol>
+                {view.nodes.map((node, index) => (
+                  <li key={node.id}>
+                    <button
+                      type="button"
+                      aria-pressed={activeNodeId === node.id}
+                      aria-label={`${index + 1}번째 질문: ${node.question}${
+                        activeNodeId === node.id
+                          ? ", 선택됨. 다시 누르면 현재 대화로 이동"
+                          : ""
+                      }`}
+                      data-active={activeNodeId === node.id}
+                      data-current={node.current}
+                      onClick={() => navigateToNode(node.id, node.messageId)}
+                    >
+                      <span>{index + 1}</span>
+                      <span>{node.question}</span>
+                    </button>
+                  </li>
+                ))}
+              </ol>
+            </nav>
+            {view.branches.length > 0 &&
+              !exitMode &&
+              view.mode !== "FINISHED" && (
+                <aside
+                  className="branch-links"
+                  aria-label="다른 생각으로 이어지는 질문"
+                >
+                  {/* The chips were unlabelled on screen — only the aria-label
                     said what they were, so sighted readers got a bare link
                     floating between the question list and the first message. */}
-                <span className="panel-eyebrow">여기서 갈라진 질문</span>
+                  <span className="panel-eyebrow">여기서 갈라진 질문</span>
+                  <ul>
+                    {view.branches.map((b) => (
+                      <li key={b.id}>
+                        <Link href={`/restart/branch/${b.id}`}>{b.text}</Link>
+                      </li>
+                    ))}
+                  </ul>
+                </aside>
+              )}
+            {view.clarifications.length > 0 && (
+              <aside className="clarity-panel" aria-label="분명해진 것">
+                <h2>분명해진 것</h2>
                 <ul>
-                  {view.branches.map((b) => (
-                    <li key={b.id}>
-                      <Link href={`/restart/branch/${b.id}`}>{b.text}</Link>
-                    </li>
+                  {view.clarifications.map((c) => (
+                    <li key={c.id}>{c.text}</li>
                   ))}
                 </ul>
               </aside>
             )}
-          {exitMode && (
-            <ConversationRetention
-              sessionId={view.sessionId}
-              branches={view.branches}
-              closure={exitMode === "closure"}
-              onCancel={() => {
-                exitOpen.current = false;
-                setExitMode(null);
-                void refresh();
-              }}
-              onDone={() => {
-                ended.current = true;
-                setBusy(false);
-                setNotice("");
-                setRetry(false);
-              }}
+          </div>
+          <div className="conversation-stream">
+            {exitMode && (
+              <ConversationRetention
+                sessionId={view.sessionId}
+                branches={view.branches}
+                closure={exitMode === "closure"}
+                onCancel={() => {
+                  exitOpen.current = false;
+                  setExitMode(null);
+                  void refresh();
+                }}
+                onDone={() => {
+                  ended.current = true;
+                  setBusy(false);
+                  setNotice("");
+                  setRetry(false);
+                }}
+              />
+            )}
+            <ol className="drawer-list" aria-label="최근 대화">
+              {view.messages.map((m) => (
+                <li
+                  key={m.id}
+                  className="preview-summary-card conversation-card"
+                  data-role={m.role}
+                  data-message-id={m.id}
+                  tabIndex={-1}
+                  ref={(element) => {
+                    if (element) messageElements.current.set(m.id, element);
+                    else messageElements.current.delete(m.id);
+                  }}
+                >
+                  <small>
+                    {m.role === "USER" ? "내 이야기" : "누크의 질문"}
+                  </small>
+                  <p className="conversation-message">{m.content}</p>
+                </li>
+              ))}
+            </ol>
+            <div
+              ref={currentPosition}
+              className="conversation-current-position"
+              tabIndex={-1}
+              aria-label="현재 대화 위치"
             />
-          )}
-          <ol className="drawer-list" aria-label="최근 대화">
-            {view.messages.map((m) => (
-              <li
-                key={m.id}
-                className="preview-summary-card conversation-card"
-                data-role={m.role}
-                data-message-id={m.id}
-                tabIndex={-1}
-                ref={(element) => {
-                  if (element) messageElements.current.set(m.id, element);
-                  else messageElements.current.delete(m.id);
+            {!exitMode && view.mode === "READY" && (
+              <form
+                className="conversation-composer"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (text.trim()) act("reply", text.trim());
                 }}
               >
-                <small>{m.role === "USER" ? "내 이야기" : "누크의 질문"}</small>
-                <p className="conversation-message">{m.content}</p>
-              </li>
-            ))}
-          </ol>
-          {view.clarifications.length > 0 && (
-            <aside className="clarity-panel" aria-label="분명해진 것">
-              <h2>분명해진 것</h2>
-              <ul>
-                {view.clarifications.map((c) => (
-                  <li key={c.id}>{c.text}</li>
-                ))}
-              </ul>
-            </aside>
-          )}
-          <div
-            ref={currentPosition}
-            className="conversation-current-position"
-            tabIndex={-1}
-            aria-label="현재 대화 위치"
-          />
-          {!exitMode && view.mode === "READY" && (
-            <form
-              className="conversation-composer"
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (text.trim()) act("reply", text.trim());
-              }}
-            >
-              <TextField.Root className="writing-field">
-                <TextField.Textarea
-                  aria-label="이어서 이야기하기"
-                  className="writing-textarea"
-                  maxLength={1000}
-                  value={text}
-                  readOnly={locked}
-                  onChange={(e) => setText(e.target.value)}
-                  placeholder="지금 떠오르는 이야기를 적어 주세요."
-                />
-              </TextField.Root>
-              <ActionButton type="submit" disabled={locked || !text.trim()}>
-                이어서 보내기
-              </ActionButton>
-            </form>
-          )}
-          {!exitMode && view.mode === "SHIFT" && view.pending && (
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                act("approve", (edit ?? view.pending!.question).trim());
-              }}
-            >
-              <h2 className="shift-title">이 질문으로 옮겨볼까요?</h2>
-              <p>{view.pending.evidence_sentence}</p>
-              <TextField.Root className="writing-field">
-                <TextField.Textarea
-                  aria-label="이동할 질문 수정"
-                  className="writing-textarea"
-                  maxLength={1000}
-                  value={edit ?? view.pending.question}
-                  readOnly={locked}
-                  onChange={(e) => setEdit(e.target.value)}
-                />
-              </TextField.Root>
-              <p>내 뜻에 맞게 수정한 뒤 확인해 주세요.</p>
-              <div className="preview-actions">
-                <ActionButton
-                  type="submit"
-                  disabled={locked || !(edit ?? view.pending.question).trim()}
-                >
-                  이 질문으로 이동
+                <TextField.Root className="writing-field">
+                  <TextField.Textarea
+                    aria-label="이어서 이야기하기"
+                    className="writing-textarea"
+                    maxLength={1000}
+                    value={text}
+                    readOnly={locked}
+                    onChange={(e) => setText(e.target.value)}
+                    placeholder="지금 떠오르는 이야기를 적어 주세요."
+                  />
+                </TextField.Root>
+                <ActionButton type="submit" disabled={locked || !text.trim()}>
+                  이어서 보내기
                 </ActionButton>
-                <ActionButton
-                  type="button"
-                  variant="ghost"
-                  disabled={locked}
-                  onClick={() => act("reject")}
-                >
-                  지금 질문 유지
-                </ActionButton>
-              </div>
-            </form>
-          )}
-          {!exitMode &&
-            (view.mode === "CLOSE" || view.mode === "STRUCTURAL") && (
-              <div className="closure-panel">
-                <h2>여기까지 정리해 볼까요?</h2>
-                <p>
-                  {view.mode === "STRUCTURAL"
-                    ? "지나온 질문을 남기거나, 지금 질문에서 이야기를 이어갈 수 있어요."
-                    : "여기까지 남겨도 좋고, 더 떠오르는 이야기를 이어가도 좋아요."}
-                </p>
-                <ActionButton onClick={() => openExit("closure")}>
-                  남기고 마치기
-                </ActionButton>
-                <ActionButton disabled={locked} onClick={() => act("continue")}>
-                  더 생각하기
-                </ActionButton>
-              </div>
+              </form>
             )}
-          {!exitMode && view.mode === "FINISHED" && (
-            <ConversationRetention
-              sessionId={view.sessionId}
-              branches={view.branches}
-            />
-          )}
+            {!exitMode && view.mode === "SHIFT" && view.pending && (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  act("approve", (edit ?? view.pending!.question).trim());
+                }}
+              >
+                <h2 className="shift-title">이 질문으로 옮겨볼까요?</h2>
+                <p>{view.pending.evidence_sentence}</p>
+                <TextField.Root className="writing-field">
+                  <TextField.Textarea
+                    aria-label="이동할 질문 수정"
+                    className="writing-textarea"
+                    maxLength={1000}
+                    value={edit ?? view.pending.question}
+                    readOnly={locked}
+                    onChange={(e) => setEdit(e.target.value)}
+                  />
+                </TextField.Root>
+                <p>내 뜻에 맞게 수정한 뒤 확인해 주세요.</p>
+                <div className="preview-actions">
+                  <ActionButton
+                    type="submit"
+                    disabled={locked || !(edit ?? view.pending.question).trim()}
+                  >
+                    이 질문으로 이동
+                  </ActionButton>
+                  <ActionButton
+                    type="button"
+                    variant="ghost"
+                    disabled={locked}
+                    onClick={() => act("reject")}
+                  >
+                    지금 질문 유지
+                  </ActionButton>
+                </div>
+              </form>
+            )}
+            {!exitMode &&
+              (view.mode === "CLOSE" || view.mode === "STRUCTURAL") && (
+                <div className="closure-panel">
+                  <h2>여기까지 정리해 볼까요?</h2>
+                  <p>
+                    {view.mode === "STRUCTURAL"
+                      ? "지나온 질문을 남기거나, 지금 질문에서 이야기를 이어갈 수 있어요."
+                      : "여기까지 남겨도 좋고, 더 떠오르는 이야기를 이어가도 좋아요."}
+                  </p>
+                  <ActionButton onClick={() => openExit("closure")}>
+                    남기고 마치기
+                  </ActionButton>
+                  <ActionButton
+                    disabled={locked}
+                    onClick={() => act("continue")}
+                  >
+                    더 생각하기
+                  </ActionButton>
+                </div>
+              )}
+            {!exitMode && view.mode === "FINISHED" && (
+              <ConversationRetention
+                sessionId={view.sessionId}
+                branches={view.branches}
+              />
+            )}
+          </div>
         </>
       )}
       {stopped && (

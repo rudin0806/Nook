@@ -1665,9 +1665,11 @@ body {
 
 /* A conversation is reading, and reading at 1320px is not reading. The generic
    .preview-summary width was winning over .conversation-workspace, so the
-   messages, the composer and the node card were all running the full page. */
+   messages, the composer and the node card were all running the full page.
+   The page now carries a map column beside the talking, so it is wider by
+   exactly that column: the stream itself still lands at ~832px. */
 .preview-summary.conversation-workspace {
-  max-width: 860px;
+  max-width: 1160px;
 }
 .conversation-workspace > section > h1 {
   max-width: none;
@@ -1960,4 +1962,189 @@ body {
    is the same drawing, so it centres too. */
 .shelf-empty .empty-books {
   justify-self: center;
+}
+
+/* ── 대화 화면 — 말하는 자리와 질문 지도 ─────────────────────────────────── */
+
+/* Everything lived in one column: the node card, the branch chips and the
+   clarifications were stacked into the middle of the conversation, so the
+   heaviest block on the page sat between the question and the first thing
+   anyone said. Talking runs down the left; the map of the thinking stands
+   beside it and stays put. */
+.conversation-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  column-gap: 28px;
+  align-items: start;
+}
+.conversation-layout > * {
+  grid-column: 1;
+  min-width: 0;
+}
+.conversation-head {
+  grid-column: 1 / -1;
+}
+.conversation-stream {
+  grid-column: 1;
+  grid-row: 2;
+}
+.conversation-side {
+  grid-column: 2;
+  grid-row: 2;
+  position: sticky;
+  top: 84px;
+  display: grid;
+  gap: 14px;
+}
+/* One column below the point where a 300px map stops earning its place. The
+   DOM keeps the map ahead of the stream, so it stacks where it already was. */
+@media (max-width: 1100px) {
+  .conversation-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .conversation-layout > * {
+    grid-column: 1;
+  }
+  .conversation-side,
+  .conversation-stream {
+    grid-row: auto;
+    position: static;
+  }
+}
+
+/* A transparent fill with a white-alpha hairline is the one combination that
+   reads as frosted glass on a dark page. The panels take a real surface. */
+.conversation-side > * {
+  margin: 0;
+  padding: 16px;
+  border: 1px solid var(--nook-card-line);
+  border-radius: 16px;
+  background: var(--nook-surface);
+}
+.conversation-side .node-navigation {
+  background: var(--nook-surface);
+}
+/* In a 300px column the questions are a list, not a row of cards. */
+.conversation-side .node-navigation ol {
+  flex-direction: column;
+  gap: 6px;
+}
+.conversation-side .node-navigation ol > li {
+  flex: 1 1 auto;
+  max-width: none;
+}
+.conversation-side .node-navigation button {
+  min-height: 0;
+  padding: 10px 12px;
+  border-radius: 11px;
+  background: var(--nook-paper);
+}
+.conversation-side .node-navigation button > span:last-child {
+  -webkit-line-clamp: 2;
+}
+.conversation-side .node-navigation-heading {
+  margin-bottom: 10px;
+}
+
+/* 핵심만 포인트 컬러. The question being talked about right now is the one
+   thing on this page whose state matters, so it is the one thing that carries
+   the colour — the earlier rule had flattened every node to the neutral
+   palette, and a map where nothing is marked is not a map. */
+.conversation-side .node-navigation button[data-current="true"] {
+  border-color: var(--nook-primary);
+  background: var(--nook-primary-weak);
+}
+.conversation-side
+  .node-navigation
+  button[data-current="true"]
+  > span:first-child,
+.conversation-side
+  .node-navigation
+  button[data-active="true"]
+  > span:first-child {
+  background: var(--nook-primary);
+  color: var(--nook-primary-ink);
+}
+.conversation-side .node-navigation button[data-active="true"] {
+  border-color: var(--nook-primary);
+  background: var(--nook-primary-weak);
+}
+
+.conversation-side .branch-links,
+.conversation-side .clarity-panel {
+  margin: 0;
+}
+.conversation-side .branch-links ul,
+.conversation-side .clarity-panel ul {
+  display: grid;
+  gap: 6px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.conversation-side .branch-links a {
+  display: block;
+  border-radius: 11px;
+  padding: 9px 12px;
+  font-size: 13px;
+}
+.conversation-side .clarity-panel {
+  border-left: 1px solid var(--nook-card-line);
+  border-radius: 16px;
+}
+.conversation-side .clarity-panel h2,
+.conversation-side .panel-eyebrow,
+.conversation-side .node-navigation-heading strong {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--nook-muted);
+}
+.conversation-side .clarity-panel li {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--nook-ink);
+}
+
+/* One button shape on this screen. The secondary actions were a ghost variant
+   with nothing to press and the send button a pill of another size, so three
+   different things were asking to be clicked in three different languages. */
+.conversation-stream .conversation-composer button,
+.conversation-exits > .seed-action-button,
+.closure-panel button {
+  min-height: 38px;
+  padding-inline: 18px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.closure-panel button:first-of-type,
+.conversation-stream .conversation-composer button {
+  border: 1px solid transparent;
+  background: var(--nook-primary);
+  color: var(--nook-primary-ink);
+}
+.conversation-exits > .seed-action-button,
+.closure-panel button + button {
+  border: 1px solid var(--nook-card-line);
+  background: var(--nook-surface);
+  color: var(--nook-muted);
+  font-weight: 500;
+}
+.conversation-exits > .seed-action-button:hover,
+.closure-panel button + button:hover {
+  border-color: var(--nook-line-strong);
+  color: var(--nook-ink);
+}
+.conversation-stream .conversation-composer button:disabled {
+  background: var(--nook-fill);
+  color: var(--nook-subtle);
+}
+.closure-panel {
+  display: grid;
+  justify-items: start;
+  gap: 10px;
+}
+.closure-panel button {
+  justify-self: start;
 }
