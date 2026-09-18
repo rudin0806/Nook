@@ -531,7 +531,7 @@ export function DrawerContents({
               <p>
                 {collection === "trash"
                   ? "휴지통으로 옮긴 이야기가 여기에 모여요."
-                  : "보관하기로 고른 내용이 여기에 모여요."}
+                  : "보관한 내용이 여기에 모여요."}
               </p>
             </div>
           ))}

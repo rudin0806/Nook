@@ -34,7 +34,7 @@ export default async function DrawerPage({
         <PageHeading
           kicker="내가 남겨둔 이야기"
           title="생각 더미"
-          subtitle="지나온 질문을 다시 펼쳐보는 자리"
+          subtitle="지나온 질문을 다시 펼쳐봐요"
         />
         <DrawerContents
           initialCollection={initialCollection}

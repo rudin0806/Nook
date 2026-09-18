@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ActionButton } from "@seed-design/react";
-import { formatSeoulDeadline } from "@/lib/format/datetime";
+import { formatDaysLeft, formatSeoulDeadline } from "@/lib/format/datetime";
 
 export type RetentionCollection =
   "sessions" | "recovery" | "questions" | "trash";
@@ -41,8 +41,11 @@ export function RetentionCard({
           : `${formatDate(item.date)}에 ${collection === "trash" ? "휴지통으로 이동" : "보관"}`}
       </small>
       {item.purgeAfter && (
-        <p className="retention-card-deadline">
-          복원 기한: {formatSeoulDeadline(item.purgeAfter)} (한국 시간)
+        <p
+          className="retention-card-deadline"
+          title={`복원 기한 ${formatSeoulDeadline(item.purgeAfter)} (한국 시간)`}
+        >
+          {formatDaysLeft(item.purgeAfter)}
         </p>
       )}
       <div className="retention-card-actions">

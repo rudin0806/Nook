@@ -2416,15 +2416,21 @@ body {
 }
 
 /* 새로고침은 탭과 같은 줄의 아이콘 하나다. */
-.collection-refresh {
+/* 알약처럼 둥근 원이 탭과 같은 줄에서 다섯 번째 탭으로 읽혔다. 모서리를 줄이고
+   글리프를 탭바 아이콘과 같은 22px로 키워 동작 하나로 보이게 한다. */
+/* 탭 행의 `.preview-actions button`이 10px 18px 여백과 44px 최소 높이를 주고 있어
+   더 구체적인 선택자여야 한다. 안 그러면 34px을 써도 38×44로 늘어난다. */
+[aria-label="보관 종류"] .collection-refresh {
   display: grid;
   place-items: center;
+  align-self: center;
   width: 34px;
   height: 34px;
+  min-height: 0;
   margin-left: auto;
   padding: 0;
   border: 1px solid var(--nook-card-line);
-  border-radius: 999px;
+  border-radius: 10px;
   background: var(--nook-surface);
   color: var(--nook-muted);
   cursor: pointer;
@@ -2432,15 +2438,41 @@ body {
     color 0.18s,
     border-color 0.18s;
 }
-.collection-refresh svg {
-  width: 17px;
-  height: 17px;
+[aria-label="보관 종류"] .collection-refresh svg {
+  width: 22px;
+  height: 22px;
 }
-.collection-refresh:hover:not(:disabled) {
+[aria-label="보관 종류"] .collection-refresh:hover:not(:disabled) {
   border-color: var(--nook-line-strong);
   color: var(--nook-ink);
 }
-.collection-refresh:disabled {
+[aria-label="보관 종류"] .collection-refresh:disabled {
   opacity: 0.45;
   cursor: default;
+}
+
+/* ── 내 정보 ────────────────────────────────────────────────────────────── */
+
+/* 되돌아가는 길은 패널 위 왼쪽에 하나만 둔다. */
+.account-return {
+  display: inline-block;
+  margin-bottom: 14px;
+  font-size: 14px;
+  color: var(--nook-muted);
+  text-decoration: none;
+}
+.account-return:hover {
+  color: var(--nook-ink);
+}
+/* 로그인 전후가 같은 컴포넌트를 쓰므로 여백도 같다. 로그인 뒤에 든 것이 많아
+   길어 보였을 뿐이라, 늘어난 쪽을 손보는 대신 공통 여백을 줄인다. */
+.account-layout {
+  padding: 40px 20px 32px;
+}
+.account-panel {
+  gap: 12px;
+  padding: 28px 26px 26px;
+}
+.account-panel .desk-greeting {
+  font-size: 25px;
 }

@@ -99,14 +99,6 @@ export function AccountPanel({
           <AccountDeletion />
         </>
       )}
-      <Link
-        className="account-back"
-        href={returnTo === "/drawer" ? "/" : returnTo}
-      >
-        {returnTo === "/drawer"
-          ? "← 생각 쓰기로 돌아가기"
-          : "← 보관 선택으로 돌아가기"}
-      </Link>
     </section>
   );
 }

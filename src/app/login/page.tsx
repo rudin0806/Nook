@@ -43,14 +43,20 @@ export default async function LoginPage({
     <div className="account-page">
       <header className="app-header">
         <Wordmark />
-        <Link
-          className="header-account"
-          href={returnTo === "/drawer" ? "/" : returnTo}
-        >
-          닫기 ×
-        </Link>
       </header>
       <main id="main-content" className="account-layout">
+        {/* 되돌아가는 길은 하나이고, 패널을 다 읽어 내려가기 전에 보이는 자리에
+            둔다. 헤더 오른쪽 끝의 `닫기 ×`와 패널 맨 아래 링크로 나뉘어 있어서
+            같은 일을 하는 것이 둘이었고, 아래 것은 계정 삭제 밑에 있었다. */}
+        <Link
+          className="account-return"
+          href={returnTo === "/drawer" ? "/" : returnTo}
+        >
+          ←{" "}
+          {returnTo === "/drawer"
+            ? "생각 쓰기로 돌아가기"
+            : "보관 선택으로 돌아가기"}
+        </Link>
         {deleted === "1" && (
           <p className="account-farewell" role="status">
             계정과 기록을 모두 삭제했어요. 그동안 여기 적어둔 생각은 남아 있지
