@@ -46,6 +46,7 @@ export function AnonymousVerification({
   const [needed, setNeeded] = useState(false);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState(false);
+  const [solved, setSolved] = useState(false);
   const element = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!sitekey) return;
@@ -73,11 +74,17 @@ export function AnonymousVerification({
       callback: (token) => {
         onToken(token);
         setError(false);
+        setSolved(true);
       },
-      "expired-callback": () => onToken(""),
+      // A token expires, and then the box has to come back.
+      "expired-callback": () => {
+        onToken("");
+        setSolved(false);
+      },
       "error-callback": () => {
         onToken("");
         setError(true);
+        setSolved(false);
         return true;
       },
     });
@@ -92,14 +99,14 @@ export function AnonymousVerification({
   }, [needed, ready, onToken]);
   if (!sitekey || !needed) return null;
   return (
-    <div className="anonymous-verification">
-      <p>계정 없이 시작하기 위한 사용자 확인</p>
+    <div className="anonymous-verification" data-solved={solved || undefined}>
+      <p>{solved ? "확인됐어요" : "계정 없이 시작하기 위한 사용자 확인"}</p>
       <Script
         src={scriptSrc}
         onReady={() => setReady(true)}
         onError={() => setError(true)}
       />
-      <div ref={element} />
+      <div className="anonymous-verification-box" ref={element} />
       {error && (
         <p role="status">
           사용자 확인을 불러오지 못했어요. 새로고침하거나 계정을 연결해 주세요.

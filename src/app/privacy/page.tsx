@@ -46,6 +46,10 @@ export default function PrivacyPage() {
       </ul>
       <h3>운영 기록</h3>
       <ul>
+        <li>
+          접속 IP 주소와 브라우저 정보: 호스팅 서비스의 요청 기록, 로그인 기록,
+          자동 가입 방지 확인 과정에서 자동으로 남습니다
+        </li>
         <li>요청 횟수 카운터(분·일 단위)</li>
         <li>AI 요청의 처리 상태와 중복 요청 식별값</li>
         <li>안전 신호 판정 결과(위험 구분과 대응 유형)</li>
@@ -99,6 +103,13 @@ export default function PrivacyPage() {
               <td>
                 탈퇴일로부터 30일. 같은 방법으로 곧바로 다시 가입하는 것을 막기
                 위한 값이며, 30일이 지나면 자동 삭제됩니다
+              </td>
+            </tr>
+            <tr>
+              <td>접속 IP 주소와 요청 기록</td>
+              <td>
+                호스팅·인증 서비스가 보관하는 기간 동안. 서비스가 따로 옮겨
+                적거나 이용자 기록과 연결해 저장하지 않습니다
               </td>
             </tr>
           </tbody>
@@ -243,6 +254,16 @@ export default function PrivacyPage() {
             <tr>
               <td>nook-theme-v1</td>
               <td>밝은/어두운 화면 선택 기억</td>
+              <td>브라우저 로컬 저장소, 직접 지울 때까지</td>
+            </tr>
+            <tr>
+              <td>nook-shelf-view-v1</td>
+              <td>책장/표지 보기 선택 기억</td>
+              <td>브라우저 로컬 저장소, 직접 지울 때까지</td>
+            </tr>
+            <tr>
+              <td>nook-policy-notice-seen-v1</td>
+              <td>약관·처리방침 변경 안내를 이미 봤는지 기억</td>
               <td>브라우저 로컬 저장소, 직접 지울 때까지</td>
             </tr>
             <tr>

@@ -35,6 +35,89 @@
 - 옛 `/api/sessions/order`와 전체 배열 클라이언트·스키마·서버 함수 제거. DB의 옛 `reorder_saved_sessions(uuid[])` RPC 삭제 migration을 2026-09-17 운영에 **적용 완료**했다. 적용 후 `pg_proc` 조회 0행, `move_saved_session`·`move_saved_session_checked`·`normalize_shelf_positions`·보관/복원/휴지통 함수는 그대로 유지됨을 확인했다.
 - 익명 시작: 선택적 Turnstile UI·만료/오류 처리·토큰 전달 추가. `NEXT_PUBLIC_TURNSTILE_SITE_KEY`와 서버의 익명 활성화가 함께 필요하다. 실제 검증은 Supabase Auth가 담당한다.
 
+## 세션이 조용히 끊긴 원인 — 2026-09-18 9차
+
+### 페이지 렌더가 쿠키를 쓰려고 했다
+
+Vercel runtime error에 `Cookies can only be modified in a Server Action or
+Route Handler`가 3건, 스택은 Supabase의 `_callRefreshToken` → `setAll`,
+route는 `/`였다.
+
+`readConsentState()`가 `createSupabaseRouteClient()`를 쓰는데, 그 클라이언트의
+주석이 이미 "For Route Handlers / Server Actions"라고 말한다. 호출하는 곳은
+`/`, `/drawer`, `/consent`, `/talk/[nodeId]` — **전부 Server Component**다.
+
+액세스 토큰이 만료된 상태로 페이지가 `auth.getUser()`를 부르면 SDK가 먼저
+리프레시를 하고 새 토큰을 쿠키에 쓰려 한다. 렌더 중에는 쓸 수 없으니 Next.js가
+던진다. **Supabase는 리프레시 토큰을 회전시키므로, 서버에서는 이미 새 토큰이
+발급됐고 브라우저가 든 옛 토큰은 그 순간 죽는다.** 저장에 실패했으니 새 토큰은
+어디에도 없다 → 회원이 조용히 로그아웃되고 이후 모든 API가 401.
+
+`readConsentState`의 `try/catch`가 `"ok"`를 돌려주기 때문에 화면은 정상으로
+보였다. 그래서 증상이 "대화가 안 된다"로만 나타났다.
+
+측정으로 맞물린다. 최근 24시간 로그는 200 8건, **401 3건**(`/api/recovery`,
+`/api/sessions` ×2)이고, `/api/start`·`/api/conversation` 요청은 **0건**이다.
+`ai_requests`는 7건 전부 SUCCEEDED, 멈춘 RUNNING 리스도 없다 — 큐가 막힌 게
+아니라 세션이 없어서 시작조차 못 한 것이다.
+
+`createSupabaseBrowserClient`는 **어디서도 쓰이지 않는다.** 클라이언트 쪽
+자동 갱신도 없었다는 뜻이다.
+
+고친 방법:
+
+- `src/middleware.ts` 신규. 리프레시를 여기서 한다. 렌더보다 먼저 돌고 쿠키를
+  쓸 수 있는 유일한 지점이다. 실패는 open — 인증 문제가 빈 화면이 되면 안 되니
+  어떤 예외든 응답을 그대로 돌려준다. `api/auth/callback`·`api/auth/signout`은
+  스스로 쿠키를 쓰므로 matcher에서 제외해 요청당 writer를 하나로 유지한다
+- `src/lib/supabase/reader.ts` 신규. Server Component용, `setAll`이 no-op.
+  `gate.ts`가 이걸 쓴다
+
+검증: Supabase 환경변수가 없는 로컬에서 `/`·`/terms`·`/privacy`·`/example`·
+`/drawer`·`/login` 전부 200 (fail-open 경로 확인). 실제 갱신 사이클은 운영에서
+확인해야 한다.
+
+### 왜 느린가 — 버그가 아니라 설계 비용
+
+`judge_logs` 한 건의 실측: `gpt-5.6-sol`, **6,484ms, 입력 5,786 토큰**, 출력
+254 토큰. `sol`은 허용 3종 중 가장 무거운 모델이다.
+
+한 턴은 Safety Gate(Moderation + Classifier) → Turn Judge → Reframe/Reflection을
+**순차로** 돈다. 6.5초는 그중 Judge 하나다. 체감 지연은 이 단계들의 합이다.
+줄이려면 모델이나 reasoning effort를 낮춰야 하고, 그건 품질 재평가가 필요한
+결정이므로 건드리지 않았다.
+
+### 캡차는 풀면 사라진다
+
+체크 후에도 박스가 남아 있었다. 토큰이 오면 `data-solved`가 붙고 박스는
+`display: none`, 문구는 `확인됐어요`로 바뀐다. **언마운트하지 않는다** — 노드를
+없애면 챌린지가 파괴되고, 토큰은 만료될 수 있어서 그때 박스가 다시 나와야 한다.
+
+### 계정 삭제는 모달로
+
+인라인 펼침이 계정 화면을 파괴적 폼 중심으로 재배치하고 돌아갈 길을 안 줬다.
+`<dialog>` 모달로 바꿨다 — 이미 `card-browser`가 쓰는 패턴이다. 새 탭은 쓰지
+않았다: 폼 POST이고, 계정 화면을 뒤에 남긴 탭은 되돌리기 어려운 동작을 더
+어렵게 만든다.
+
+로컬에 인증이 없어 `AccountPanel`이 로그인 전 상태를 그리므로 **이 환경에서는
+모달을 띄워볼 수 없다.** 운영에서 확인이 필요하다.
+
+### 개인정보처리방침 — 누락 3건
+
+- **접속 IP 주소가 어디에도 없었다.** 호스팅 요청 기록·로그인 기록·캡차 확인에
+  자동으로 남는 항목인데 제30조 제1항이 요구하는 처리 항목 목록에 빠져 있었다.
+  §1에 항목, §3에 보유 기간을 추가했다
+- `nook-shelf-view-v1`, `nook-policy-notice-seen-v1` 두 개의 로컬 저장소 키가
+  §8 자동 수집 표에 없었다. 추가했다
+
+나머지는 대조 결과 맞다. §5 수탁자 표에 Supabase·Vercel·OpenAI·Google·Intuition
+Machines(hCaptcha)가 모두 있고, §3의 24시간·7일·즉시·30일은 migration의
+`interval` 값과 일치한다.
+
+`consents` 테이블이 0행이고 시행일이 2026.09.19이므로, 아직 아무도 동의하지
+않은 문서를 시행 전에 고친 것이다. 재동의 대상이 아니다.
+
 ## 운영 공개·첫 질문 화면 손질 — 2026-09-18 8차
 
 ### Vercel Authentication이 켜져 있었다

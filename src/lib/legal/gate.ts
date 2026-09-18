@@ -1,5 +1,5 @@
 import "server-only";
-import { createSupabaseRouteClient } from "@/lib/supabase/server";
+import { createSupabaseReaderClient } from "@/lib/supabase/reader";
 import { consentOutcome } from "./versions";
 
 export type ConsentState = "ok" | "reconsent" | "notice";
@@ -11,7 +11,7 @@ export type ConsentState = "ok" | "reconsent" | "notice";
  */
 export async function readConsentState(): Promise<ConsentState> {
   try {
-    const supabase = await createSupabaseRouteClient();
+    const supabase = await createSupabaseReaderClient();
     const { data, error } = await supabase.auth.getUser();
     if (error || !data.user || data.user.is_anonymous) return "ok";
     const consent = await supabase

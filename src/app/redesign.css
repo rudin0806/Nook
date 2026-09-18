@@ -1137,3 +1137,31 @@ body {
   border-color: var(--nook-muted);
   color: var(--nook-ink);
 }
+
+/* Once the box has produced a token there is nothing left to do in it, so it
+   goes away and a single line says so. It is hidden rather than unmounted —
+   removing the node destroys the challenge, and the token can still expire,
+   in which case the box comes back. */
+.anonymous-verification[data-solved] .anonymous-verification-box {
+  display: none;
+}
+.anonymous-verification[data-solved] > p {
+  color: var(--nook-muted);
+}
+
+/* Withdrawal is a decision, so it interrupts rather than reflowing the account
+   screen around a destructive form. Sized like the card browser dialog that
+   already exists, so the two read as the same kind of surface. */
+.account-danger-dialog {
+  width: min(520px, calc(100vw - 32px));
+  max-height: calc(100dvh - 48px);
+  padding: 26px;
+  border: 0;
+  border-radius: 20px;
+  color: var(--nook-ink);
+  background: var(--nook-surface);
+  overflow: auto;
+}
+.account-danger-dialog::backdrop {
+  background: rgb(0 0 0 / 45%);
+}
