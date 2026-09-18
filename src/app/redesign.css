@@ -2130,10 +2130,32 @@ body {
   letter-spacing: 0.02em;
   color: var(--nook-muted);
 }
+/* Three findings ran together as three paragraphs with a 6px gap, so the panel
+   read as one blurred sentence and you could not tell what had become clear or
+   how many things had. Each one gets a mark and a line of its own. The mark is
+   neutral — the point colour stays on the question being talked about. */
+.conversation-side .clarity-panel ul {
+  gap: 0;
+}
 .conversation-side .clarity-panel li {
+  position: relative;
+  padding: 9px 0 9px 15px;
   font-size: 13px;
   line-height: 1.6;
   color: var(--nook-ink);
+}
+.conversation-side .clarity-panel li + li {
+  border-top: 1px solid var(--nook-card-line);
+}
+.conversation-side .clarity-panel li::before {
+  content: "";
+  position: absolute;
+  top: 16px;
+  left: 2px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--nook-line-strong);
 }
 
 /* One button shape on this screen. The secondary actions were a ghost variant
@@ -2160,6 +2182,17 @@ body {
   background: var(--nook-surface);
   color: var(--nook-muted);
   font-weight: 500;
+}
+/* Keeping a story is the one thing on this row anyone came here to do, so it
+   is not the same weight as a reload sitting beside it. */
+.conversation-exits > .seed-action-button[data-lead="true"] {
+  border-color: var(--nook-line-strong);
+  color: var(--nook-ink);
+  font-weight: 600;
+}
+.conversation-exits > .seed-action-button[data-lead="true"]:hover {
+  border-color: var(--nook-primary);
+  color: var(--nook-primary);
 }
 .conversation-exits > .seed-action-button:hover,
 .closure-panel button + button:hover {

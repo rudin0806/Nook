@@ -462,14 +462,23 @@ export function ConversationPanel({ nodeId }: { nodeId: string }) {
           the same line however they were styled. */}
       {!stopped && !exitMode && (
         <div className="conversation-exits">
+          {/* The way out was called 나가기 and the reload 현재 기록 다시 확인 —
+              두 라벨 모두 보관을 가리키지 않는데 `기록`은 이 제품에서 보관한
+              것을 뜻하는 말이라, 어느 쪽이 저장인지 알 수 없었다. 이 버튼이
+              여는 화면이 보관 여부를 묻는 곳이므로 그 이름을 그대로 쓴다.
+              남기지 않고 나가는 길은 그 화면 안에 그대로 있다. */}
           {view && view.mode !== "FINISHED" && (
-            <ActionButton variant="ghost" onClick={() => openExit("exit")}>
-              나가기
+            <ActionButton
+              data-lead="true"
+              variant="ghost"
+              onClick={() => openExit("exit")}
+            >
+              생각 더미에 보관하기
             </ActionButton>
           )}
           {!locked && (
             <ActionButton variant="ghost" onClick={() => void refresh()}>
-              현재 기록 다시 확인
+              대화 새로고침
             </ActionButton>
           )}
         </div>

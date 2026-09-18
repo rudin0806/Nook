@@ -143,7 +143,9 @@ export function ConversationRetention({
     );
   return (
     <section aria-label="기록 보관 선택">
-      <h2>{closure ? "여기까지 남길까요?" : "이 대화를 마칠까요?"}</h2>
+      <h2>
+        {closure ? "여기까지 남길까요?" : "이 이야기를 생각 더미에 보관할까요?"}
+      </h2>
       {branches.length > 0 && (
         <fieldset disabled={busy || !draftReady}>
           <legend>나중에 다시 볼 질문</legend>
