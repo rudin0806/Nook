@@ -119,7 +119,7 @@ export function DrawerContents({
         if (!response.ok) {
           const message =
             response.status === 401
-              ? "보관한 이야기를 보려면 계정을 연결해 주세요."
+              ? "로그인하면 남긴 이야기와 질문을 여기서 볼 수 있어요."
               : response.status === 503
                 ? "지금은 생각 더미를 연결할 수 없어요. 잠시 후 다시 확인해 주세요."
                 : "생각 더미를 불러오지 못했어요. 다시 시도해 주세요.";
@@ -372,22 +372,36 @@ export function DrawerContents({
           <p className="preview-status">생각 더미를 열고 있어요…</p>
         )}
         {state.kind === "error" && (
-          <div className="preview-summary-card">
+          <div
+            className="collection-empty"
+            role={state.needsLogin ? undefined : "alert"}
+          >
+            <div className="empty-books" aria-hidden="true">
+              <i />
+              <i />
+              <i />
+            </div>
+            <strong>
+              {state.needsLogin
+                ? "계정을 연결하면 열려요"
+                : "지금은 열 수 없어요"}
+            </strong>
             <p>{state.message}</p>
-            {state.needsLogin && (
-              <p>
-                <Link href="/login">계정 연결하기</Link>
-              </p>
+            {state.needsLogin ? (
+              <Link className="shelf-cta" href="/login">
+                계정 연결하기
+              </Link>
+            ) : (
+              <ActionButton
+                variant="neutralWeak"
+                onClick={() => {
+                  setState({ kind: "loading" });
+                  setAttempt((n) => n + 1);
+                }}
+              >
+                다시 확인하기
+              </ActionButton>
             )}
-            <ActionButton
-              variant="neutralWeak"
-              onClick={() => {
-                setState({ kind: "loading" });
-                setAttempt((n) => n + 1);
-              }}
-            >
-              다시 확인하기
-            </ActionButton>
           </div>
         )}
         {state.kind === "ready" &&

@@ -48,14 +48,12 @@ export function AccountPanel({
   return (
     <section className="account-panel" aria-busy={state === "loading"}>
       <h1>
-        {state === "signed_in"
-          ? "다시 만나 반가워요."
-          : "내 생각을, 내 자리에."}
+        {state === "signed_in" ? "다시 만나 반가워요" : "내 생각을, 내 자리에"}
       </h1>
       <p className="account-description">
         {state === "signed_in"
-          ? "남겨둔 질문들이 여기 있어요."
-          : "보관한 생각을 다시 펼쳐보는 계정."}
+          ? "남겨둔 질문들이 여기 있어요"
+          : "보관한 생각을 다시 펼쳐보는 계정"}
       </p>
       {message && (
         <p role="alert" className="account-error">

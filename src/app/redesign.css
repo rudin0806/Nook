@@ -296,8 +296,15 @@ body {
   font-weight: 500;
   color: var(--nook-muted);
 }
+.desk-heading > .preview-kicker {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--nook-subtle);
+}
 .desk-greeting {
-  margin: 8px 0 0;
+  margin: 6px 0 0;
   font-size: 34px;
   font-weight: 700;
   line-height: 1.24;
@@ -307,6 +314,7 @@ body {
 .desk-intro {
   margin: 10px 0 0;
   font-size: 15px;
+  line-height: 1.6;
   color: var(--nook-muted);
 }
 .desk-footnote {
@@ -1442,4 +1450,105 @@ body {
 }
 .empty-cards {
   inset: 18px 18px 14px;
+}
+
+/* The tab row sticks, but it was translucent with a blur and inset by 40px, so
+   the heading ghosted through it and showed past its edges on the way up.
+   Full bleed and opaque: what scrolls under it is hidden, which is the whole
+   point of it staying. */
+.app-dock {
+  margin: 0;
+  padding: 0 40px;
+  background: var(--nook-paper);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* The action fills the frame, so its edges land on the panel's content edges —
+   the same column the lamp toggle sits in — while the copy stays centred. */
+.shelf-cta {
+  justify-content: center;
+  width: 100%;
+  margin-top: 14px;
+  padding-inline: 14px;
+}
+.shelf-empty,
+.recovery-empty,
+.collection-empty {
+  justify-items: stretch;
+}
+.shelf-empty > div:last-child,
+.collection-empty {
+  text-align: center;
+}
+
+/* The bin of stacked cards was sitting flush against the panel's bottom edge. */
+.recovery-panel {
+  padding-bottom: 28px;
+}
+
+/* A signed-out 생각 더미 is an empty state and reads like the home panels:
+   held frame, the same book illustration, one filled action. It was a plain
+   card with a green link and a grey button, which matched nothing. */
+.collection-empty {
+  box-sizing: border-box;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  margin-top: 18px;
+  padding: 34px 24px;
+  border: 1px dashed var(--nook-line-strong);
+  border-radius: 16px;
+}
+.collection-empty .empty-books {
+  margin-bottom: 8px;
+}
+.collection-empty strong {
+  font-size: 15px;
+  font-weight: 700;
+}
+.collection-empty p {
+  margin: 0;
+  max-width: 28em;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--nook-muted);
+  word-break: keep-all;
+}
+.collection-empty .shelf-cta {
+  width: auto;
+  min-width: 180px;
+}
+.collection-footer {
+  margin-top: 28px;
+}
+
+/* The collection switch is a segmented control, so it looks like one: pills in
+   a row, the chosen one in the point colour. It was rendering black-on-grey,
+   the only black surface on the page. */
+[aria-label="보관 종류"] {
+  gap: 6px;
+  margin-bottom: 4px;
+}
+[aria-label="보관 종류"] .seed-action-button {
+  padding-inline: 16px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+[aria-label="보관 종류"] .seed-action-button[aria-pressed="true"] {
+  background: var(--nook-primary);
+  color: var(--nook-primary-ink);
+}
+
+/* Refreshing is a fallback, not a heading, and it was sitting bold at the left
+   margin with nothing marking it as pressable. */
+[aria-label="생각 더미 내용"] > .seed-action-button {
+  align-self: flex-start;
+  margin-top: 14px;
+  padding: 6px 12px;
+  border: 1px solid var(--nook-card-line);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--nook-muted);
 }
