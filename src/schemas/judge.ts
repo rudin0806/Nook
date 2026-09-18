@@ -54,6 +54,8 @@ export const judgeInputSchema = z
         }),
       )
       .max(2),
+    /** 코드가 센 값(RULES 8.1). 사용자의 상태가 아니라 답의 길이만 본다. */
+    stalled: z.boolean().optional(),
     turns: z.array(judgeTurnSchema).min(1).max(8),
   })
   .superRefine((input, ctx) => {

@@ -8,6 +8,7 @@ import {
   type ConversationSnapshot,
 } from "../schemas/conversation.ts";
 import { judgeInputSchema } from "../schemas/judge.ts";
+import { isStalled } from "./stall.ts";
 
 export function conversationContext(raw: unknown) {
   const snapshot = conversationSnapshotSchema.parse(raw);
@@ -28,6 +29,8 @@ export function conversationContext(raw: unknown) {
       .slice(-16)
       .map((c) => ({ id: c.id, text: c.text })),
     carryover: snapshot.state.carryover.filter((c) => !windowIds.has(c.turn)),
+    // 창이 아니라 세션 전체를 본다. 기준선이 될 앞선 발화가 창 밖에 있을 수 있다.
+    stalled: isStalled(turns),
     turns: window,
   });
   const turnIds = Object.fromEntries(
@@ -133,6 +136,9 @@ export async function planConversationTurn(
         id: c.id,
         text: c.text,
       })),
+      last_question:
+        [...turns].reverse().find((t) => t.role === "assistant")?.text ?? null,
+      stalled: input.stalled ?? false,
       turns: input.turns,
       carryover: input.carryover.map((c) => ({ turn: c.turn, text: c.text })),
     },

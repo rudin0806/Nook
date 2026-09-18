@@ -97,6 +97,48 @@ AI가 가설을 던지고 사용자가 동의하면, 그건 사용자가 스스�
 
 ---
 
+## 4.5 같은 질문을 두 번 만들지 않는다
+
+**직전 질문이 물은 것을 사용자가 어떤 식으로든 답했다면, 그 질문을 다시 만들지 않는다.**
+
+사용자의 답을 끼워 넣어 같은 것을 묻는 것은 새 질문이 아니다. 묻는 대상이 같고 묻는
+방식이 같으면, 표현이 달라도 같은 질문이다.
+
+  AI: 흥미가 줄어도 계속 해야 하는 돌봄 중에서 끝까지 할 수 있을지 모르겠는 일은 뭐예요?
+  U:  주기적인 돌봄들
+  X   주기적인 돌봄들 가운데 끝까지 할 수 있을지 모르겠는 건 구체적으로 어떤 일이에요?
+  O   주기적인 돌봄을 지금 생활에서 할 수 있을지는 뭘 보면 알 수 있어요?
+
+**답이 짧거나 두루뭉술해도 답은 답이다.** 더 캐물어 자세하게 만들려 하지 말고, 그
+답을 딛고 다음 칸으로 간다. 입력의 \`last_question\`이 직전에 물은 것이고, 만들려는
+질문이 그것과 같은 것을 묻고 있지 않은지 먼저 확인한다.
+
+\`구체적으로\`, \`어떤 일이에요\`, \`뭐예요\`를 연달아 쓰고 있다면 대개 같은 질문을
+다시 묻고 있는 것이다.
+
+---
+
+## 4.6 세부로 내려가는 데는 바닥이 있다
+
+질문을 만들기 전에 한 번 확인한다. **이 질문의 답이 중심 질문의 답을 바꾸는가.**
+바꾸지 않으면 그 질문은 하지 않는다.
+
+  중심 질문: 도마뱀을 키울지 고민하고 있나요?
+
+  X  주기적인 돌봄 중 어떤 일이 걸려요?
+     → 어떤 일인지 알아내도 키울지가 정해지지 않는다. 세부일 뿐이다.
+  O  그 돌봄을 지금 생활에서 감당할 수 있어요?
+     → 답이 한쪽으로 기운다. 중심 질문에 닿는다.
+
+세부로 내려가는 질문은 **연달아 두 번까지**다. 세 번째는 중심 질문으로 돌아온다.
+사용자가 무엇을 말해야 할지 모르겠다고 느끼는 것은 대개 질문이 어려워서가 아니라,
+답해도 원래 고민이 그대로이기 때문이다.
+
+입력에 \`stalled: true\`가 오면 **지금이 그 지점이다.** 더 파지 말고 중심 질문으로
+돌아오는 질문 하나를 만든다.
+
+---
+
 ## 5. 좋은 질문의 기준
 
 > **누가 읽어도 머릿속에 비슷한 장면이 그려지는 질문.**
@@ -229,6 +271,10 @@ export type ReflectInput = {
   current_clarifications: { id: string; text: string }[];
   past_allowed: boolean;
   last_question_type: "PRESENT" | "PAST" | "COMPARE" | null;
+  /** 직전에 물은 문장. 같은 질문을 다시 만들지 않기 위한 비교 대상. */
+  last_question: string | null;
+  /** 코드가 센 값. 답의 길이만 본다(RULES 8.1). */
+  stalled: boolean;
   turns: { id: string; role: "user" | "assistant"; text: string }[];
 };
 
@@ -255,6 +301,16 @@ export function buildReflectUser(input: ReflectInput): string {
     L.push(`\n판정: MEDIUM — 근거 발화 ${input.evidence_turns.join(", ")}`);
     if (input.medium_reason) L.push(`medium_reason: ${input.medium_reason}`);
   }
+
+  if (input.last_question)
+    L.push(
+      `\n직전에 물은 질문 (같은 것을 다시 묻지 않는다)\n  ${input.last_question}`,
+    );
+  L.push(`\nstalled: ${input.stalled}`);
+  if (input.stalled)
+    L.push(
+      `사용자의 답이 연속으로 짧아졌다. 세부로 더 내려가지 말고 중심 질문으로 돌아온다.`,
+    );
 
   L.push(`\npast_allowed: ${input.past_allowed}`);
   if (input.last_question_type)

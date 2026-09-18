@@ -54,6 +54,10 @@
   네 줄이고, `GENERATE`에서 `judge_logs.latency_ms`를 빼면 생성 단계가 떨어진다. 모델
   호출을 추가하지 않고 이미 일어나는 호출의 시간만 잰다. 발화·사용자·세션은 담지 않고
   `anon`·`authenticated`에 권한이 없다. 같은 값이 표준 출력에도 `nook_stage`로 나간다.
+- **되묻기 정체는 코드가 센다.** `src/engine/stall.ts`가 마지막 두 사용자 발화 길이를
+  그 사람의 앞선 중앙값과 비교해 `stalled` boolean을 만들고, Judge와 Prompt D에 그것만
+  넘긴다. 사용자 상태를 추정하지 않는다. 임계값은 코드 상수이며 실제 세션으로 조정한다.
+  **유료 재평가는 아직 하지 않았다** — 이 작업 환경은 `api.openai.com`이 막혀 있다.
 - **Judge reasoning effort는 `medium`이다** (2026-09-18 결정, 모델은 `gpt-5.6-sol` 그대로).
   운영 실측에서 한 턴이 평균 15.3초(n=7, 최소 9.7 / 최대 19.2)였고 그중 Judge 하나가
   평균 6.4초(입력 평균 5,998토큰 → 출력 257토큰)였다. **strict 31/31은 high에서 나온
@@ -101,23 +105,27 @@
 
 ## 남은 관문
 
-1. **보관 선택 화면의 `나중에 다시 볼 질문` 체크박스.** 곁가지 질문에 별도 화면을 두지
+1. **되묻기 개편의 유료 검증.** Prompt B·D와 `stalled` 신호를 바꿨는데 모델 호출로
+   확인하지 못했다. `npm run eval -- --ids J-SHIFT-01,J-SHIFT-02,J-SHIFT-03,J-SHIFT-04,J-NOT-01,J-NOT-02,J-NOT-03,J-MED-01,J-MED-02,J-MED-03,J-MED-04,J-MED-05,J-AI-01,J-EDGE-01 --max-cases 14`
+   와 `node --experimental-strip-types scripts/eval-conversation.mts`를 키가 닿는
+   환경에서 실행해야 한다. 근거는 [D-01](proposals/D-01-reflection-loop.md).
+2. **보관 선택 화면의 `나중에 다시 볼 질문` 체크박스.** 곁가지 질문에 별도 화면을 두지
    않기로 하면서, 종료할 때 고른 질문이 이후에 놓일 자리가 없어졌다. 체크박스를 지울지,
    고른 질문을 어디서 다시 만나게 할지는 제품 결정이라 손대지 않았다.
    `/api/branch-questions`와 `listKeptBranchQuestions`도 부르는 화면 없이 남아 있다.
-2. **지연 재측정.** effort를 `medium`으로 내리고 리전을 서울로 옮긴 뒤 운영에서 대화가
+3. **지연 재측정.** effort를 `medium`으로 내리고 리전을 서울로 옮긴 뒤 운영에서 대화가
    한 번도 돌지 않았다. `ai_stage_timings`가 0행이다. 대화 한 번이면 Judge 변화,
    턴 전체 시간, 단계 분해가 한꺼번에 나온다.
-3. **이야기 상세(`/drawer/:id`) UI 미점검.** 로그인이 필요해 로컬에서 못 봤다.
+4. **이야기 상세(`/drawer/:id`) UI 미점검.** 로그인이 필요해 로컬에서 못 봤다.
    대화 화면(`/talk/[nodeId]`)은 `/api/conversation` 응답을 목으로 넣어 실측했다.
-4. **예시 대화 전사.** `src/lib/example/story.ts`의 `nodes`·`clarifications`를 실제 대화로
+5. **예시 대화 전사.** `src/lib/example/story.ts`의 `nodes`·`clarifications`를 실제 대화로
    교체하고 `transcriptPending`을 내린 뒤 홈에 칩을 연결한다. 운영에서 대화를 남기면
    Supabase에서 읽어올 수 있다.
-5. **Kakao 로그인.** 타입에는 있고 UI에 없다. Supabase Auth 설정이 선행된다.
-6. **종료 설문.** 가설 검증용이며 모델 학습과는 무관하다.
-7. **프롬프트 문체.** 근거 문장이 `~했습니다` 체로 나와 RULES §10과 어긋난다. 프롬프트
+6. **Kakao 로그인.** 타입에는 있고 UI에 없다. Supabase Auth 설정이 선행된다.
+7. **종료 설문.** 가설 검증용이며 모델 학습과는 무관하다.
+8. **프롬프트 문체.** 근거 문장이 `~했습니다` 체로 나와 RULES §10과 어긋난다. 프롬프트
    수정이라 유료 재평가가 필요하다.
-8. 실기기 터치·실제 Google OAuth 왕복·만료 데이터 Cron 처리 관찰.
+9. 실기기 터치·실제 Google OAuth 왕복·만료 데이터 Cron 처리 관찰.
 
 ## 변경 이력
 
