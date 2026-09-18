@@ -8,22 +8,10 @@
   margin: 0 auto;
   padding: 24px 20px 96px;
 }
-.legal-main h1 {
-  margin: 8px 0 4px;
-  font-size: clamp(26px, 5vw, 34px);
-  letter-spacing: -0.03em;
-}
 .legal-updated {
   margin: 0 0 32px;
   color: var(--nook-muted);
   font-size: 14px;
-}
-.legal-main h2 {
-  margin: 40px 0 10px;
-  padding-top: 20px;
-  border-top: 1px solid var(--nook-line);
-  font-size: 18px;
-  letter-spacing: -0.02em;
 }
 .legal-main h3 {
   margin: 22px 0 6px;
@@ -82,4 +70,201 @@
   border-top: 1px solid var(--nook-line);
   color: var(--nook-muted);
   font-size: 14px;
+}
+
+/* ── 아코디언 구조 ──────────────────────────────────────────────────────── */
+
+/* The old h1 rule is gone: the frame uses the shared heading block, so the
+   policies rank their text the same way every other screen does. */
+.legal-main .desk-heading {
+  margin-bottom: 26px;
+}
+.legal-main .legal-updated {
+  margin: 12px 0 0;
+}
+
+.legal-summary {
+  margin: 0 0 20px;
+  padding: 20px 22px;
+  border: 1px solid var(--nook-card-line);
+  border-radius: 16px;
+  background: var(--nook-surface);
+}
+.legal-summary h2 {
+  margin: 0 0 12px;
+  padding: 0;
+  border: 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+.legal-summary table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.legal-summary th,
+.legal-summary td {
+  padding: 9px 10px 9px 0;
+  /* The body tables are boxed; this one is a list of rows, so only the
+     horizontal rule stays. Without the reset the generic .legal-main cell
+     border draws columns here too. */
+  border: 0;
+  border-bottom: 1px solid var(--nook-line);
+  text-align: left;
+  vertical-align: top;
+  line-height: 1.55;
+  word-break: keep-all;
+}
+.legal-summary th {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--nook-subtle);
+}
+.legal-summary tbody tr:last-child th,
+.legal-summary tbody tr:last-child td {
+  border-bottom: 0;
+}
+.legal-summary > p {
+  margin: 14px 0 0;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--nook-muted);
+}
+
+.legal-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+.legal-toolbar p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--nook-subtle);
+}
+.legal-expand-all {
+  border: 1px solid var(--nook-card-line);
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* Each article is one row until it is opened. The rule between them is what
+   makes the closed state read as a list rather than a stack of buttons. */
+.legal-section {
+  border-bottom: 1px solid var(--nook-line);
+}
+.legal-section > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 2px;
+  list-style: none;
+  cursor: pointer;
+}
+.legal-section > summary::-webkit-details-marker {
+  display: none;
+}
+.legal-section > summary:hover h2,
+.legal-section[open] > summary h2 {
+  color: var(--nook-ink);
+}
+.legal-section > summary h2 {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--nook-muted);
+}
+.legal-section > summary:focus-visible {
+  outline: 2px solid var(--nook-primary);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+/* A chevron drawn from two borders, so it can rotate on open. */
+.legal-section-mark {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-right: 1.5px solid var(--nook-subtle);
+  border-bottom: 1.5px solid var(--nook-subtle);
+  transform: rotate(45deg) translate(-1px, -1px);
+  transition: transform 160ms ease;
+}
+.legal-section[open] .legal-section-mark {
+  transform: rotate(-135deg) translate(-1px, -1px);
+}
+.legal-section-body {
+  padding: 0 2px 22px;
+}
+.legal-section-body > :first-child {
+  margin-top: 0;
+}
+/* The section headings inside a body are h3; the old h2 spacing does not apply
+   to them, and nothing inside needs a top rule any more. */
+.legal-section-body h3 {
+  margin-top: 18px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .legal-section-mark {
+    transition: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .legal-summary {
+    padding: 16px;
+  }
+  .legal-summary table {
+    font-size: 12px;
+  }
+}
+
+/* Tables in a policy hold Korean phrases, and `word-break: keep-all` means a
+   cell cannot shrink below its longest word — the summary table came out 520px
+   wide in a 390px viewport. Fixed layout makes the columns share the width, and
+   breaking is allowed only where a word genuinely cannot fit. */
+/* The body tables keep their 520px floor because they sit in
+   .legal-table-scroll and are meant to pan. The summary table is three short
+   columns and must simply fit, so it releases the floor instead. */
+.legal-summary table {
+  width: 100%;
+  min-width: 0;
+  table-layout: fixed;
+}
+.legal-main th,
+.legal-main td,
+.legal-summary th,
+.legal-summary td {
+  overflow-wrap: anywhere;
+}
+
+/* Every link inside a policy reads the same way, including the ones sitting in
+   the middle of a sentence. They were falling back to the browser default. */
+.legal-main p a,
+.legal-main li a,
+.legal-main td a {
+  color: var(--nook-ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  text-decoration-color: var(--nook-line-strong);
+}
+.legal-main p a:hover,
+.legal-main li a:hover,
+.legal-main td a:hover {
+  text-decoration-color: var(--nook-ink);
+}
+
+.legal-footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 36px;
 }

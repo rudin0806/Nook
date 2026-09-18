@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AppNavigation } from "@/components/nook/app-navigation";
 import { HomeDesk } from "@/components/nook/home-desk";
+import { PageHeading } from "@/components/nook/page-heading";
 import { Wordmark } from "@/components/nook/wordmark";
 import { redirect } from "next/navigation";
 import { readConsentState } from "@/lib/legal/gate";
@@ -24,13 +25,11 @@ export default async function HomePage() {
       <AppNavigation current="write" />
       {consent === "notice" && <PolicyNotice version={POLICY_NOTICE_VERSION} />}
       <main id="main-content" className="desk-main">
-        <div className="desk-heading">
-          <p className="preview-kicker">새 대화</p>
-          <h1 className="desk-greeting">머릿속에 걸리는 게 있나요?</h1>
-          <p className="desk-intro">
-            정리되지 않아도 괜찮아요. 생각나는 대로 적어보세요.
-          </p>
-        </div>
+        <PageHeading
+          kicker="새 대화"
+          title="머릿속에 걸리는 게 있나요?"
+          subtitle="정리되지 않아도 괜찮아요. 생각나는 대로 적어보세요"
+        />
         <HomeDesk enabled={process.env.NOOK_START_API_ENABLED === "true"} />
       </main>
     </div>

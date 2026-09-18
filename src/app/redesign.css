@@ -181,17 +181,12 @@ body {
   background: var(--nook-surface);
   text-align: center;
 }
-.account-panel > h1 {
-  margin: 0;
-  font-size: 24px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: var(--nook-ink);
+.account-panel .desk-heading {
+  margin-bottom: 4px;
+  text-align: center;
 }
-.account-panel .account-description {
-  margin: 0;
-  font-size: 14px;
-  color: var(--nook-muted);
+.account-panel .desk-greeting {
+  font-size: 28px;
 }
 .account-panel form {
   display: grid;

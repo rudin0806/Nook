@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ActionButton } from "@seed-design/react";
+import { PageHeading } from "./page-heading";
 import { NicknameForm } from "./nickname-form";
 import { AccountDeletion } from "./account-deletion";
 import { ConsentGate } from "./consent-gate";
@@ -47,14 +48,17 @@ export function AccountPanel({
   }, [attempt]);
   return (
     <section className="account-panel" aria-busy={state === "loading"}>
-      <h1>
-        {state === "signed_in" ? "다시 만나 반가워요" : "내 생각을, 내 자리에"}
-      </h1>
-      <p className="account-description">
-        {state === "signed_in"
-          ? "남겨둔 질문들이 여기 있어요"
-          : "보관한 생각을 다시 펼쳐보는 계정"}
-      </p>
+      <PageHeading
+        kicker="내 정보"
+        title={
+          state === "signed_in" ? "다시 만나 반가워요" : "내 생각을, 내 자리에"
+        }
+        subtitle={
+          state === "signed_in"
+            ? "남겨둔 질문들이 여기 있어요"
+            : "보관한 생각을 다시 펼쳐보는 계정"
+        }
+      />
       {message && (
         <p role="alert" className="account-error">
           {message}

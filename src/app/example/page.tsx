@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { StoryReader } from "@/components/nook/story-reader";
 import { Wordmark } from "@/components/nook/wordmark";
+import { PageHeading } from "@/components/nook/page-heading";
 import { exampleStory } from "@/lib/example/story";
 import "../preview/preview.css";
 
@@ -30,14 +31,15 @@ export default function ExamplePage() {
         <Wordmark />
       </header>
       <main id="main-content" className="preview-summary">
-        <h1>지나온 질문</h1>
-        <p>
-          {new Date(exampleStory.session.started_at).toLocaleDateString(
-            "ko-KR",
-            { timeZone: "Asia/Seoul" },
-          )}
-          에 시작한 이야기
-        </p>
+        <PageHeading
+          kicker="예시"
+          title="지나온 질문"
+          subtitle={`${new Date(
+            exampleStory.session.started_at,
+          ).toLocaleDateString("ko-KR", {
+            timeZone: "Asia/Seoul",
+          })}에 시작한 이야기`}
+        />
         <section aria-label="처음 적은 생각">
           <h2>처음 적은 생각</h2>
           <p>첫 질문을 확정하기 전에 남긴 기록이에요.</p>
