@@ -217,6 +217,10 @@ export function ConversationPanel({ nodeId }: { nodeId: string }) {
                 className="branch-links"
                 aria-label="다른 생각으로 이어지는 질문"
               >
+                {/* The chips were unlabelled on screen — only the aria-label
+                    said what they were, so sighted readers got a bare link
+                    floating between the question list and the first message. */}
+                <span className="panel-eyebrow">여기서 갈라진 질문</span>
                 <ul>
                   {view.branches.map((b) => (
                     <li key={b.id}>
@@ -357,11 +361,6 @@ export function ConversationPanel({ nodeId }: { nodeId: string }) {
                 </ActionButton>
               </div>
             )}
-          {!exitMode && view.mode !== "FINISHED" && (
-            <ActionButton variant="ghost" onClick={() => openExit("exit")}>
-              나가기
-            </ActionButton>
-          )}
           {!exitMode && view.mode === "FINISHED" && (
             <ConversationRetention
               sessionId={view.sessionId}
@@ -426,10 +425,22 @@ export function ConversationPanel({ nodeId }: { nodeId: string }) {
           {wait > 0 ? `${wait}초 뒤 확인` : "같은 요청의 결과 확인"}
         </ActionButton>
       )}
-      {!stopped && !locked && !exitMode && (
-        <ActionButton variant="ghost" onClick={() => void refresh()}>
-          현재 기록 다시 확인
-        </ActionButton>
+      {/* One row, and one place. The live region between these two buttons is a
+          block element, so as siblings of the section they could never sit on
+          the same line however they were styled. */}
+      {!stopped && !exitMode && (
+        <div className="conversation-exits">
+          {view && view.mode !== "FINISHED" && (
+            <ActionButton variant="ghost" onClick={() => openExit("exit")}>
+              나가기
+            </ActionButton>
+          )}
+          {!locked && (
+            <ActionButton variant="ghost" onClick={() => void refresh()}>
+              현재 기록 다시 확인
+            </ActionButton>
+          )}
+        </div>
       )}
     </section>
   );

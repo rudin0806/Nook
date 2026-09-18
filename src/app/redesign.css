@@ -1637,3 +1637,258 @@ body {
   margin-right: 14px;
   height: 24px;
 }
+
+/* ── 대화 화면 ──────────────────────────────────────────────────────────── */
+
+/* A conversation is reading, and reading at 1320px is not reading. The generic
+   .preview-summary width was winning over .conversation-workspace, so the
+   messages, the composer and the node card were all running the full page. */
+.preview-summary.conversation-workspace {
+  max-width: 860px;
+}
+.conversation-workspace > section > h1 {
+  max-width: none;
+}
+
+/* The two speakers were offset by percentages of that full width — the user's
+   card sat 12% in and the question 8% out — which read as two unrelated
+   columns. They share one column now and differ by surface, which is what
+   tells them apart at a glance. */
+.conversation-card[data-role="USER"] {
+  margin-left: auto;
+  max-width: 86%;
+  border-radius: 16px;
+}
+.conversation-card[data-role="ASSISTANT"] {
+  margin-right: 0;
+  max-width: 100%;
+  padding-left: 0;
+}
+.conversation-card > small {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--nook-subtle);
+}
+.conversation-card[data-role="ASSISTANT"] > small {
+  color: var(--nook-primary);
+}
+.conversation-message {
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+/* The send button was the point colour filled with ink, which is the one
+   combination that cannot be read. */
+.conversation-composer button {
+  border-radius: 999px;
+  padding-inline: 18px;
+  background: var(--nook-primary);
+  color: var(--nook-primary-ink);
+  font-weight: 600;
+}
+.conversation-composer button:disabled {
+  background: var(--nook-fill);
+  color: var(--nook-subtle);
+}
+.conversation-composer {
+  display: grid;
+  justify-items: end;
+  gap: 12px;
+}
+.conversation-composer .writing-field {
+  width: 100%;
+}
+
+/* 나가기 and 현재 기록 다시 확인 were ghost buttons stacked at the left
+   margin: bold text with nothing to press. They are one row of quiet chips. */
+.conversation-exits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+.conversation-exits > .seed-action-button {
+  padding: 7px 14px;
+  border: 1px solid var(--nook-card-line);
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--nook-muted);
+}
+.conversation-exits > .seed-action-button:hover {
+  color: var(--nook-ink);
+}
+
+/* The node card held one chip and a sentence across the whole width: the hint
+   was pushed to the far right edge with a field of nothing between. */
+.node-navigation {
+  padding: 16px 18px;
+  border-radius: 16px;
+  /* A raised white card with one chip in it and three empty columns beside
+     reads as something that failed to load. The question list is a quiet index
+     of where we have been, so it sits flat. */
+  border-color: var(--nook-card-line);
+  background: transparent;
+  box-shadow: none;
+}
+.node-navigation-heading {
+  display: block;
+  margin-bottom: 12px;
+}
+.node-navigation-heading small {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  text-align: left;
+}
+
+/* The branch chips now carry their own label, so they need the space above. */
+.branch-links {
+  margin-top: 18px;
+}
+.branch-links ul {
+  margin: 8px 0 0;
+}
+.branch-links a {
+  color: var(--nook-muted);
+  font-size: 13px;
+  border-color: var(--nook-card-line);
+}
+.branch-links a:hover {
+  color: var(--nook-ink);
+  border-color: var(--nook-line-strong);
+}
+
+/* ── 포커스 링 ──────────────────────────────────────────────────────────── */
+
+/* Two rings were drawing on one field. globals.css clears this wrapper's box
+   with !important and the visible box is the textarea, which already carried a
+   2px point-colour ring — but SEED puts its own ring on a ::after
+   pseudo-element of the wrapper, and `border: 0` cannot reach a
+   pseudo-element. So a hard 2px navy square drew outside the brand ring:
+   .seed-text-input__root--variant_outline:not([data-readonly]):is(:focus,[data-focus])::after
+   sets --seed-color-stroke-neutral-contrast. Drop it and let the textarea own
+   focus, here and on every other field. */
+.writing-field.seed-text-input__root--variant_outline::after {
+  display: none;
+}
+/* One thinner ring plus the soft halo used by links and buttons, so focus
+   reads the same everywhere. */
+.writing-field:focus-within textarea.writing-textarea {
+  box-shadow:
+    inset 0 0 0 1.5px var(--nook-primary),
+    0 0 0 3px var(--nook-primary-weak);
+}
+
+/* ── 이어갈 대화 다이얼로그 ─────────────────────────────────────────────── */
+
+.card-browser .panel-heading {
+  margin-bottom: 16px;
+}
+.card-browser .panel-heading h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+/* 닫기 was a bare button floating over the corner. */
+.card-browser .panel-heading > button {
+  padding: 6px 12px;
+  border: 1px solid var(--nook-card-line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--nook-muted);
+  font-size: 13px;
+  cursor: pointer;
+}
+.card-browser .panel-heading > button:hover {
+  color: var(--nook-ink);
+}
+/* The card's own action was an underlined text link inside a grey block. */
+.browse-card a {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 14px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  background: var(--nook-primary);
+  color: var(--nook-primary-ink);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.browse-card a:hover {
+  filter: brightness(0.94);
+}
+/* The card was one sentence surrounded by air: a tiny eyebrow, then a 28px
+   heading a line and a half down from it. */
+.browse-card {
+  padding: 20px 22px;
+}
+.browse-card .panel-eyebrow {
+  margin-bottom: 6px;
+}
+.browse-card h3 {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.45;
+  word-break: keep-all;
+}
+.browse-card > p {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--nook-muted);
+}
+
+/* The story reader spreads its arrows to the card's edges, which is right for a
+   full-width reader. In a 640px dialog it left two buttons stranded in the
+   corners, so here they travel with the counter. */
+.card-browser .card-controls {
+  justify-content: center;
+  gap: 22px;
+  margin-top: 14px;
+}
+.card-browser .card-stack {
+  padding: 4px 0 0;
+}
+
+/* The arrows were large grey squares. Round, sized to the counter beside them. */
+.card-controls button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid var(--nook-card-line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--nook-muted);
+}
+.card-controls button:hover:not(:disabled) {
+  background: var(--nook-fill);
+  color: var(--nook-ink);
+}
+.card-controls > span[role="status"],
+.card-controls > span[aria-live] {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--nook-muted);
+}
+
+/* ── 로그인 후 빈 책장 ──────────────────────────────────────────────────── */
+
+/* With no sign-in button to fill it, the held frame was mostly air. */
+.shelf-empty:not(:has(.shelf-cta)),
+.collection-empty:not(:has(.shelf-cta)) {
+  padding: 18px 16px;
+}
+/* `.shelf-empty { justify-items: stretch }` stretched the illustration edge to
+   edge, so the board under the books became a full-width rule cutting the
+   panel in half — an <hr>, not a shelf. The tab empty states centre it; this
+   is the same drawing, so it centres too. */
+.shelf-empty .empty-books {
+  justify-self: center;
+}

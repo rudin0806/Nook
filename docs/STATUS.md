@@ -48,6 +48,11 @@
 - **UI 공통**: 제목은 `components/nook/page-heading.tsx`(kicker/title/subtitle, 34·27px,
   부제에 온점 없음). 아이콘 타일은 `nook-icon.tsx`의 `tile`. 포인트 컬러는 주 동작과
   활성 상태에만 쓰고, 예시 화면(`data-sample`)에는 한 점도 쓰지 않는다.
+- **입력 필드의 포커스는 `textarea`가 그린다.** globals.css가 SEED 래퍼의 box·border를
+  `!important`로 지우기 때문이다. SEED는 자기 포커스 링을 래퍼의 `::after`에 그리는데
+  `border: 0`이 거기까진 닿지 않아 링이 두 겹으로 보였고, 그 `::after`는 이제 껐다.
+- **시각은 `lib/format/datetime.ts`의 `formatSeoulDeadline`으로 찍는다.** `ko-KR`
+  기본 출력은 초까지 나온다.
 
 ## DB·동시성
 
@@ -72,8 +77,8 @@
 
 ## 남은 관문
 
-1. **대화 화면(`/talk/[nodeId]`)과 이야기 상세(`/drawer/:id`) UI 미점검.** 로그인이
-   필요해 로컬에서 못 봤다. 제품의 핵심 화면이므로 스크린샷을 받아 정리해야 한다.
+1. **이야기 상세(`/drawer/:id`) UI 미점검.** 로그인이 필요해 로컬에서 못 봤다.
+   대화 화면(`/talk/[nodeId]`)은 `/api/conversation` 응답을 목으로 넣어 실측했다.
 2. **예시 대화 전사.** `src/lib/example/story.ts`의 `nodes`·`clarifications`를 실제 대화로
    교체하고 `transcriptPending`을 내린 뒤 홈에 칩을 연결한다. 운영에서 대화를 남기면
    Supabase에서 읽어올 수 있다.

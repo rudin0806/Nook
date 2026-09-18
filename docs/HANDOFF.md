@@ -41,12 +41,16 @@
 | 아이콘     | `components/nook/nook-icon.tsx` — 패널 제목은 `tile`, 탭바는 `compact`       |
 | 정책 문서  | `components/nook/legal-page.tsx` + `legal-section.tsx`(아코디언)             |
 | 카드 더미  | `components/nook/card-stack.tsx` + `retention-card.tsx`                      |
+| 마감 시각  | `lib/format/datetime.ts`의 `formatSeoulDeadline` — `ko-KR` 기본값은 초까지 찍힘 |
 
 규칙 두 개:
 
 - **부 타이틀에 온점을 찍지 않는다.** 본문 문장의 온점은 유지한다.
 - **포인트 컬러는 주 동작과 활성 상태에만 쓴다.** 예시 화면(`data-sample` 스코프)에는
   한 점도 쓰지 않는다 — 색은 "내가 만든 것"에만 붙는다.
+- **입력 필드의 포커스 링은 `textarea`에 있다.** globals.css가 SEED 래퍼의
+  box-shadow·border·padding을 `!important`로 지우므로 래퍼에 링을 그릴 수 없다. SEED가
+  래퍼의 `::after`에 그리던 자기 링은 껐다 — 되살리면 링이 두 겹이 된다.
 
 ## 예시 화면
 

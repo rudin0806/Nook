@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ActionButton } from "@seed-design/react";
+import { formatSeoulDeadline } from "@/lib/format/datetime";
 
 export type RetentionCollection = "sessions" | "questions" | "trash";
 
@@ -38,10 +39,7 @@ export function RetentionCard({
       {item.purgeAfter && (
         <p className="retention-card-deadline">
           복원 기한:{" "}
-          {new Date(item.purgeAfter).toLocaleString("ko-KR", {
-            timeZone: "Asia/Seoul",
-          })}{" "}
-          (한국 시간)
+          {formatSeoulDeadline(item.purgeAfter)} (한국 시간)
         </p>
       )}
       <div className="retention-card-actions">

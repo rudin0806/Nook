@@ -5,6 +5,7 @@ import { ActionButton } from "@seed-design/react";
 import { recoveryPageSchema, type RecoveryItem } from "@/schemas/recovery";
 import { CardNavigation } from "./card-navigation";
 import { NookIcon } from "./nook-icon";
+import { formatSeoulDeadline } from "@/lib/format/datetime";
 export function RecoveryList() {
   const dialog = useRef<HTMLDialogElement>(null);
   const [selected, setSelected] = useState(0);
@@ -182,12 +183,7 @@ export function RecoveryList() {
                       : "첫 질문을 정하기 전에 적은 생각"}
                   </span>
                   <h3>{current.question}</h3>
-                  <p>
-                    {new Date(current.expiresAt).toLocaleString("ko-KR", {
-                      timeZone: "Asia/Seoul",
-                    })}
-                    까지 이어갈 수 있어요.
-                  </p>
+                  <p>{formatSeoulDeadline(current.expiresAt)}까지 이어갈 수 있어요.</p>
                   <Link href={`/resume/${current.id}`}>
                     {current.nodeId
                       ? "이 대화 이어가기 ›"
