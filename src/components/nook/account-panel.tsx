@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { ActionButton } from "@seed-design/react";
 import { PageHeading } from "./page-heading";
 import { NicknameForm } from "./nickname-form";
@@ -15,6 +14,10 @@ export function AccountPanel({
   returnTo?: string;
 }) {
   const [nickname, setNickname] = useState<string | null>(null);
+  const [account, setAccount] = useState<{
+    email: string | null;
+    provider: string | null;
+  }>({ email: null, provider: null });
   const [state, setState] = useState<
     "loading" | "signed_in" | "signed_out" | "unavailable"
   >("loading");
@@ -39,6 +42,16 @@ export function AccountPanel({
         if (!controller.signal.aborted) {
           setState(body.state);
           setNickname(readNickname("nickname" in body ? body.nickname : null));
+          setAccount({
+            email:
+              "email" in body && typeof body.email === "string"
+                ? body.email
+                : null,
+            provider:
+              "provider" in body && typeof body.provider === "string"
+                ? body.provider
+                : null,
+          });
         }
       })
       .catch(() => {
@@ -85,12 +98,24 @@ export function AccountPanel({
         <ConsentGate returnTo={returnTo} />
       ) : (
         <>
+          {/* 어느 계정으로 들어와 있는지가 이 화면에서 가장 먼저 답해야 할 질문이다.
+              읽는 값이지 고치는 값이 아니므로 입력칸 모양을 빌리되 잠가 둔다. */}
+          <div className="account-identity">
+            <span className="account-identity-label">내 계정</span>
+            <p className="account-identity-value">
+              {account.email ?? "연결된 계정을 확인하지 못했어요"}
+            </p>
+            {account.provider && (
+              <span className="account-identity-provider">
+                {account.provider === "google"
+                  ? "Google로 연결됨"
+                  : `${account.provider}로 연결됨`}
+              </span>
+            )}
+          </div>
           <NicknameForm initial={nickname} />
-          <Link className="account-primary" href={returnTo}>
-            {returnTo === "/drawer"
-              ? "내 생각 더미 열기 ↗"
-              : "보관 선택으로 돌아가기 ↗"}
-          </Link>
+          {/* 돌아가는 길은 패널 위의 링크 하나뿐이다. 여기 있던 버튼은 그 링크와
+              같은 일을 하면서 계정 삭제 바로 위에 앉아 있었다. */}
           <form action="/api/auth/signout" method="post">
             <button className="signout-button" type="submit">
               이 기기에서 로그아웃

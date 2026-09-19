@@ -215,6 +215,13 @@ export function ConversationPanel({
     void execute(body);
   }
   const locked = preview || busy || retry;
+  /** 지나온 질문을 누르고 있는 동안, 그 질문이 생긴 발화를 계속 표시해 둔다.
+   *  도착했을 때 한 번 밝아졌다 꺼지는 것만으로는 어디를 보고 있는지가 2초 뒤에
+   *  사라진다 — 지도에서 고른 칸과 본문에서 보는 자리가 짝이라는 것이 계속
+   *  보여야 누른 일이 완결된다. */
+  const viewingMessageId = activeNodeId
+    ? (view?.nodes.find((node) => node.id === activeNodeId)?.messageId ?? null)
+    : null;
   const stopped = view?.mode === "STOP" || view?.mode === "HANDOFF";
   return (
     <section
@@ -259,6 +266,7 @@ export function ConversationPanel({
                   data-role={m.role}
                   data-message-id={m.id}
                   data-born={bornMessageId === m.id ? "true" : undefined}
+                  data-viewing={viewingMessageId === m.id ? "true" : undefined}
                   tabIndex={-1}
                   ref={(element) => {
                     if (element) messageElements.current.set(m.id, element);
@@ -306,11 +314,15 @@ export function ConversationPanel({
                     className="writing-textarea"
                     maxLength={1000}
                     value={text}
-                    readOnly={locked}
+                    // 미리보기에서는 읽기 전용이 아니라 잠긴 칸이다. readOnly는
+                    // 눌러도 아무 일이 없다는 것을 보이지 않아, 쓸 수 있는 칸으로
+                    // 보였다.
+                    disabled={preview}
+                    readOnly={locked && !preview}
                     onChange={(e) => setText(e.target.value)}
                     placeholder={
                       preview
-                        ? "미리보기에서는 질문을 이어갈 수 없어요. (예시)"
+                        ? "미리보기에서는 질문을 이어갈 수 없어요"
                         : "지금 떠오르는 이야기를 적어 주세요."
                     }
                   />

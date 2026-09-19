@@ -8,7 +8,7 @@ import { redirect } from "next/navigation";
 import { readConsentState } from "@/lib/legal/gate";
 import { PolicyNotice } from "@/components/nook/policy-notice";
 import { PreviewBand } from "@/components/nook/preview-band";
-import { PreviewDrawerEmpty } from "@/components/nook/preview-drawer-empty";
+import { PreviewDrawer } from "@/components/nook/preview-drawer";
 import { POLICY_NOTICE_VERSION } from "@/lib/legal/versions";
 
 export default async function DrawerPage({
@@ -17,7 +17,8 @@ export default async function DrawerPage({
   searchParams: Promise<{ collection?: string; preview?: string }>;
 }) {
   const { collection, preview: previewParam } = await searchParams;
-  // 미리보기에는 쌓인 기록이 없다. 빈 화면이 그 사실을 가장 정확하게 말한다.
+  // 미리보기에도 표본 책장을 둔다. 위쪽 띠가 "내 기록이 아니다"를 이미 말하므로,
+  // 빈 화면은 이제 그 사실이 아니라 "여기는 아무것도 없는 곳"으로 읽힌다.
   const preview = previewParam === "1";
   const consent = preview ? "ok" : await readConsentState();
   if (consent === "reconsent")
@@ -45,12 +46,12 @@ export default async function DrawerPage({
           title="생각 더미"
           subtitle={
             preview
-              ? "남긴 이야기가 여기에 쌓여요"
+              ? "써 보면 이렇게 쌓여요"
               : "지나온 질문을 다시 펼쳐봐요"
           }
         />
         {preview ? (
-          <PreviewDrawerEmpty />
+          <PreviewDrawer />
         ) : (
           <DrawerContents
             initialCollection={initialCollection}

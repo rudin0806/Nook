@@ -51,6 +51,7 @@ export function NicknameForm({ initial }: { initial: string | null }) {
         name="nickname"
         autoComplete="nickname"
         value={nickname}
+        placeholder="아직 닉네임을 설정하지 않았어요"
         maxLength={20}
         disabled={busy}
         aria-describedby="nickname-help"

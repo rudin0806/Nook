@@ -172,10 +172,14 @@ export function SavedShelf({
   items,
   offset,
   formatDate,
+  preview = false,
 }: {
   items: ShelfItem[];
   offset: number;
   formatDate: (value: string) => string;
+  /** 미리보기에서는 책이 보이기만 하고 열리지 않는다. 표본 id로 이동하면 없는
+   *  기록을 찾으러 가는 셈이고, 미리보기는 보는 것까지다. */
+  preview?: boolean;
 }) {
   const router = useRouter();
   const view = useSyncExternalStore(subscribeView, readView, () => "shelf");
@@ -196,6 +200,10 @@ export function SavedShelf({
   );
 
   function open(event: React.MouseEvent, id: string) {
+    if (preview) {
+      event.preventDefault();
+      return;
+    }
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0)
       return;
     if (prefersReducedMotion()) return;
@@ -212,7 +220,12 @@ export function SavedShelf({
     rows.push(items.slice(start, start + columns));
 
   return (
-    <div className="saved-shelf" data-view={view} data-opening={!!opening}>
+    <div
+      className="saved-shelf"
+      data-view={view}
+      data-opening={!!opening}
+      data-preview={preview || undefined}
+    >
       {view === "shelf" ? (
         <div className="bookshelf" aria-label="보관한 이야기 책장">
           {rows.map((row, rowIndex) => (

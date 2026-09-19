@@ -2719,3 +2719,100 @@ body {
 .shelf-edit-toolbar .shelf-view-switch {
   margin: 0 0 0 auto;
 }
+
+/* ── 내 정보 · 내 계정 ─────────────────────────────────────────────────── */
+
+/* 어느 계정으로 들어와 있는지 이 화면은 말하지 않고 있었다. 닉네임을 고치러 온
+   사람도, 로그아웃하러 온 사람도, 삭제하러 온 사람도 먼저 확인하는 것이 그것이다.
+   그래서 패널의 첫 칸이고, 읽는 값이므로 입력칸의 꼴을 빌리되 잠긴 면으로 둔다. */
+.account-identity {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--nook-card-line);
+  border-radius: 12px;
+  background: var(--nook-fill);
+  text-align: left;
+}
+.account-identity-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--nook-muted);
+}
+.account-identity-value {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--nook-ink);
+  overflow-wrap: anywhere;
+}
+.account-identity-provider {
+  font-size: 12px;
+  color: var(--nook-subtle);
+}
+
+/* 칸 다섯이 차례로 놓이는 패널이라 위아래 여백이 길이를 그대로 늘린다. */
+.account-panel {
+  padding: 28px 28px 24px;
+}
+.account-panel .nickname-form {
+  gap: 8px;
+  margin: 4px 0 0;
+  text-align: left;
+}
+.account-panel .nickname-form input::placeholder {
+  color: var(--nook-subtle);
+}
+.account-panel .signout-button {
+  margin-top: 4px;
+  cursor: pointer;
+}
+
+/* ── 지금 보고 있는 자리 ───────────────────────────────────────────────── */
+
+/* `data-born`은 도착을 알리고 2.2초 뒤 가라앉는다. 그것만으로는 지도에서 고른 칸과
+   본문에서 보는 자리가 짝이라는 사실이 곧 사라져서, 누른 일이 끝나지 않은 것처럼
+   남는다. 고른 동안에는 계속 표시해 둔다 — 다시 누르면 풀린다. */
+.conversation-card[data-viewing="true"] {
+  border-color: var(--nook-primary);
+  box-shadow: 0 0 0 2px var(--nook-primary-weak);
+}
+/* 견본은 무채색이라 연한 헤일로가 묻힌다. 잉크 테두리 하나로 또렷하게 둔다. */
+[data-sample] .conversation-card[data-viewing="true"] {
+  border-color: var(--nook-ink);
+  box-shadow: 0 0 0 2px var(--nook-fill-press);
+}
+/* 이 카드에는 점선 윤곽이 함께 걸려 있어 두 선이 겹친다. 보고 있는 동안은 실선
+   하나만 남긴다. */
+[data-sample] .conversation-card[data-viewing="true"] {
+  outline-color: transparent;
+}
+
+/* ── 미리보기에서 잠긴 입력칸 ──────────────────────────────────────────── */
+
+/* 읽기 전용이던 칸이 쓸 수 있는 칸으로 보였다. 잠긴 면과 잠긴 글자로 바꾼다. */
+[data-sample] .conversation-composer .writing-textarea:disabled,
+[data-sample] .conversation-composer .writing-textarea[disabled] {
+  background: var(--nook-fill);
+  color: var(--nook-subtle);
+  cursor: not-allowed;
+  -webkit-text-fill-color: var(--nook-subtle);
+  opacity: 1;
+}
+[data-sample] .conversation-composer .writing-textarea::placeholder {
+  color: var(--nook-muted);
+}
+
+/* ── 견본 위의 다이얼로그 ──────────────────────────────────────────────── */
+
+/* `[data-sample]`이 --nook-surface를 56% 반투명으로 바꾼다. 종이에는 맞는 처리지만
+   다이얼로그는 종이가 아니라 위에 덮는 판이라, 반투명이 되는 순간 아래 화면이
+   그대로 비쳐 글자가 겹쳐 읽힌다. 판은 불투명하게 둔다 — 견본이라는 표시는 점선
+   윤곽과 무채색이 이미 하고 있다. */
+[data-sample] .card-browser,
+[data-sample] .account-danger-dialog,
+[data-sample] dialog {
+  background: var(--nook-surface-solid);
+}

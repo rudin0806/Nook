@@ -73,17 +73,25 @@ export const previewConversation: ConversationView =
     contact: null,
   });
 
-/** 홈 책장에 놓이는 표본 책. */
+/** 표본이 보관된 날. `Date.now()`를 쓰면 서버와 브라우저가 다른 글자를 그려
+ *  하이드레이션이 어긋난다. */
+export const PREVIEW_SAVED_AT = "2026-09-14T21:00:00+09:00";
+
+/** 홈 책장과 생각 더미에 놓이는 표본 책. 두 화면이 같은 값을 읽는다. */
 export const previewBooks = [
   {
     id: SESSION_ID,
     title: "지금 사는 것이 그걸 실제로 시작하게 만들까?",
     nodes: 3,
+    /** 책등의 두께·높이 등급(1~5). 실제 책장은 턴 수와 노드 수로 계산하는데 표본에는
+     *  셀 턴이 없으므로, 그 계산이 내놓았을 값을 적어 둔다. */
+    size: 4,
   },
   {
     id: "11111111-1111-4111-8111-111111111112",
     title: "나는 여기서 더 배울 게 있는지가 걸리는 걸까?",
     nodes: 2,
+    size: 3,
   },
 ];
 
