@@ -1,11 +1,6 @@
 name: Conversation generation evaluation
 
 on:
-  push:
-    branches:
-      - codex/rules-v3-retention-hardening
-    paths:
-      - ".github/conversation-eval-trigger.json"
   workflow_dispatch:
 
 permissions:

@@ -1,8 +1,6 @@
 name: Claim fidelity five-call evaluation
 on:
-  push:
-    branches: [codex/claim-fidelity-five-20260916]
-    paths: [.github/workflows/claim-fidelity-five.yml]
+  workflow_dispatch:
 permissions:
   contents: read
 concurrency:

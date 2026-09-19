@@ -20,7 +20,7 @@ on:
       reasoning_effort:
         description: Responses API reasoning effort
         required: true
-        default: medium
+        default: low
         type: choice
         options:
           - low
@@ -36,11 +36,6 @@ on:
         required: true
         default: "1024"
         type: string
-  push:
-    branches:
-      - codex/rules-v3-retention-hardening
-    paths:
-      - .github/eval-trigger.json
 
 permissions:
   contents: read
@@ -57,7 +52,7 @@ jobs:
       OPENAI_API_KEY: ${{ secrets.AI_API_KEY }}
       EVAL_MODEL: ${{ inputs.model || 'gpt-5.6-sol' }}
       EVAL_IDS: ${{ inputs.ids || 'J-CLOSE-01,J-EDGE-01' }}
-      REASONING_EFFORT: ${{ inputs.reasoning_effort || 'medium' }}
+      REASONING_EFFORT: ${{ inputs.reasoning_effort || 'low' }}
       MAX_CASES: ${{ inputs.max_cases || '2' }}
       MAX_OUTPUT_TOKENS: ${{ inputs.max_output_tokens || '1024' }}
 
@@ -86,10 +81,6 @@ jobs:
 
       - name: Verify the model runner
         run: npm run test:judge-model && npm run test:eval-trigger
-
-      - name: Evaluate push trigger
-        if: github.event_name == 'push'
-        run: npm run eval -- --trigger .github/eval-trigger.json
 
       - name: Evaluate manually selected Judge fixtures
         if: github.event_name == 'workflow_dispatch'

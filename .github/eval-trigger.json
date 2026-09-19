@@ -2,11 +2,7 @@
   "requestedAt": "2026-09-15T04:42:43.050205+00:00",
   "model": "gpt-5.6-sol",
   "reasoningEffort": "high",
-  "ids": [
-    "J-CLOSE-01",
-    "J-CLOSE-DECLINED-01",
-    "J-CLOSE-RENEWED-01"
-  ],
+  "ids": ["J-CLOSE-01", "J-CLOSE-DECLINED-01", "J-CLOSE-RENEWED-01"],
   "maxCases": 3,
   "maxOutputTokens": 2048
 }

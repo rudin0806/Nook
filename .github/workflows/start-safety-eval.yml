@@ -1,11 +1,6 @@
 name: Start and Safety model evaluation
 
 on:
-  push:
-    branches:
-      - codex/rules-v3-retention-hardening
-    paths:
-      - ".github/start-safety-eval-trigger.json"
   workflow_dispatch:
 
 permissions:

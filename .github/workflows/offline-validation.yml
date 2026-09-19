@@ -3,7 +3,7 @@ name: Offline validation
 on:
   push:
     branches:
-      - codex/rules-v3-retention-hardening
+      - main
     paths:
       - "src/**"
       - "supabase/migrations/**"
