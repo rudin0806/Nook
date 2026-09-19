@@ -4,7 +4,6 @@ import { ThoughtInput } from "./thought-input";
 import { RecoveryList } from "./recovery-list";
 import { ThemeControl } from "./theme-control";
 import { ShelfPreview } from "./shelf-preview";
-import { PreviewToggle } from "./preview-toggle";
 
 /** The desk has one job at a time. Writing is the job, so when the person is
  * writing the page gives the whole width to it and the side column steps out;
@@ -56,7 +55,6 @@ export function HomeDesk({
       </div>
       <aside className="home-aside" inert={expanded}>
         <ThemeControl />
-        <PreviewToggle on={preview} />
         <ShelfPreview preview={preview} />
         <RecoveryList preview={preview} />
       </aside>

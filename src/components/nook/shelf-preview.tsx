@@ -9,10 +9,12 @@ type Book = { id: string; title: string; nodes: number };
 export function ShelfPreview({ preview = false }: { preview?: boolean }) {
   const [guest, setGuest] = useState(false);
   const [empty, setEmpty] = useState(false);
-  const [books, setBooks] = useState<Book[]>(preview ? previewBooks : []);
-  const [status, setStatus] = useState(
-    preview ? "" : "책장을 불러오고 있어요.",
-  );
+  const [loaded, setLoaded] = useState<Book[]>([]);
+  const [status, setStatus] = useState("책장을 불러오고 있어요.");
+  // 표본을 상태에 복사하면 안 된다. 토글은 클라이언트 내비게이션이라 이 컴포넌트가
+  // 다시 마운트되지 않고, 초기값은 첫 마운트에서만 쓰여 미리보기를 켜도 옛 상태가
+  // 그대로 남는다. 무엇을 그릴지는 매번 props에서 고른다.
+  const books = preview ? previewBooks : loaded;
   useEffect(() => {
     if (preview) return;
     const c = new AbortController();
@@ -42,7 +44,7 @@ export function ShelfPreview({ preview = false }: { preview?: boolean }) {
           nodes: item.node_count,
         }));
         if (!c.signal.aborted) {
-          setBooks(results);
+          setLoaded(results);
           setEmpty(results.length === 0);
           setStatus(
             results.length
@@ -95,7 +97,7 @@ export function ShelfPreview({ preview = false }: { preview?: boolean }) {
           </Link>
         ))}
       </div>
-      {empty || guest ? (
+      {!preview && (empty || guest) ? (
         <div className="shelf-empty">
           <div className="empty-books" aria-hidden="true">
             <i />
@@ -118,7 +120,7 @@ export function ShelfPreview({ preview = false }: { preview?: boolean }) {
             ) : null}
           </div>
         </div>
-      ) : status ? (
+      ) : !preview && status ? (
         <p className="shelf-status" role="status">
           {status}
         </p>

@@ -21,7 +21,7 @@ export default async function HomePage({
   if (consent === "reconsent") redirect("/consent");
   return (
     <div className="night-app" data-sample={preview || undefined}>
-      {preview && <PreviewBand />}
+      <PreviewBand on={preview} />
       <header className="app-header">
         <Wordmark />
         <span className="app-header-note">생각을 위한 자리</span>

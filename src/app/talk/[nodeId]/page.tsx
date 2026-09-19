@@ -25,7 +25,7 @@ export default async function TalkPage({
     redirect(`/consent?returnTo=${encodeURIComponent(`/talk/${id.data}`)}`);
   return (
     <div className="nook-preview" data-sample={preview || undefined}>
-      {preview && <PreviewBand />}
+      {preview && <PreviewBand on />}
       <header className="preview-header">
         <Wordmark />
         <Link className="header-account" href="/login">

@@ -30,7 +30,7 @@ export default async function DrawerPage({
         : "sessions";
   return (
     <div className="nook-preview" data-sample={preview || undefined}>
-      {preview && <PreviewBand />}
+      {preview && <PreviewBand on />}
       <header className="preview-header">
         <Wordmark />
         <Link className="header-account" href="/login">

@@ -10,21 +10,24 @@ import { previewRecovery, PREVIEW_EXPIRES_AT } from "@/lib/example/preview";
 export function RecoveryList({ preview = false }: { preview?: boolean }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const [selected, setSelected] = useState(0);
-  const [items, setItems] = useState<RecoveryItem[]>(
-      preview
-        ? previewRecovery.map((r) => ({
-            id: r.id,
-            status: "ACTIVE" as const,
-            expiresAt: PREVIEW_EXPIRES_AT,
-            nodeId: r.nodeId,
-            question: r.question,
-          }))
-        : [],
-    ),
+  const [loaded, setLoaded] = useState<RecoveryItem[]>([]),
     [more, setMore] = useState(false),
     [notice, setNotice] = useState("");
-  const [busy, setBusy] = useState(!preview),
+  const [loading, setLoading] = useState(true),
     [now, setNow] = useState(() => Date.now());
+  // 표본을 상태에 복사하면 안 된다. 토글은 클라이언트 내비게이션이라 이 컴포넌트가
+  // 다시 마운트되지 않고, 초기값은 첫 마운트에서만 쓰인다. 매번 props에서 고른다.
+  const items: RecoveryItem[] = preview
+    ? previewRecovery.map((r) => ({
+        id: r.id,
+        status: "ACTIVE" as const,
+        expiresAt: PREVIEW_EXPIRES_AT,
+        nodeId: r.nodeId,
+        question: r.question,
+      }))
+    : loaded;
+  // 미리보기에는 불러올 것이 없으므로 기다리는 상태도 없다.
+  const busy = preview ? false : loading;
   const lock = useRef(false),
     alive = useRef(true);
   function load(offset: number) {
@@ -42,7 +45,7 @@ export function RecoveryList({ preview = false }: { preview?: boolean }) {
       .then((page) => {
         if (!alive.current || !page) return;
         setNotice("");
-        setItems((v) =>
+        setLoaded((v) =>
           offset === 0
             ? page.items
             : [
@@ -57,7 +60,7 @@ export function RecoveryList({ preview = false }: { preview?: boolean }) {
       })
       .finally(() => {
         lock.current = false;
-        if (alive.current) setBusy(false);
+        if (alive.current) setLoading(false);
       });
   }
   useEffect(() => {
@@ -128,7 +131,7 @@ export function RecoveryList({ preview = false }: { preview?: boolean }) {
           variant="ghost"
           disabled={busy}
           onClick={() => {
-            setBusy(true);
+            setLoading(true);
             void load(items.length);
           }}
         >
@@ -151,7 +154,7 @@ export function RecoveryList({ preview = false }: { preview?: boolean }) {
           <p>{notice}</p>
           <button
             onClick={() => {
-              setBusy(true);
+              setLoading(true);
               void load(0);
             }}
           >
