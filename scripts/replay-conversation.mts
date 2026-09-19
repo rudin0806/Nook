@@ -4,6 +4,10 @@
  * 사용자가 "귀찮아지고 대화를 멈추고 싶었다"고 말한 흐름을 턴 단위로 다시 태워,
  * D-01(§4.5 같은 질문 금지 · §4.6 세부의 바닥 · stalled)이 실제 모델에서 듣는지 본다.
  * 고정 케이스라 회귀 확인에 계속 쓸 수 있고, 호출 수는 상한으로 묶여 있다.
+ *
+ * 모델·effort는 운영과 같은 환경변수(`NOOK_JUDGE_*`, `NOOK_REFLECT_*`)로 넘긴다.
+ * 넘기지 않으면 현재 운영값을 기본으로 쓴다. 프록시 뒤에서 돌릴 때는 Node의 fetch가
+ * `HTTPS_PROXY`를 스스로 읽지 않으므로 `NODE_USE_ENV_PROXY=1`이 함께 필요하다.
  */
 import OpenAI from "openai";
 import { prepareJudge } from "../src/engine/judge.ts";
@@ -30,11 +34,11 @@ const OBSERVED = [
 const CALL_LIMIT = 10;
 const judgeOptions = {
   model: process.env.NOOK_JUDGE_MODEL ?? "gpt-5.6-sol",
-  reasoningEffort: process.env.NOOK_JUDGE_REASONING_EFFORT ?? "medium",
+  reasoningEffort: process.env.NOOK_JUDGE_REASONING_EFFORT ?? "low",
   maxOutputTokens: Number(process.env.NOOK_JUDGE_MAX_OUTPUT_TOKENS ?? 1024),
 };
 const reflectOptions = {
-  model: process.env.NOOK_REFLECT_MODEL ?? "gpt-5.6-sol",
+  model: process.env.NOOK_REFLECT_MODEL ?? "gpt-5.6-terra",
   reasoningEffort: process.env.NOOK_REFLECT_REASONING_EFFORT ?? "medium",
   maxOutputTokens: Number(process.env.NOOK_REFLECT_MAX_OUTPUT_TOKENS ?? 1024),
 };
@@ -46,9 +50,17 @@ const client = new OpenAI({
 });
 const usage = { calls: 0, in: 0, out: 0, cached: 0, ms: 0 };
 /** 호출 하나하나의 시간. 어느 단계가 사용자를 기다리게 하는지 보려고 남긴다. */
-const perCall: { stage: string; ms: number; in: number; cached: number; out: number }[] = [];
+const perCall: {
+  stage: string;
+  ms: number;
+  in: number;
+  cached: number;
+  out: number;
+}[] = [];
 let stage = "?";
-const transport = async (request: Parameters<typeof client.responses.create>[0]) => {
+const transport = async (
+  request: Parameters<typeof client.responses.create>[0],
+) => {
   if (++usage.calls > CALL_LIMIT) throw new Error("CALL_LIMIT");
   const started = Date.now();
   const r = await client.responses
@@ -108,10 +120,14 @@ for (const [index, text] of USER_TURNS.entries()) {
     transport,
     "JUDGE",
   );
-  console.log(`  Judge      ${judge.action}${judge.shift_confidence ? "/" + judge.shift_confidence : ""}`);
+  console.log(
+    `  Judge      ${judge.action}${judge.shift_confidence ? "/" + judge.shift_confidence : ""}`,
+  );
 
   if (judge.action !== "REFLECT") {
-    console.log(`  → 되묻지 않고 ${judge.action}. 여기서 대화가 멈출 자리를 얻는다.`);
+    console.log(
+      `  → 되묻지 않고 ${judge.action}. 여기서 대화가 멈출 자리를 얻는다.`,
+    );
     break;
   }
 
@@ -135,15 +151,23 @@ for (const [index, text] of USER_TURNS.entries()) {
   const flags = inspectReflectionQuestion(reflection.question);
   console.log(`  질문       ${reflection.question}`);
   console.log(`  (관찰됐던)  ${OBSERVED[index] ?? "—"}`);
-  console.log(`  type=${reflection.type}${flags.length ? "  flags=" + flags.join(",") : ""}`);
+  console.log(
+    `  type=${reflection.type}${flags.length ? "  flags=" + flags.join(",") : ""}`,
+  );
 
   lastQuestionType = reflection.type;
   if (reflection.type === "PAST") pastProbeCount = 1;
-  turns.push({ id: `A${++assistantNo}`, role: "assistant", text: reflection.question });
+  turns.push({
+    id: `A${++assistantNo}`,
+    role: "assistant",
+    text: reflection.question,
+  });
 }
 
 console.log(`\n${"─".repeat(72)}`);
-console.log(`Judge ${judgeOptions.model}/${judgeOptions.reasoningEffort} · Reflect ${reflectOptions.model}/${reflectOptions.reasoningEffort}`);
+console.log(
+  `Judge ${judgeOptions.model}/${judgeOptions.reasoningEffort} · Reflect ${reflectOptions.model}/${reflectOptions.reasoningEffort}`,
+);
 for (const [i, c] of perCall.entries())
   console.log(
     `  ${String(i + 1).padStart(2)} ${c.stage.padEnd(8)} ${String(c.ms).padStart(6)}ms  입력 ${String(c.in).padStart(5)}(캐시 ${String(c.cached).padStart(5)})  출력 ${String(c.out).padStart(4)}`,
