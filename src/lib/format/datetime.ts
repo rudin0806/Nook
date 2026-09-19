@@ -27,3 +27,24 @@ export function formatDaysLeft(value: string | Date, now: Date = new Date()) {
   const days = Math.ceil(ms / 86_400_000);
   return days <= 1 ? "오늘 삭제" : `${days}일 뒤 삭제`;
 }
+
+/** 목록에 적는 기록의 날짜.
+ *
+ * 이어갈 대화는 `9월 21일`로, 휴지통은 `2026년 9월 16일`로 적고 있어서 같은 화면의
+ * 두 줄이 서로 다른 달력을 쓰는 것처럼 보였다. 올해 기록에는 연도를 적지 않는다 —
+ * 지금이 몇 년인지는 읽는 사람이 이미 안다. 해가 바뀐 기록에만 연도가 붙는다.
+ */
+export function formatRecordDate(value: string | Date, now: Date = new Date()) {
+  const date = new Date(value);
+  const seoulYear = (d: Date) =>
+    new Intl.DateTimeFormat("ko-KR", {
+      timeZone: "Asia/Seoul",
+      year: "numeric",
+    }).format(d);
+  return new Intl.DateTimeFormat("ko-KR", {
+    timeZone: "Asia/Seoul",
+    ...(seoulYear(date) === seoulYear(now) ? {} : { year: "numeric" }),
+    month: "long",
+    day: "numeric",
+  }).format(date);
+}

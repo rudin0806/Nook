@@ -32,12 +32,6 @@ const sessionCollections = {
       "id,origin_branch_id,started_at,completed_at,retention_decided_at,shelf_position,shelf_revision",
     order: "retention_decided_at",
   },
-  trash: {
-    table: "trashed_thought_sessions",
-    columns:
-      "id,origin_branch_id,started_at,completed_at,trashed_at,purge_after",
-    order: "trashed_at",
-  },
 } as const;
 
 export class RetentionDatabaseError extends Error {}
@@ -55,6 +49,16 @@ export async function listSessions(
   supabase: SupabaseClient,
   query: RetentionListQuery,
 ) {
+  // 휴지통은 질문을 함께 읽어야 한다. 테이블에는 시각만 있어 모든 행이 같은 제목으로
+  // 보였다. RPC가 마지막 중심 질문을 붙이고 정산도 안에서 한다.
+  if (query.collection === "trash") {
+    const { data, error } = await supabase.rpc("list_trashed_sessions", {
+      p_limit: query.limit,
+      p_offset: query.offset,
+    });
+    if (error) throw new RetentionDatabaseError(error.message);
+    return page(trashedSessionListItemSchema.array().parse(data ?? []), query);
+  }
   const settled = await supabase.rpc("settle_own_retention");
   if (settled.error) throw new RetentionDatabaseError(settled.error.message);
   const config = sessionCollections[query.collection];

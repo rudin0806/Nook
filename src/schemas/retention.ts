@@ -62,6 +62,8 @@ export const trashedSessionListItemSchema = z.object({
   completed_at: timestamp,
   trashed_at: timestamp,
   purge_after: timestamp,
+  /** 마지막 중심 질문. 확정된 질문이 없으면 null이고, 그때는 날짜로 부른다. */
+  question: z.string().min(1).max(160).nullable().default(null),
 });
 
 export const keptBranchQuestionListItemSchema = z.object({

@@ -14,6 +14,7 @@ import { SavedShelf } from "./saved-shelf";
 import { EmptyArt } from "./empty-art";
 import { recoveryPageSchema } from "@/schemas/recovery";
 import { RetentionCard } from "./retention-card";
+import { formatRecordDate } from "@/lib/format/datetime";
 import {
   savedSessionListItemSchema,
   trashedSessionListItemSchema,
@@ -62,12 +63,6 @@ type State =
   | { kind: "loading" }
   | { kind: "error"; message: string; needsLogin?: boolean }
   | { kind: "ready"; items: Item[]; hasMore: boolean };
-const dateFormat = new Intl.DateTimeFormat("ko-KR", {
-  timeZone: "Asia/Seoul",
-  year: "numeric",
-  month: "long",
-  day: "numeric",
-});
 /** A spine is only as tall as the shortest book on the shelf, so the label has
  * to fit in eight upright glyphs whatever the date is. A two-digit year keeps
  * "26.10.10" within that; the full label stays on the cover. */
@@ -168,7 +163,11 @@ export function DrawerContents({
                 id: item.id,
                 revision:
                   "shelf_revision" in item ? item.shelf_revision : undefined,
-                text: `${dateFormat.format(new Date(item.started_at))}의 이야기`,
+                // 휴지통은 무엇을 복원하는지 알아야 하므로 질문을 먼저 쓴다.
+                // 확정된 질문이 없는 기록만 날짜로 부른다.
+                text:
+                  ("question" in item ? item.question : null) ??
+                  `${formatRecordDate(item.started_at)}의 이야기`,
                 spine: spineLabel(item.started_at),
                 ...("turn_count" in item
                   ? { size: sizeLevel(item.turn_count, item.node_count) }
@@ -446,7 +445,7 @@ export function DrawerContents({
               <SavedShelf
                 items={state.items}
                 offset={offset}
-                formatDate={(value) => dateFormat.format(new Date(value))}
+                formatDate={(value) => formatRecordDate(value)}
               />
             ) : (
               <ul
@@ -509,7 +508,7 @@ export function DrawerContents({
                       collection={collection}
                       busy={busy}
                       disabled={editingOrder}
-                      formatDate={(value) => dateFormat.format(new Date(value))}
+                      formatDate={(value) => formatRecordDate(value)}
                       onAct={() => void act(item)}
                     />
                   </li>
