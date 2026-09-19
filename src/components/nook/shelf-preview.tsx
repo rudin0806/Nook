@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { z } from "zod";
 import { savedSessionListItemSchema } from "@/schemas/retention";
-import { savedStorySchema } from "@/schemas/saved-story";
 import { NookIcon } from "./nook-icon";
 import { previewBooks } from "@/lib/example/preview";
 type Book = { id: string; title: string; nodes: number };
@@ -34,22 +33,14 @@ export function ShelfPreview({ preview = false }: { preview?: boolean }) {
             data: z.object({ items: savedSessionListItemSchema.array() }),
           })
           .parse(await response.json());
-        const results = await Promise.all(
-          data.items.map(async (item) => {
-            const r = await fetch(`/api/sessions/${item.id}/story`, {
-              signal: c.signal,
-              cache: "no-store",
-            });
-            if (!r.ok) throw new Error();
-            const story = savedStorySchema.parse((await r.json()).data);
-            const nodes = story.segments.flatMap((segment) => segment.nodes);
-            return {
-              id: item.id,
-              title: nodes.at(-1)?.final_text ?? "남긴 생각",
-              nodes: nodes.length,
-            };
-          }),
-        );
+        // 예전에는 책마다 story 전문을 따로 받아 마지막 질문을 꺼냈다. 책 네 권이면
+        // 요청이 다섯 번이었고 그중 넷은 제목 한 줄을 얻으려고 대화 전체를 끌어왔다.
+        // 이제 목록이 질문을 함께 준다.
+        const results = data.items.map((item) => ({
+          id: item.id,
+          title: item.question ?? "남긴 생각",
+          nodes: item.node_count,
+        }));
         if (!c.signal.aborted) {
           setBooks(results);
           setEmpty(results.length === 0);
@@ -84,7 +75,7 @@ export function ShelfPreview({ preview = false }: { preview?: boolean }) {
         </Link>
       </div>
       <div className="shelf-books" hidden={!books.length}>
-        {books.map((book) => (
+        {books.map((book, index) => (
           <Link
             key={book.id}
             href={preview ? "/drawer?preview=1" : `/drawer/${book.id}`}
@@ -93,8 +84,14 @@ export function ShelfPreview({ preview = false }: { preview?: boolean }) {
               book.nodes <= 1 ? "small" : book.nodes <= 3 ? "medium" : "large"
             }
             title={book.title}
+            aria-label={`${book.title} 펼쳐보기`}
           >
-            <span>{book.title}</span>
+            {/* 홈의 책등은 46×78px이라 13px 세로쓰기로 다섯 글자 자리다. 한국어
+                문장을 다섯 글자로 자르면 무엇을 써도 토막이 되므로 번호만 둔다.
+                제목은 가리켰을 때와 읽어 주는 기계에 남는다. */}
+            <span className="shelf-book-number" aria-hidden="true">
+              {String(index + 1).padStart(2, "0")}
+            </span>
           </Link>
         ))}
       </div>

@@ -168,7 +168,11 @@ export function DrawerContents({
                 text:
                   ("question" in item ? item.question : null) ??
                   `${formatRecordDate(item.started_at)}의 이야기`,
-                spine: spineLabel(item.started_at),
+                // 책등은 질문을 쓴다. 날짜를 압축한 `2699`는 네 글자를 쓰고도 어느
+                // 책인지 말해 주지 않는다. 자리가 좁으니 책 크기에 맞춰 자른다.
+                spine:
+                  ("question" in item ? item.question : null) ??
+                  spineLabel(item.started_at),
                 ...("turn_count" in item
                   ? { size: sizeLevel(item.turn_count, item.node_count) }
                   : {}),

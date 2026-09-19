@@ -77,11 +77,26 @@ function prefersReducedMotion() {
  * gets no ellipsis from the browser, so the cut is made here instead of letting
  * a glyph be sliced in half.
  */
+/** 책등에 들어가는 글자 수. 책 높이에서 번호와 여백을 뺀 자리를 13px 세로쓰기로
+ *  재서 얻은 값이다(160/176/190/204/218px → 139px일 때 12글자). 문장부호가 많은
+ *  제목이 넘치지 않도록 실측보다 한 글자씩 덜 쓴다. */
+export const SPINE_MAX_BY_SIZE: Record<number, number> = {
+  1: 8,
+  2: 9,
+  3: 11,
+  4: 12,
+  5: 14,
+};
+
 export function clampSpineLabel(value: string, max = 9): string {
   const text = value.trim();
-  return [...text].length <= max
-    ? text
-    : `${[...text].slice(0, max - 1).join("")}…`;
+  if ([...text].length <= max) return text;
+  // 자른 끝이 공백이면 그 자리에서 줄이 바뀌어 `…`가 다음 열로 넘어간다. 세로쓰기의
+  // 다음 열은 왼쪽에 생기므로 말줄임이 글 위쪽에 따로 떠 있는 것처럼 보인다.
+  return `${[...text]
+    .slice(0, max - 1)
+    .join("")
+    .trimEnd()}…`;
 }
 
 /** Upright vertical text gives every character its own slot, which leaves a
@@ -90,6 +105,9 @@ export function clampSpineLabel(value: string, max = 9): string {
  * "26.10.10" occupies three slots rather than eight.
  */
 export function spineTokens(label: string): { text: string; tcy: boolean }[] {
+  // 종서 숫자 처리는 날짜에만 쓴다. 제목에 점이 섞여 있을 때 나눠 버리면 그 점이
+  // 사라지므로, 숫자와 점으로만 된 글자가 아니면 통째로 한 덩어리로 둔다.
+  if (!/^[\d.]+$/.test(label)) return [{ text: label, tcy: false }];
   return label
     .split(".")
     .filter((part) => part.length > 0)
@@ -189,17 +207,20 @@ export function SavedShelf({
                       >
                         <span className="book-spine">
                           <span className="book-spine-title">
-                            {spineTokens(clampSpineLabel(item.spine)).map(
-                              (token, position) => (
-                                <span
-                                  className="spine-token"
-                                  data-tcy={token.tcy || undefined}
-                                  key={position}
-                                >
-                                  {token.text}
-                                </span>
+                            {spineTokens(
+                              clampSpineLabel(
+                                item.spine,
+                                SPINE_MAX_BY_SIZE[item.size ?? 3] ?? 11,
                               ),
-                            )}
+                            ).map((token, position) => (
+                              <span
+                                className="spine-token"
+                                data-tcy={token.tcy || undefined}
+                                key={position}
+                              >
+                                {token.text}
+                              </span>
+                            ))}
                           </span>
                           <span className="book-spine-number">
                             {String(offset + index + 1).padStart(2, "0")}

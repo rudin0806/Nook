@@ -46,6 +46,8 @@ export const savedSessionListItemSchema = z.object({
   /** How much the conversation holds, so a book can be sized by it. */
   turn_count: z.number().int().nonnegative(),
   node_count: z.number().int().nonnegative(),
+  /** 마지막 중심 질문. 확정된 질문이 없으면 null이고, 그때는 날짜로 부른다. */
+  question: z.string().min(1).max(160).nullable().default(null),
 });
 
 export const savedSessionPositionSchema = z

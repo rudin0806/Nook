@@ -26,12 +26,6 @@ const sessionCollections = {
       "id,origin_branch_id,started_at,last_activity_at,temporary_expires_at",
     order: "last_activity_at",
   },
-  saved: {
-    table: "saved_thought_sessions",
-    columns:
-      "id,origin_branch_id,started_at,completed_at,retention_decided_at,shelf_position,shelf_revision",
-    order: "retention_decided_at",
-  },
 } as const;
 
 export class RetentionDatabaseError extends Error {}
@@ -49,40 +43,36 @@ export async function listSessions(
   supabase: SupabaseClient,
   query: RetentionListQuery,
 ) {
-  // 휴지통은 질문을 함께 읽어야 한다. 테이블에는 시각만 있어 모든 행이 같은 제목으로
-  // 보였다. RPC가 마지막 중심 질문을 붙이고 정산도 안에서 한다.
-  if (query.collection === "trash") {
-    const { data, error } = await supabase.rpc("list_trashed_sessions", {
+  // 보관과 휴지통은 질문을 함께 읽어야 한다. 두 테이블 모두 시각만 담고 있어서, 홈은
+  // 책마다 story 전문을 따로 받아 제목을 꺼냈고(책 4권이면 요청 5번) 생각 더미는
+  // 날짜를 제목으로 썼다. RPC가 마지막 중심 질문을 붙이고 정산도 안에서 한다.
+  async function withQuestion(name: string) {
+    const { data, error } = await supabase.rpc(name, {
       p_limit: query.limit,
       p_offset: query.offset,
     });
     if (error) throw new RetentionDatabaseError(error.message);
-    return page(trashedSessionListItemSchema.array().parse(data ?? []), query);
+    return data ?? [];
   }
+  if (query.collection === "saved") {
+    const rows = await withQuestion("list_saved_sessions");
+    return page(savedSessionListItemSchema.array().parse(rows), query);
+  }
+  if (query.collection === "trash") {
+    const rows = await withQuestion("list_trashed_sessions");
+    return page(trashedSessionListItemSchema.array().parse(rows), query);
+  }
+
   const settled = await supabase.rpc("settle_own_retention");
   if (settled.error) throw new RetentionDatabaseError(settled.error.message);
-  const config = sessionCollections[query.collection];
-  let request = supabase.from(config.table).select(config.columns);
-  if (query.collection === "saved") {
-    request = request
-      .order("shelf_position", { ascending: true, nullsFirst: false })
-      .order("retention_decided_at", { ascending: false });
-  } else {
-    request = request.order(config.order, { ascending: false });
-  }
-  const { data, error } = await request.range(
-    query.offset,
-    query.offset + query.limit,
-  );
-
+  const config = sessionCollections[query.collection as "active"];
+  const { data, error } = await supabase
+    .from(config.table)
+    .select(config.columns)
+    .order(config.order, { ascending: false })
+    .range(query.offset, query.offset + query.limit);
   if (error) throw new RetentionDatabaseError(error.message);
-  if (query.collection === "active") {
-    return page(activeSessionListItemSchema.array().parse(data ?? []), query);
-  }
-  if (query.collection === "saved") {
-    return page(savedSessionListItemSchema.array().parse(data ?? []), query);
-  }
-  return page(trashedSessionListItemSchema.array().parse(data ?? []), query);
+  return page(activeSessionListItemSchema.array().parse(data ?? []), query);
 }
 
 export async function listKeptBranchQuestions(

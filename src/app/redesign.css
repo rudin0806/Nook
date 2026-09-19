@@ -2561,3 +2561,24 @@ body {
 .preview-lock span {
   color: var(--nook-subtle);
 }
+
+/* 홈의 책등은 46×78px이라 문장이 들어갈 자리가 아니다(13px 세로쓰기로 다섯 글자).
+   번호만 세로로 세우고, 제목은 가리켰을 때와 읽어 주는 기계에 남긴다. */
+.shelf-book-number {
+  writing-mode: vertical-rl;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  color: var(--nook-muted);
+}
+.shelf-book:hover .shelf-book-number,
+.shelf-book:focus-visible .shelf-book-number {
+  color: var(--nook-ink);
+}
+
+/* 책등의 제목은 한 열로만 선다. 글자 수로 이미 잘라 두었으므로 넘칠 일은 없고,
+   혹시 줄이 바뀌면 왼쪽에 새 열이 생겨 글이 두 갈래로 보인다. */
+.book-spine-title {
+  white-space: nowrap;
+}
