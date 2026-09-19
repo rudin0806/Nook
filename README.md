@@ -70,7 +70,7 @@ npm run validate
 `validate`는 `typecheck` → `lint` → `build` 순서다.
 `typecheck`는 깨끗한 체크아웃에서도 동작하도록 Next.js 라우트 타입 생성 후 TypeScript를 검사한다.
 
-[`docs/EVALSET.md`](docs/EVALSET.md)는 평가 계약을 정의한다. 사용자 제공 JSONL은 `eval/`에 있으며 `npm run eval:validate`로 구조·참조·패치·현재 매핑 호환성을 검사한다. 확인된 계약 충돌이 남아 있으면 이 명령은 실패로 종료한다. `npm run eval`로 Judge 모델 평가를 실행할 수 있다. `gpt-5.6-sol` reasoning high의 최종 Judge 회귀는 strict 31/31을 통과했고, 실행 범위와 한계는 [조정 기록](docs/reviews/2026-09-14-judge-sol-tuning.md)에 남겼다. 이 결과는 Start·Safety·Prompt C/D나 실사용 정확도까지 보장하지 않는다. **2026-09-18에 운영 Judge의 reasoning effort를 `medium`으로 내렸으므로 이 회귀는 현재 운영 설정을 보증하지 않는다.** 근거와 재평가 여부는 [STATUS](docs/STATUS.md)를 따른다.
+[`docs/EVALSET.md`](docs/EVALSET.md)는 평가 계약을 정의한다. 사용자 제공 JSONL은 `eval/`에 있으며 `npm run eval:validate`로 구조·참조·패치·현재 매핑 호환성을 검사한다. 확인된 계약 충돌이 남아 있으면 이 명령은 실패로 종료한다. `npm run eval`로 Judge 모델 평가를 실행할 수 있다. 운영 Judge는 `gpt-5.6-sol` / reasoning `low`이고, Reflect는 `gpt-5.6-terra` / `medium`이다. 2026-09-19에 fixture 39건을 세 조합으로 돌려 정했다 — sol/low 36/39, sol/medium 35/39, terra/medium 34/39이며 terra만 중심 질문의 이동을 세 건 놓쳤다. 단일 표본이므로 "내려도 나빠지지 않는다"까지가 이 숫자가 말해 주는 전부다. 이 결과는 Start·Safety나 실사용 정확도까지 보장하지 않는다. 근거와 남은 관문은 [STATUS](docs/STATUS.md)를 따른다.
 
 ## Vercel 배포
 
