@@ -40,8 +40,8 @@
 | 페이지 제목 | `components/nook/page-heading.tsx` — kicker/title/subtitle, 34·27px          |
 | 아이콘     | `components/nook/nook-icon.tsx` — 패널 제목은 `tile`, 탭바는 `compact`       |
 | 정책 문서  | `components/nook/legal-page.tsx` + `legal-section.tsx`(아코디언)             |
-| 카드 더미  | `components/nook/card-stack.tsx` + `retention-card.tsx`                      |
-| 마감 시각  | `lib/format/datetime.ts`의 `formatSeoulDeadline` — `ko-KR` 기본값은 초까지 찍힘 |
+| 보관 카드  | `components/nook/retention-card.tsx` — 카드 넘김(`card-stack.tsx`)은 폐기했다 |
+| 마감 시각  | `lib/format/datetime.ts` — 시각은 `formatSeoulDeadline`(`ko-KR` 기본값은 초까지 찍힘), 남은 날은 `formatDaysLeft` |
 
 규칙 두 개:
 
@@ -68,16 +68,45 @@
 
 ## 이 작업 환경의 제약
 
-- 프록시가 `api.openai.com`과 `*.vercel.app`을 **403으로 막는다.** 유료 호출과 운영 주소
-  브라우저 접속이 불가능하다. 브라우저 검증은 로컬 프로덕션 빌드(`next start`)로 한다.
+- **`api.openai.com`은 닿는다**(2026-09-19). 환경의 API credential에 키가 들어 있어
+  프록시가 VM 밖에서 헤더를 붙인다. 셸에 키가 없고 코드에서도 보이지 않으므로,
+  스크립트의 키 존재 검사는 `OPENAI_API_KEY=proxy-injected`로 통과시킨다. Node의
+  내장 fetch는 `HTTPS_PROXY`를 스스로 읽지 않으니 **`NODE_USE_ENV_PROXY=1`이 필요하다**
+  — 없으면 403이 돌아온다. `*.vercel.app`은 여전히 막혀 있어 운영 주소를 브라우저로
+  열 수 없다. 브라우저 검증은 로컬 프로덕션 빌드(`next start`)로 한다.
+- **유료 호출은 실행 전에 사용자에게 알린다.** 입력의 87~97%가 프롬프트 캐시로 나가므로
+  비용은 대개 추정보다 적다.
 - Supabase 자격 증명과 hCaptcha 사이트 키가 없어 **로그인이 필요한 화면을 띄울 수 없다.**
   로그인 뒤 화면은 `/api/**`를 목으로 막아 띄운다. Playwright는 나중에 등록한 route를
   먼저 적용하므로 구체적인 목을 catch-all 뒤에 등록한다.
-- **Supabase MCP로 운영 DB를 읽을 수 있고, Vercel 접근 수단은 없다.** 그래서 운영에서
-  관찰할 값은 Vercel 런타임 로그가 아니라 DB에 남긴다 — 단계 지연이
-  `ai_stage_timings`에 있는 이유다. 사람이 대시보드를 열어 복붙하지 않아도 된다.
+- **Supabase MCP로 운영 DB를 읽고, Vercel MCP로 배포·환경변수를 다룰 수 있다.** 다만
+  환경변수 값 복호화는 막혀 있어 **설정값을 읽을 수 없다** — 무엇이 걸려 있는지는
+  `judge_logs.model_name`처럼 DB에 남은 흔적으로 역추적한다. 그래서 운영에서 관찰할
+  값은 Vercel 런타임 로그가 아니라 DB에 남긴다. 단계 지연이 `ai_stage_timings`에 있는
+  이유이고, 사람이 대시보드를 열어 복붙하지 않아도 된다.
 - 엔진(`src/engine/`)은 순수 함수이고 `JsonTransport`만 받는다. 키가 닿는 환경에서는
   DB·Next.js 없이 운영과 같은 프롬프트를 돌릴 수 있다.
+
+## 검증과 CI
+
+`npm run validate`(typecheck·lint·build)가 최소선이고, 엔진·프롬프트를 건드렸으면
+오프라인 단위 테스트까지 돌린다.
+
+```bash
+npm run validate
+node --experimental-strip-types --test tests/*.test.mts   # 172개
+npm run eval:validate            # fixture 계약. 개수 가드가 있다
+npm run eval:judge:validate      # Judge 계약. 모델 호출 없음
+npm run format:check             # CI에는 없다
+npm run replay                   # 유료. 보고된 대화를 운영 설정으로 재연한다
+```
+
+`eval/*.jsonl`의 행 수는 `scripts/validate-fixtures.mts`에 **계약으로 박혀 있다.**
+fixture를 늘리거나 줄이면 그 숫자도 같이 고친다. 안 고치면 `eval:validate`가 exit 1이다.
+
+GitHub Actions는 `offline-validation.yml`만 자동으로 돈다(main push, 무료). 나머지
+다섯은 **유료라서 수동 실행 전용**(`workflow_dispatch`)이다. 원래는 `.github/*-trigger.json`을
+고쳐 push하면 도는 설계였는데, 그 경로를 main에 두면 커밋 한 번이 돈을 쓰므로 뺐다.
 
 ## 작업 전달 형식
 

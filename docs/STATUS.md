@@ -8,7 +8,11 @@
 ## 버전·배포
 
 - 저장소 `rudin0806/Nook`, 브랜치 **main만 사용**. main push → Vercel 자동 배포.
-- 운영: https://nook-nine-eta.vercel.app/ · 기능 기준 커밋 `94207d5`
+- **CI가 main에서 돈다**(2026-09-19 복구). 그 전까지 여섯 워크플로가 전부 지워진 브랜치
+  `codex/rules-v3-retention-hardening`에 걸려 있어 09-15 이후 한 번도 돌지 않았다. 지금은
+  `offline-validation.yml`만 자동(무료: fixture·Judge 계약, 단위 테스트 172개,
+  typecheck·lint·build, PostgreSQL 동시성·권한·보존)이고 유료 평가 다섯은 수동 전용이다.
+- 운영: https://nook-nine-eta.vercel.app/ · 기능 기준 커밋 `9e9edbc`
 - **함수 리전 `icn1`(서울)**. `vercel.json`이 고정한다. Supabase가 `ap-northeast-2`라
   DB 왕복과 한국 사용자의 브라우저 왕복이 같은 리전에서 끝난다. Hobby 플랜은 리전
   하나만 허용한다. OpenAI 호출은 그만큼 멀어지는 거래가 있고, 실제 효과는 미측정이다.
@@ -148,6 +152,10 @@
 
 | SHA       | 내용                                                                |
 | --------- | ------------------------------------------------------------------- |
+| `9e9edbc` | prettier 어긋난 21개 파일 정리                                      |
+| `5804139` | CI를 main에서 되살리고 judge fixture 계약을 39로 맞춤               |
+| `8b6b678` | 재연 하네스 기본값을 운영값에 맞춤                                  |
+| `d483d94` | 실제 모델 검증 결과를 STATUS·D-01에 기록                            |
 | `94207d5` | 베껴지던 예시를 옮기고, fixture 39개로 모델 등급·effort 결정        |
 | `1b7192a` | 단계 시간을 `ai_stage_timings`에 기록                               |
 | `16f83ae` | 단계 계측 추가, 보관 버튼 이름, 분명해진 것 구분                    |
