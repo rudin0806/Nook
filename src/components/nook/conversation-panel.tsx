@@ -43,6 +43,8 @@ export function ConversationPanel({
   const [retry, setRetry] = useState(false);
   const [wait, setWait] = useState(0);
   const [activeNodeId, setActiveNodeId] = useState<string | null>(null);
+  const [bornMessageId, setBornMessageId] = useState<string | null>(null);
+  const bornTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pending = useRef<string | null>(null);
   const lock = useRef(false);
   const alive = useRef(true);
@@ -68,6 +70,7 @@ export function ConversationPanel({
     return () => {
       alive.current = false;
       c.abort();
+      if (bornTimer.current) clearTimeout(bornTimer.current);
     };
   }, [nodeId, preview]);
   useEffect(() => {
@@ -86,13 +89,25 @@ export function ConversationPanel({
     });
     element.focus({ preventScroll: true });
   }
+  /** 옮겨간 자리를 잠깐 비춘다. 스크롤만 하면 어디로 갔는지, 왜 갔는지가 남지 않는다.
+   *  이 질문이 바로 이 응답에서 생겼다는 것을 화면이 한 번 말해 주는 자리다. */
+  function markBorn(messageId: string | null) {
+    if (bornTimer.current) clearTimeout(bornTimer.current);
+    setBornMessageId(messageId);
+    if (!messageId) return;
+    bornTimer.current = setTimeout(() => {
+      if (alive.current) setBornMessageId(null);
+    }, 2200);
+  }
   function navigateToNode(targetNodeId: string, messageId: string) {
     if (activeNodeId === targetNodeId) {
       setActiveNodeId(null);
+      markBorn(null);
       scrollTo(currentPosition.current);
       return;
     }
     setActiveNodeId(targetNodeId);
+    markBorn(messageId);
     scrollTo(messageElements.current.get(messageId) ?? null);
   }
   async function refresh() {
@@ -227,6 +242,7 @@ export function ConversationPanel({
                   className="preview-summary-card conversation-card"
                   data-role={m.role}
                   data-message-id={m.id}
+                  data-born={bornMessageId === m.id ? "true" : undefined}
                   tabIndex={-1}
                   ref={(element) => {
                     if (element) messageElements.current.set(m.id, element);
@@ -276,18 +292,17 @@ export function ConversationPanel({
                     value={text}
                     readOnly={locked}
                     onChange={(e) => setText(e.target.value)}
-                    placeholder="지금 떠오르는 이야기를 적어 주세요."
+                    placeholder={
+                      preview
+                        ? "미리보기에서는 질문을 이어갈 수 없어요. (예시)"
+                        : "지금 떠오르는 이야기를 적어 주세요."
+                    }
                   />
                 </TextField.Root>
                 <ActionButton type="submit" disabled={locked || !text.trim()}>
                   이어서 보내기
                 </ActionButton>
               </form>
-            )}
-            {!exitMode && view.mode === "READY" && preview && (
-              <p className="preview-lock" role="note">
-                미리보기에서는 질문을 이어갈 수 없어요. <span>(예시)</span>
-              </p>
             )}
             {!exitMode && view.mode === "SHIFT" && view.pending && (
               <form
@@ -363,8 +378,8 @@ export function ConversationPanel({
                 <strong>지나온 질문</strong>
                 <small>
                   {activeNodeId
-                    ? "같은 질문을 다시 누르면 지금 대화로 돌아가요."
-                    : "질문을 누르면 시작한 대화로 이동해요."}
+                    ? "이 질문이 생긴 자리를 보고 있어요. 다시 누르면 지금 대화로 돌아가요."
+                    : "질문을 누르면 그 질문이 생긴 자리로 가요."}
                 </small>
               </div>
               <ol>

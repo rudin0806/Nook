@@ -2112,8 +2112,25 @@ body {
   background: var(--nook-primary);
   color: var(--nook-primary-ink);
 }
+/* 지금 대화 중인 질문과 지금 보고 있는 질문은 다른 일이다. 둘 다 포인트 컬러로 채우면
+   두 칸이 똑같이 선택된 것처럼 보이고, 어느 쪽이 대화의 자리인지 알 수 없다.
+   채움은 대화의 자리(`current`)에만 둔다. 보고 있는 자리는 테두리로만 표시한다. */
 .conversation-side .node-navigation button[data-active="true"] {
-  border-color: var(--nook-primary);
+  border-color: var(--nook-ink);
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--nook-ink);
+}
+.conversation-side
+  .node-navigation
+  button[data-active="true"]:not([data-current="true"])
+  > span:first-child {
+  background: var(--nook-ink);
+  color: var(--nook-surface);
+}
+/* 둘이 같은 칸이면 대화의 자리로 읽는다. */
+.conversation-side
+  .node-navigation
+  button[data-active="true"][data-current="true"] {
   background: var(--nook-primary-weak);
 }
 
@@ -2525,21 +2542,6 @@ body {
 
 /* ── 미리보기 ──────────────────────────────────────────────────────────── */
 
-/* 잠긴 이유는 쓰는 자리가 있던 그 자리에서 읽혀야 한다. 입력칸을 지우고 안내만
-   남기면 무엇을 못 하는지가 아니라 무엇이 사라졌는지를 읽게 된다. */
-.preview-lock {
-  margin: 12px 0 0;
-  padding: 13px 15px;
-  border: 1px dashed var(--nook-line-strong);
-  border-radius: 12px;
-  color: var(--nook-muted);
-  font-size: 14px;
-  text-align: center;
-}
-.preview-lock span {
-  color: var(--nook-subtle);
-}
-
 /* 홈의 책등은 46×78px이라 문장이 들어갈 자리가 아니다(13px 세로쓰기로 다섯 글자).
    번호만 세로로 세우고, 제목은 가리켰을 때와 읽어 주는 기계에 남긴다. */
 .shelf-book-number {
@@ -2565,4 +2567,34 @@ body {
 .sample-band:not([data-on]) {
   border-style: solid;
   color: var(--nook-muted);
+}
+
+/* ── 질문이 생긴 자리 ────────────────────────────────────────────────── */
+
+/* 지나온 질문을 누르면 그 질문이 생긴 응답으로 간다. 스크롤만 하면 어디로 갔는지가
+   남지 않으므로, 도착한 자리가 한 번 밝아졌다 가라앉는다. 이 질문이 바로 여기서
+   생겼다는 말을 화면이 한 번 하는 것이다. */
+@keyframes nook-born {
+  0% {
+    border-color: var(--nook-primary);
+    box-shadow: 0 0 0 4px var(--nook-primary-weak);
+  }
+  70% {
+    border-color: var(--nook-primary);
+    box-shadow: 0 0 0 4px var(--nook-primary-weak);
+  }
+  100% {
+    border-color: var(--nook-card-line);
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+.conversation-card[data-born="true"] {
+  animation: nook-born 2.2s ease-out;
+}
+/* 움직임을 줄인 화면에서는 밝아진 채로 머물다 사라진다. */
+@media (prefers-reduced-motion: reduce) {
+  .conversation-card[data-born="true"] {
+    animation: none;
+    border-color: var(--nook-primary);
+  }
 }
