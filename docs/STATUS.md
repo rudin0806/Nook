@@ -12,7 +12,7 @@
   `codex/rules-v3-retention-hardening`에 걸려 있어 09-15 이후 한 번도 돌지 않았다. 지금은
   `offline-validation.yml`만 자동(무료: fixture·Judge 계약, 단위 테스트 172개,
   typecheck·lint·build, PostgreSQL 동시성·권한·보존)이고 유료 평가 다섯은 수동 전용이다.
-- 운영: https://nook-nine-eta.vercel.app/ · 기능 기준 커밋 `9f0e62c`
+- 운영: https://nook-nine-eta.vercel.app/ · 기능 기준 커밋 `9941eee`
 - **함수 리전 `icn1`(서울)**. `vercel.json`이 고정한다. Supabase가 `ap-northeast-2`라
   DB 왕복과 한국 사용자의 브라우저 왕복이 같은 리전에서 끝난다. Hobby 플랜은 리전
   하나만 허용한다. OpenAI 호출은 그만큼 멀어지는 거래가 있고, 실제 효과는 미측정이다.
@@ -165,6 +165,7 @@
 
 | SHA       | 내용                                                                |
 | --------- | ------------------------------------------------------------------- |
+| `9941eee` | 한 기둥에서 시작하는 여백, 토스트 알림, 책등 세 가지                |
 | `9f0e62c` | 지나온 질문이 어디로 데려가는지 보이게                              |
 | `97d3fd2` | 문서를 지금 상태에 맞춤                                             |
 | `e69ce1a` | 토글로 켠 미리보기에 표본이 나오게, 스위치를 위 한 곳으로           |
