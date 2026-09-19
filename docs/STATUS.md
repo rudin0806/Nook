@@ -1,4 +1,4 @@
-# Nook 현재 상태 — 2026-09-18
+# Nook 현재 상태 — 2026-09-19
 
 **지금 무엇이 어떤 상태인지**만 적는다. 왜 그렇게 고쳤는지는 커밋 메시지에 있으므로
 여기서 되풀이하지 않는다. 날짜별 상세 기록은 맨 아래 변경 이력의 SHA로 찾는다.
@@ -8,7 +8,7 @@
 ## 버전·배포
 
 - 저장소 `rudin0806/Nook`, 브랜치 **main만 사용**. main push → Vercel 자동 배포.
-- 운영: https://nook-nine-eta.vercel.app/ · 기능 기준 커밋 `1b7192a`
+- 운영: https://nook-nine-eta.vercel.app/ · 기능 기준 커밋 `94207d5`
 - **함수 리전 `icn1`(서울)**. `vercel.json`이 고정한다. Supabase가 `ap-northeast-2`라
   DB 왕복과 한국 사용자의 브라우저 왕복이 같은 리전에서 끝난다. Hobby 플랜은 리전
   하나만 허용한다. OpenAI 호출은 그만큼 멀어지는 거래가 있고, 실제 효과는 미측정이다.
@@ -57,14 +57,29 @@
 - **되묻기 정체는 코드가 센다.** `src/engine/stall.ts`가 마지막 두 사용자 발화 길이를
   그 사람의 앞선 중앙값과 비교해 `stalled` boolean을 만들고, Judge와 Prompt D에 그것만
   넘긴다. 사용자 상태를 추정하지 않는다. 임계값은 코드 상수이며 실제 세션으로 조정한다.
-  **유료 재평가는 아직 하지 않았다** — 이 작업 환경은 `api.openai.com`이 막혀 있다.
-- **Judge reasoning effort는 `medium`이다** (2026-09-18 결정, 모델은 `gpt-5.6-sol` 그대로).
-  운영 실측에서 한 턴이 평균 15.3초(n=7, 최소 9.7 / 최대 19.2)였고 그중 Judge 하나가
-  평균 6.4초(입력 평균 5,998토큰 → 출력 257토큰)였다. **strict 31/31은 high에서 나온
-  결과이므로 현재 설정을 보증하지 않는다.** 재평가는 유료 호출이며 아직 실행하지 않았다.
+  **실제 모델로 확인했다**(2026-09-19). 보고된 대화를 재연하니 되묻던 3번째 질문이
+  사라지고, 4번째 턴에서 `stalled: true`가 CLOSE로 이어졌다.
+- **Judge는 `gpt-5.6-sol` / effort `low`, Reflect는 `gpt-5.6-terra` / effort `medium`이다**
+  (2026-09-19, fixture 39개 실측으로 결정).
+
+  | 설정               | 점수  | MISSED_SHIFT | Judge 평균 |
+  | ------------------ | ----- | ------------ | ---------- |
+  | sol/medium (이전)  | 35/39 | 0            | 9,554ms    |
+  | **sol/low (현재)** | 36/39 | 0            | 4,060ms    |
+  | terra/medium       | 34/39 | 3            | 3,919ms    |
+
+  terra는 `J-SHIFT-03`·`J-HEDGE-01a`·`J-CARRY-01b`에서 중심 질문의 이동을 놓쳐 Judge에
+  쓰지 않는다. sol/low는 `J-CARRY-02`·`J-DEPTH-01`을 고치고 `J-CLARI-02` 하나를 잃는다.
+  35 대 36은 단일 표본이라 오차 범위이고, 읽는 방법은 "내려도 나빠지지 않는다"까지다.
+  Reflect는 분류가 아니라 생성이라 fixture가 없다. 재연 세 번의 질문 아홉 개를 읽고
+  terra로 정했으므로 **근거가 약한 쪽이고 운영에서 지켜볼 자리다.**
+
+- **한 턴 대기는 19,020ms → 6,306ms**(재연 실측, Judge 9,554→4,060 · Reflect 12,622→2,995).
+- **입력 토큰은 줄일 데가 없다.** Judge 입력 6,038토큰 중 5,876이 고정 시스템 프롬프트인데
+  보간 없는 완전 고정 문자열이라 연속 턴은 캐시로 나간다(실측 적중 87~97%). 남은 시간은
+  전부 추론 토큰에 있어서 프롬프트 길이가 아니라 등급과 effort를 건드렸다.
 - **모델 슬롯 6개가 독립**이다(`NOOK_{SAFETY,START,NODE_ZERO,JUDGE,REFRAME,REFLECT}_*`).
-  `judge_logs`에만 모델명이 기록되며 거기 `gpt-5.6-sol`이 찍혀 있다. 나머지 5개의 실제
-  값은 Vercel 환경변수에만 있다.
+  Judge와 Reflect는 위에 적은 값이다. 나머지 4개의 실제 값은 Vercel 환경변수에만 있다.
 - **브랜드**: 마크는 `Nook`, SUIT 800, 잉크 단색, 온점·꾸밈 없음.
   `components/nook/wordmark.tsx` 한 곳에서만 만든다.
 - **UI 공통**: 제목은 `components/nook/page-heading.tsx`(kicker/title/subtitle, 34·27px,
@@ -96,26 +111,26 @@
   처리방침은 접힌 상태 1.9화면(이전 5.5), 약관 1.1화면.
   대화 화면은 1440에서 스트림 752px / 지도 300px, 390에서 첫 메시지 y268 · 지도 y869.
   빈 상태 일러스트 셋은 폭 85px에 같은 바닥선, 하단 고정 탭 여유 9px.
-- **운영 지연 실측**(2026-09-18, effort `high` 시점): 한 턴 평균 **15.3초**
-  (n=7, 최소 9.7 / 최대 19.2). 그중 Judge 평균 **6.4초**(입력 5,998 → 출력 257토큰).
-  나머지 8.9초의 분해는 `ai_stage_timings`가 쌓인 뒤에 한다. **effort를 내린 뒤의
-  재측정은 아직 하지 않았다.**
+- **지연**: 운영 실측(2026-09-18, effort `high`)은 한 턴 평균 15.3초였다. 재연 실측
+  (2026-09-19)은 `sol/medium + sol/medium`에서 19,020ms, 새 조합에서 **6,306ms**다.
+  재연은 모델 대기만 재므로 DB·네트워크가 빠져 있다. 운영 전체 분해는 `ai_stage_timings`가
+  쌓인 뒤에 한다.
 - 로그인이 필요한 화면은 **이 환경에서 확인할 수 없다**: Supabase 자격 증명이 없어
   `AccountPanel`이 로그인 전 상태를 그리고, hCaptcha 사이트 키가 없어 위젯이 뜨지 않는다.
 
 ## 남은 관문
 
-1. **되묻기 개편의 유료 검증.** Prompt B·D와 `stalled` 신호를 바꿨는데 모델 호출로
-   확인하지 못했다. `npm run eval -- --ids J-SHIFT-01,J-SHIFT-02,J-SHIFT-03,J-SHIFT-04,J-NOT-01,J-NOT-02,J-NOT-03,J-MED-01,J-MED-02,J-MED-03,J-MED-04,J-MED-05,J-AI-01,J-EDGE-01 --max-cases 14`
-   와 `node --experimental-strip-types scripts/eval-conversation.mts`를 키가 닿는
-   환경에서 실행해야 한다. 근거는 [D-01](proposals/D-01-reflection-loop.md).
+1. **Reflect가 terra여도 되는지 운영에서 확인.** 유일한 근거가 재연 세 번(질문 아홉 개)
+   이다. Judge와 달리 fixture가 없어 회귀를 자동으로 잡지 못한다. 질문이 길어지거나
+   `~것 같아요?`로 끝나면 되돌린다. `npm run replay`가 같은 대화를 다시 태우고
+   `inspectReflectionQuestion`의 플래그를 함께 찍는다.
 2. **보관 선택 화면의 `나중에 다시 볼 질문` 체크박스.** 곁가지 질문에 별도 화면을 두지
    않기로 하면서, 종료할 때 고른 질문이 이후에 놓일 자리가 없어졌다. 체크박스를 지울지,
    고른 질문을 어디서 다시 만나게 할지는 제품 결정이라 손대지 않았다.
    `/api/branch-questions`와 `listKeptBranchQuestions`도 부르는 화면 없이 남아 있다.
-3. **지연 재측정.** effort를 `medium`으로 내리고 리전을 서울로 옮긴 뒤 운영에서 대화가
-   한 번도 돌지 않았다. `ai_stage_timings`가 0행이다. 대화 한 번이면 Judge 변화,
-   턴 전체 시간, 단계 분해가 한꺼번에 나온다.
+3. **운영 지연 재측정.** `ai_stage_timings`가 아직 0행이다. 계측 배포(`1b7192a`,
+   08:03 UTC)보다 마지막 대화(07:22 UTC)가 빨랐다. 새 조합으로 대화 한 번이면
+   턴 전체 시간과 `LOAD / SAFETY / GENERATE / COMMIT` 분해가 한꺼번에 나온다.
 4. **이야기 상세(`/drawer/:id`) UI 미점검.** 로그인이 필요해 로컬에서 못 봤다.
    대화 화면(`/talk/[nodeId]`)은 `/api/conversation` 응답을 목으로 넣어 실측했다.
 5. **예시 대화 전사.** `src/lib/example/story.ts`의 `nodes`·`clarifications`를 실제 대화로
@@ -133,6 +148,7 @@
 
 | SHA       | 내용                                                                |
 | --------- | ------------------------------------------------------------------- |
+| `94207d5` | 베껴지던 예시를 옮기고, fixture 39개로 모델 등급·effort 결정        |
 | `1b7192a` | 단계 시간을 `ai_stage_timings`에 기록                               |
 | `16f83ae` | 단계 계측 추가, 보관 버튼 이름, 분명해진 것 구분                    |
 | `43b64b1` | 함수 리전 `icn1` 고정                                               |
