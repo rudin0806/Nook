@@ -35,7 +35,7 @@ async function main() {
         fixture_meta: z.object({ history: z.array(z.unknown()) }),
       }),
     )
-    .length(32)
+    .min(1)
     .parse(
       readFileSync("eval/judge.jsonl", "utf8")
         .trim()

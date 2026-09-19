@@ -26,7 +26,8 @@
     "test:reframe": "node --experimental-strip-types --test tests/reframe.test.mts",
     "test:auth": "node --experimental-strip-types --test tests/auth-policy.test.mts",
     "release:check": "node --experimental-strip-types scripts/check-release.mts",
-    "release:env": "node --env-file-if-exists=.env.local --experimental-strip-types scripts/check-ai-environment.mts"
+    "release:env": "node --env-file-if-exists=.env.local --experimental-strip-types scripts/check-ai-environment.mts",
+    "replay": "node --env-file-if-exists=.env.local --experimental-strip-types scripts/replay-conversation.mts"
   },
   "dependencies": {
     "@seed-design/css": "2.7.0",
