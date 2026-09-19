@@ -1938,8 +1938,11 @@ body {
   padding: 4px 0 0;
 }
 
-/* The arrows were large grey squares. Round, sized to the counter beside them. */
-.card-controls button {
+/* The arrows were large grey squares. Round, sized to the counter beside them.
+   Scoped to the browser: only here are the controls a bare `←`/`→`. The story
+   reader labels the same controls `이전 질문`/`다음 질문`, and four characters in a
+   36px circle wrap to two lines and spill out of it. */
+.card-browser .card-controls button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1952,7 +1955,7 @@ body {
   background: transparent;
   color: var(--nook-muted);
 }
-.card-controls button:hover:not(:disabled) {
+.card-browser .card-controls button:hover:not(:disabled) {
   background: var(--nook-fill);
   color: var(--nook-ink);
 }
@@ -2459,7 +2462,8 @@ body {
 
 /* ── 내 정보 ────────────────────────────────────────────────────────────── */
 
-/* 되돌아가는 길은 패널 위 왼쪽에 하나만 둔다. */
+/* 되돌아가는 길은 패널 위 왼쪽에 하나만 둔다. 내 정보에서 시작했지만 클래스는
+   범용이고, 지나온 질문 상세도 같은 자리에 같은 모양으로 쓴다. */
 .account-return {
   display: inline-block;
   margin-bottom: 14px;

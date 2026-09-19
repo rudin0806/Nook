@@ -135,8 +135,11 @@
 3. **운영 지연 재측정.** `ai_stage_timings`가 아직 0행이다. 계측 배포(`1b7192a`,
    08:03 UTC)보다 마지막 대화(07:22 UTC)가 빨랐다. 새 조합으로 대화 한 번이면
    턴 전체 시간과 `LOAD / SAFETY / GENERATE / COMMIT` 분해가 한꺼번에 나온다.
-4. **이야기 상세(`/drawer/:id`) UI 미점검.** 로그인이 필요해 로컬에서 못 봤다.
-   대화 화면(`/talk/[nodeId]`)은 `/api/conversation` 응답을 목으로 넣어 실측했다.
+4. ~~이야기 상세(`/drawer/:id`) UI 미점검~~ **점검 완료**(2026-09-19). `/api/sessions/:id/story`와
+   `/origin`을 목으로 넣어 1440·390, 라이트·다크로 실측했다. 네 가지를 고쳤다 — 동의
+   게이트가 없어 재동의 사용자가 목록은 막히고 상세는 열리던 것, 앱 화면 중 유일하게
+   헤더 계정 진입점이 없던 것, `PageHeading` 대신 맨 `<h1>`을 쓰던 것, 뒤로가기가 맨
+   문단 링크이던 것. `card-controls`의 원형 버튼 규칙도 `.card-browser` 안으로 좁혔다.
 5. **예시 대화 전사.** `src/lib/example/story.ts`의 `nodes`·`clarifications`를 실제 대화로
    교체하고 `transcriptPending`을 내린 뒤 홈에 칩을 연결한다. 운영에서 대화를 남기면
    Supabase에서 읽어올 수 있다.
