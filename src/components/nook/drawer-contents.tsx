@@ -10,7 +10,8 @@ import {
   moveSessionToPosition,
   type RetentionAction,
 } from "@/lib/retention/client";
-import { SavedShelf } from "./saved-shelf";
+import { SavedShelf, ShelfViewSwitch } from "./saved-shelf";
+import { Toast, type ToastNotice } from "./toast";
 import { EmptyArt } from "./empty-art";
 import { recoveryPageSchema } from "@/schemas/recovery";
 import { RetentionCard } from "./retention-card";
@@ -110,10 +111,18 @@ export function DrawerContents({
   const [busy, setBusy] = useState(false);
   const [editingOrder, setEditingOrder] = useState(false);
   const [draggedId, setDraggedId] = useState<string | null>(null);
-  const [notice, setNotice] = useState<{
-    text: string;
-    needsLogin?: boolean;
-  } | null>(null);
+  const [notice, setNotice] = useState<ToastNotice | null>(null);
+  // 같은 문장이 다시 떠도 머무는 시간이 처음부터 흐르도록 회차를 센다.
+  const noticeCount = useRef(0);
+  function say(text: string, needsLogin?: boolean) {
+    setNotice({
+      id: (noticeCount.current += 1),
+      text,
+      action: needsLogin
+        ? { href: "/login", label: "계정 다시 연결하기" }
+        : undefined,
+    });
+  }
   useEffect(() => {
     const controller = new AbortController();
     async function load() {
@@ -176,10 +185,12 @@ export function DrawerContents({
                 ...("turn_count" in item
                   ? { size: sizeLevel(item.turn_count, item.node_count) }
                   : {}),
+                // 휴지통은 언제 지웠는지가 중요하므로 버린 날을 쓴다. 서랍의
+                // 책은 그 이야기의 날짜를 쓴다 — `retention_decided_at`은 보관을
+                // 결정한 때라, 휴지통에서 되돌리면 오늘로 갱신되어 오래된 이야기가
+                // 방금 쓴 것처럼 보였다.
                 date:
-                  "trashed_at" in item
-                    ? item.trashed_at
-                    : item.retention_decided_at,
+                  "trashed_at" in item ? item.trashed_at : item.completed_at,
                 purgeAfter:
                   "purge_after" in item ? item.purge_after : undefined,
               },
@@ -225,23 +236,21 @@ export function DrawerContents({
     setNotice(null);
     try {
       await performRetentionAction(action, item.id);
-      setNotice({
-        text:
-          action === "restore"
-            ? "내 서랍으로 복원했어요."
-            : "휴지통으로 옮겼어요.",
-      });
+      say(
+        action === "restore"
+          ? "내 서랍으로 복원했어요."
+          : "휴지통으로 옮겼어요.",
+      );
       setState({ kind: "loading" });
       setOffset(0);
       setAttempt((n) => n + 1);
     } catch (error) {
-      setNotice(
-        error instanceof RetentionActionError
-          ? { text: error.message, needsLogin: error.needsLogin }
-          : {
-              text: "처리 결과를 확인하지 못했어요. 다시 누르기 전에 목록을 새로고침해 주세요.",
-            },
-      );
+      if (error instanceof RetentionActionError)
+        say(error.message, error.needsLogin);
+      else
+        say(
+          "처리 결과를 확인하지 못했어요. 다시 누르기 전에 목록을 새로고침해 주세요.",
+        );
     } finally {
       mutationLock.current = false;
       setBusy(false);
@@ -285,16 +294,14 @@ export function DrawerContents({
             }
           : current,
       );
-      setNotice({ text: `${result.position}번째 자리에 저장했어요.` });
+      say(`${result.position}번째 자리에 저장했어요.`);
     } catch (error) {
       setState((current) =>
         current.kind === "ready" ? { ...current, items: previous } : current,
       );
-      setNotice(
-        error instanceof RetentionActionError
-          ? { text: error.message, needsLogin: error.needsLogin }
-          : { text: "자리를 옮기지 못했어요. 다시 시도해 주세요." },
-      );
+      if (error instanceof RetentionActionError)
+        say(error.message, error.needsLogin);
+      else say("자리를 옮기지 못했어요. 다시 시도해 주세요.");
     } finally {
       mutationLock.current = false;
       setBusy(false);
@@ -365,12 +372,7 @@ export function DrawerContents({
           </svg>
         </button>
       </div>
-      {notice && (
-        <div role="status">
-          <p>{notice.text}</p>
-          {notice.needsLogin && <Link href="/login">계정 다시 연결하기</Link>}
-        </div>
-      )}
+      <Toast notice={notice} onDismiss={() => setNotice(null)} />
       {collection === "trash" && (
         <p>휴지통으로 옮긴 이야기는 7일 동안 복원할 수 있어요.</p>
       )}
@@ -379,7 +381,7 @@ export function DrawerContents({
       )}
       {collection === "sessions" &&
         state.kind === "ready" &&
-        state.items.length > 1 && (
+        !!state.items.length && (
           <div className="shelf-edit-toolbar">
             {editingOrder ? (
               <>
@@ -398,13 +400,22 @@ export function DrawerContents({
                 </div>
               </>
             ) : (
-              <ActionButton
-                variant="neutralWeak"
-                disabled={busy}
-                onClick={beginOrderEdit}
-              >
-                책장 순서 편집
-              </ActionButton>
+              <>
+                {/* 버튼 하나가 `.preview-actions` 밖에 홀로 서 있어서 배경도 높이도
+                  받지 못했다. 글씨만 남은 버튼은 누를 수 있는 것으로 보이지 않는다. */}
+                {state.items.length > 1 && (
+                  <div className="preview-actions">
+                    <ActionButton
+                      variant="neutralWeak"
+                      disabled={busy}
+                      onClick={beginOrderEdit}
+                    >
+                      책장 순서 편집
+                    </ActionButton>
+                  </div>
+                )}
+                <ShelfViewSwitch />
+              </>
             )}
           </div>
         )}

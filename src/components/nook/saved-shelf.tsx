@@ -77,26 +77,45 @@ function prefersReducedMotion() {
  * gets no ellipsis from the browser, so the cut is made here instead of letting
  * a glyph be sliced in half.
  */
-/** 책등에 들어가는 글자 수. 책 높이에서 번호와 여백을 뺀 자리를 13px 세로쓰기로
- *  재서 얻은 값이다(160/176/190/204/218px → 139px일 때 12글자). 문장부호가 많은
- *  제목이 넘치지 않도록 실측보다 한 글자씩 덜 쓴다. */
+/** 책등 한 줄에 들어가는 칸 수(말줄임 한 칸 포함). 책 크기마다 글이 설 수 있는
+ *  높이를 실제로 재서 얻었다 — 세로쓰기는 글자마다 한 칸(13px)을 똑같이 쓰므로
+ *  높이를 칸 수로 나누면 그대로 나온다.
+ *
+ *    크기   책 높이   글 자리   재어 본 칸   쓰는 칸
+ *      1     160px     130px       10          9
+ *      2     176px     146px       11         10
+ *      3     191px     161px       12         11
+ *      4     206px     176px       13         12
+ *      5     220px     190px       15         14
+ *
+ *  글꼴이 늦게 붙거나 대체 글꼴로 그려질 때를 생각해 실측보다 한 칸씩 덜 쓴다. */
 export const SPINE_MAX_BY_SIZE: Record<number, number> = {
-  1: 8,
-  2: 9,
+  1: 9,
+  2: 10,
   3: 11,
   4: 12,
   5: 14,
 };
 
-export function clampSpineLabel(value: string, max = 9): string {
+/** 말줄임은 글자로 붙이지 않는다. 세로쓰기(`text-orientation: upright`)에서 `…`는
+ * 제 자리를 얻지 못하고 앞 글자 위에 겹쳐 그려진다 — 잘린 책등마다 마지막 글자에
+ * 점 세 개가 덧칠된 것처럼 보였다. 잘렸다는 사실만 넘기고, 표시는 한 칸짜리 상자로
+ * 따로 그린다. `max`는 그 상자까지 포함한 칸 수다. */
+export function clampSpine(
+  value: string,
+  max = 9,
+): { text: string; cut: boolean } {
   const text = value.trim();
-  if ([...text].length <= max) return text;
-  // 자른 끝이 공백이면 그 자리에서 줄이 바뀌어 `…`가 다음 열로 넘어간다. 세로쓰기의
-  // 다음 열은 왼쪽에 생기므로 말줄임이 글 위쪽에 따로 떠 있는 것처럼 보인다.
-  return `${[...text]
-    .slice(0, max - 1)
-    .join("")
-    .trimEnd()}…`;
+  if ([...text].length <= max) return { text, cut: false };
+  // 자른 끝이 공백이면 그 자리에서 줄이 바뀌어 말줄임이 다음 열로 넘어간다.
+  // 세로쓰기의 다음 열은 왼쪽에 생기므로 글 위쪽에 따로 떠 있는 것처럼 보인다.
+  return {
+    text: [...text]
+      .slice(0, max - 1)
+      .join("")
+      .trimEnd(),
+    cut: true,
+  };
 }
 
 /** Upright vertical text gives every character its own slot, which leaves a
@@ -120,6 +139,33 @@ export function spineTokens(label: string): { text: string; tcy: boolean }[] {
  */
 function jitterOf(index: number): number {
   return ((index * 7 + Math.floor(index / 5) * 3) % 10) + 1;
+}
+
+/** 책장으로 볼지 표지로 볼지 고르는 자리. 책장 위가 아니라 화면의 도구 줄에 선다 —
+ * 무엇을 볼지 고르는 일과 순서를 정리하는 일은 같은 줄에 있는 편이 찾기 쉽다.
+ * 고른 값은 SavedShelf와 같은 저장소를 읽으므로 둘이 어긋날 일이 없다. */
+export function ShelfViewSwitch() {
+  const view = useSyncExternalStore(subscribeView, readView, () => "shelf");
+  return (
+    <div className="shelf-view-switch" role="group" aria-label="보기 방식">
+      <button
+        type="button"
+        data-active={view === "shelf"}
+        aria-pressed={view === "shelf"}
+        onClick={() => writeView("shelf")}
+      >
+        <span aria-hidden="true">▯▯▯</span> 책장
+      </button>
+      <button
+        type="button"
+        data-active={view === "grid"}
+        aria-pressed={view === "grid"}
+        onClick={() => writeView("grid")}
+      >
+        <span aria-hidden="true">▤</span> 표지
+      </button>
+    </div>
+  );
 }
 
 export function SavedShelf({
@@ -167,25 +213,6 @@ export function SavedShelf({
 
   return (
     <div className="saved-shelf" data-view={view} data-opening={!!opening}>
-      <div className="shelf-view-switch" role="group" aria-label="보기 방식">
-        <button
-          type="button"
-          data-active={view === "shelf"}
-          aria-pressed={view === "shelf"}
-          onClick={() => writeView("shelf")}
-        >
-          <span aria-hidden="true">▯▯▯</span> 책장
-        </button>
-        <button
-          type="button"
-          data-active={view === "grid"}
-          aria-pressed={view === "grid"}
-          onClick={() => writeView("grid")}
-        >
-          <span aria-hidden="true">▤</span> 표지
-        </button>
-      </div>
-
       {view === "shelf" ? (
         <div className="bookshelf" aria-label="보관한 이야기 책장">
           {rows.map((row, rowIndex) => (
@@ -193,6 +220,10 @@ export function SavedShelf({
               <ul className="shelf-books">
                 {row.map((item, column) => {
                   const index = rowIndex * columns + column;
+                  const label = clampSpine(
+                    item.spine,
+                    SPINE_MAX_BY_SIZE[item.size ?? 3] ?? 11,
+                  );
                   return (
                     <li className="book-cell" key={item.id}>
                       <Link
@@ -207,12 +238,7 @@ export function SavedShelf({
                       >
                         <span className="book-spine">
                           <span className="book-spine-title">
-                            {spineTokens(
-                              clampSpineLabel(
-                                item.spine,
-                                SPINE_MAX_BY_SIZE[item.size ?? 3] ?? 11,
-                              ),
-                            ).map((token, position) => (
+                            {spineTokens(label.text).map((token, position) => (
                               <span
                                 className="spine-token"
                                 data-tcy={token.tcy || undefined}
@@ -221,6 +247,11 @@ export function SavedShelf({
                                 {token.text}
                               </span>
                             ))}
+                            {label.cut && (
+                              <span className="spine-cut" aria-hidden="true">
+                                …
+                              </span>
+                            )}
                           </span>
                           <span className="book-spine-number">
                             {String(offset + index + 1).padStart(2, "0")}

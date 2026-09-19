@@ -30,7 +30,6 @@ export default async function DrawerPage({
         : "sessions";
   return (
     <div className="nook-preview" data-sample={preview || undefined}>
-      {preview && <PreviewBand on />}
       <header className="preview-header">
         <Wordmark />
         <Link className="header-account" href="/login">
@@ -40,6 +39,7 @@ export default async function DrawerPage({
       <AppNavigation current="saved" />
       {consent === "notice" && <PolicyNotice version={POLICY_NOTICE_VERSION} />}
       <main id="main-content" className="preview-summary collection-workspace">
+        {preview && <PreviewBand on />}
         <PageHeading
           kicker="내가 남겨둔 이야기"
           title="생각 더미"

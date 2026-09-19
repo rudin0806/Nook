@@ -21,10 +21,8 @@ export default async function HomePage({
   if (consent === "reconsent") redirect("/consent");
   return (
     <div className="night-app" data-sample={preview || undefined}>
-      <PreviewBand on={preview} />
       <header className="app-header">
         <Wordmark />
-        <span className="app-header-note">생각을 위한 자리</span>
         <Link className="header-account" href="/login">
           내 정보
         </Link>
@@ -32,6 +30,7 @@ export default async function HomePage({
       <AppNavigation current="write" />
       {consent === "notice" && <PolicyNotice version={POLICY_NOTICE_VERSION} />}
       <main id="main-content" className="desk-main">
+        <PreviewBand on={preview} />
         <PageHeading
           kicker={preview ? "미리보기" : "새 대화"}
           title={
