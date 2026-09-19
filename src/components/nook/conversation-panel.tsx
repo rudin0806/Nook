@@ -13,7 +13,17 @@ import type {
 } from "@/schemas/conversation";
 import { SessionOrigin } from "./session-origin";
 import { ConversationRetention } from "./conversation-retention";
-export function ConversationPanel({ nodeId }: { nodeId: string }) {
+import { previewConversation } from "@/lib/example/preview";
+/** `preview`는 홈에서 켠 미리보기다. 표본을 그대로 그리고, 네트워크에 나가지 않으며,
+ *  쓰는 자리를 잠근다. 미리보기 전용 화면을 따로 만들지 않는 이유는 그렇게 하면
+ *  진짜 대화 화면과 조용히 갈라지기 때문이다. */
+export function ConversationPanel({
+  nodeId,
+  preview = false,
+}: {
+  nodeId: string;
+  preview?: boolean;
+}) {
   const [exitMode, setExitMode] = useState<"exit" | "closure" | null>(null);
   const ended = useRef(false);
   const exitOpen = useRef(false);
@@ -21,7 +31,9 @@ export function ConversationPanel({ nodeId }: { nodeId: string }) {
     exitOpen.current = true;
     setExitMode(mode);
   }
-  const [view, setView] = useState<ConversationView | null>(null);
+  const [view, setView] = useState<ConversationView | null>(
+    preview ? previewConversation : null,
+  );
   const [text, setText] = useState("");
   const [edit, setEdit] = useState<string | null>(null);
   const [notice, setNotice] = useState("");
@@ -37,6 +49,7 @@ export function ConversationPanel({ nodeId }: { nodeId: string }) {
   const messageElements = useRef(new Map<string, HTMLLIElement>());
   const currentPosition = useRef<HTMLDivElement>(null);
   useEffect(() => {
+    if (preview) return;
     alive.current = true;
     const c = new AbortController();
     void readConversation(nodeId, c.signal)
@@ -56,7 +69,7 @@ export function ConversationPanel({ nodeId }: { nodeId: string }) {
       alive.current = false;
       c.abort();
     };
-  }, [nodeId]);
+  }, [nodeId, preview]);
   useEffect(() => {
     if (wait <= 0) return;
     const timer = setTimeout(() => setWait((v) => Math.max(0, v - 1)), 1000);
@@ -170,7 +183,7 @@ export function ConversationPanel({ nodeId }: { nodeId: string }) {
     pending.current = body;
     void execute(body);
   }
-  const locked = busy || retry;
+  const locked = preview || busy || retry;
   const stopped = view?.mode === "STOP" || view?.mode === "HANDOFF";
   return (
     <section
@@ -183,7 +196,7 @@ export function ConversationPanel({ nodeId }: { nodeId: string }) {
           <header className="conversation-head">
             <p className="preview-kicker">지금 함께 보는 질문</p>
             <h1>{view.currentQuestion}</h1>
-            <SessionOrigin sessionId={view.sessionId} />
+            {!preview && <SessionOrigin sessionId={view.sessionId} />}
           </header>
           {/* The map of the thinking — where the question has been, what split
               off it, what became clear — stands beside the talking rather than
@@ -271,6 +284,11 @@ export function ConversationPanel({ nodeId }: { nodeId: string }) {
                 </ActionButton>
               </form>
             )}
+            {!exitMode && view.mode === "READY" && preview && (
+              <p className="preview-lock" role="note">
+                미리보기에서는 질문을 이어갈 수 없어요. <span>(예시)</span>
+              </p>
+            )}
             {!exitMode && view.mode === "SHIFT" && view.pending && (
               <form
                 onSubmit={(e) => {
@@ -318,7 +336,10 @@ export function ConversationPanel({ nodeId }: { nodeId: string }) {
                       ? "지나온 질문을 남기거나, 지금 질문에서 이야기를 이어갈 수 있어요."
                       : "여기까지 남겨도 좋고, 더 떠오르는 이야기를 이어가도 좋아요."}
                   </p>
-                  <ActionButton onClick={() => openExit("closure")}>
+                  <ActionButton
+                    disabled={preview}
+                    onClick={() => openExit("closure")}
+                  >
                     남기고 마치기
                   </ActionButton>
                   <ActionButton
@@ -460,7 +481,7 @@ export function ConversationPanel({ nodeId }: { nodeId: string }) {
       {/* One row, and one place. The live region between these two buttons is a
           block element, so as siblings of the section they could never sit on
           the same line however they were styled. */}
-      {!stopped && !exitMode && (
+      {!stopped && !exitMode && !preview && (
         <div className="conversation-exits">
           {/* The way out was called 나가기 and the reload 현재 기록 다시 확인 —
               두 라벨 모두 보관을 가리키지 않는데 `기록`은 이 제품에서 보관한

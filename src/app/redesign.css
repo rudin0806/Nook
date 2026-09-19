@@ -2522,3 +2522,42 @@ body {
   color: var(--nook-open-ink);
   font-weight: 600;
 }
+
+/* ── 미리보기 ──────────────────────────────────────────────────────────── */
+
+/* 켜고 끄는 스위치는 테마 고르기와 같은 줄의 도구라 같은 무게로 둔다. 포인트 컬러는
+   쓰지 않는다 — 미리보기는 내가 만든 것이 아니기 때문이다. */
+.preview-toggle {
+  margin: 0;
+}
+.preview-toggle a {
+  display: block;
+  padding: 11px 14px;
+  border: 1px solid var(--nook-line);
+  border-radius: 12px;
+  background: var(--nook-surface);
+  color: var(--nook-muted);
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+}
+.preview-toggle a:hover {
+  border-color: var(--nook-line-strong);
+  color: var(--nook-ink);
+}
+
+/* 잠긴 이유는 쓰는 자리가 있던 그 자리에서 읽혀야 한다. 입력칸을 지우고 안내만
+   남기면 무엇을 못 하는지가 아니라 무엇이 사라졌는지를 읽게 된다. */
+.preview-lock {
+  margin: 12px 0 0;
+  padding: 13px 15px;
+  border: 1px dashed var(--nook-line-strong);
+  border-radius: 12px;
+  color: var(--nook-muted);
+  font-size: 14px;
+  text-align: center;
+}
+.preview-lock span {
+  color: var(--nook-subtle);
+}

@@ -5,13 +5,17 @@ import { z } from "zod";
 import { savedSessionListItemSchema } from "@/schemas/retention";
 import { savedStorySchema } from "@/schemas/saved-story";
 import { NookIcon } from "./nook-icon";
+import { previewBooks } from "@/lib/example/preview";
 type Book = { id: string; title: string; nodes: number };
-export function ShelfPreview() {
+export function ShelfPreview({ preview = false }: { preview?: boolean }) {
   const [guest, setGuest] = useState(false);
   const [empty, setEmpty] = useState(false);
-  const [books, setBooks] = useState<Book[]>([]);
-  const [status, setStatus] = useState("책장을 불러오고 있어요.");
+  const [books, setBooks] = useState<Book[]>(preview ? previewBooks : []);
+  const [status, setStatus] = useState(
+    preview ? "" : "책장을 불러오고 있어요.",
+  );
   useEffect(() => {
+    if (preview) return;
     const c = new AbortController();
     async function load() {
       try {
@@ -64,7 +68,7 @@ export function ShelfPreview() {
     }
     void load();
     return () => c.abort();
-  }, []);
+  }, [preview]);
   return (
     <section className="shelf-panel" aria-label="생각 더미 미리보기">
       <div className="panel-heading">
@@ -72,7 +76,10 @@ export function ShelfPreview() {
           <NookIcon name="pile" tone="lime" tile />
           <h2>생각 더미</h2>
         </div>
-        <Link className="quiet-link" href="/drawer">
+        <Link
+          className="quiet-link"
+          href={preview ? "/drawer?preview=1" : "/drawer"}
+        >
           전체 보기
         </Link>
       </div>
@@ -80,7 +87,7 @@ export function ShelfPreview() {
         {books.map((book) => (
           <Link
             key={book.id}
-            href={`/drawer/${book.id}`}
+            href={preview ? "/drawer?preview=1" : `/drawer/${book.id}`}
             className="shelf-book"
             data-height={
               book.nodes <= 1 ? "small" : book.nodes <= 3 ? "medium" : "large"

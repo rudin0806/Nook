@@ -11,6 +11,7 @@ import { NookIcon } from "./nook-icon";
 
 export function ThoughtInput({
   enabled = false,
+  preview = false,
   initialThought = "",
   initialView,
   initialSessionId,
@@ -20,6 +21,8 @@ export function ThoughtInput({
   onExpandedChange,
 }: {
   enabled?: boolean;
+  /** 잠긴 이유가 준비 중이 아니라 미리보기일 때. 안내 문구만 달라진다. */
+  preview?: boolean;
   initialThought?: string;
   initialView?: StartView;
   initialSessionId?: string;
@@ -152,7 +155,9 @@ export function ThoughtInput({
             <p id="writing-availability">
               {enabled
                 ? "첫 질문은 확인한 뒤 기록해요."
-                : "대화 연결 준비 중이에요. 입력은 전송·저장되지 않아요."}
+                : preview
+                  ? "미리보기에서는 새 대화를 시작할 수 없어요. 끄면 바로 쓸 수 있어요."
+                  : "대화 연결 준비 중이에요. 입력은 전송·저장되지 않아요."}
             </p>
             <ActionButton
               type="submit"

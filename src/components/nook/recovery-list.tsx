@@ -6,13 +6,24 @@ import { recoveryPageSchema, type RecoveryItem } from "@/schemas/recovery";
 import { CardNavigation } from "./card-navigation";
 import { NookIcon } from "./nook-icon";
 import { formatSeoulDeadline } from "@/lib/format/datetime";
-export function RecoveryList() {
+import { previewRecovery, PREVIEW_EXPIRES_AT } from "@/lib/example/preview";
+export function RecoveryList({ preview = false }: { preview?: boolean }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const [selected, setSelected] = useState(0);
-  const [items, setItems] = useState<RecoveryItem[]>([]),
+  const [items, setItems] = useState<RecoveryItem[]>(
+      preview
+        ? previewRecovery.map((r) => ({
+            id: r.id,
+            status: "ACTIVE" as const,
+            expiresAt: PREVIEW_EXPIRES_AT,
+            nodeId: r.nodeId,
+            question: r.question,
+          }))
+        : [],
+    ),
     [more, setMore] = useState(false),
     [notice, setNotice] = useState("");
-  const [busy, setBusy] = useState(true),
+  const [busy, setBusy] = useState(!preview),
     [now, setNow] = useState(() => Date.now());
   const lock = useRef(false),
     alive = useRef(true);
@@ -51,13 +62,14 @@ export function RecoveryList() {
   }
   useEffect(() => {
     alive.current = true;
+    if (preview) return;
     void load(0);
     const timer = setInterval(() => setNow(Date.now()), 30000);
     return () => {
       alive.current = false;
       clearInterval(timer);
     };
-  }, []);
+  }, [preview]);
   const visible = items.filter((i) => Date.parse(i.expiresAt) > now);
   const activeIndex = Math.min(selected, Math.max(0, visible.length - 1));
   const current = visible[activeIndex];
@@ -187,7 +199,13 @@ export function RecoveryList() {
                     {formatSeoulDeadline(current.expiresAt)}까지 이어갈 수
                     있어요.
                   </p>
-                  <Link href={`/resume/${current.id}`}>
+                  <Link
+                    href={
+                      preview
+                        ? `/talk/${current.nodeId}?preview=1`
+                        : `/resume/${current.id}`
+                    }
+                  >
                     {current.nodeId
                       ? "이 대화 이어가기 ›"
                       : "여기서 이어 적기 ›"}

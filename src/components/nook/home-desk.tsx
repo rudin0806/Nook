@@ -4,13 +4,20 @@ import { ThoughtInput } from "./thought-input";
 import { RecoveryList } from "./recovery-list";
 import { ThemeControl } from "./theme-control";
 import { ShelfPreview } from "./shelf-preview";
+import { PreviewToggle } from "./preview-toggle";
 
 /** The desk has one job at a time. Writing is the job, so when the person is
  * writing the page gives the whole width to it and the side column steps out;
  * clicking anywhere else brings it back. The state lives here rather than in
  * ThoughtInput because it is the grid that changes, not the panel.
  */
-export function HomeDesk({ enabled }: { enabled: boolean }) {
+export function HomeDesk({
+  enabled,
+  preview = false,
+}: {
+  enabled: boolean;
+  preview?: boolean;
+}) {
   const [expanded, setExpanded] = useState(false);
   const surface = useRef<HTMLDivElement>(null);
 
@@ -41,15 +48,17 @@ export function HomeDesk({ enabled }: { enabled: boolean }) {
     <div className="home-bento" data-expanded={expanded || undefined}>
       <div className="home-writing" ref={surface}>
         <ThoughtInput
-          enabled={enabled}
+          enabled={enabled && !preview}
+          preview={preview}
           expanded={expanded}
           onExpandedChange={setExpanded}
         />
       </div>
       <aside className="home-aside" inert={expanded}>
         <ThemeControl />
-        <ShelfPreview />
-        <RecoveryList />
+        <PreviewToggle on={preview} />
+        <ShelfPreview preview={preview} />
+        <RecoveryList preview={preview} />
       </aside>
     </div>
   );

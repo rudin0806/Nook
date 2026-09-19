@@ -5,13 +5,25 @@
  * whose point is that there is still time left.
  */
 export function formatSeoulDeadline(value: string | Date) {
-  return new Date(value).toLocaleString("ko-KR", {
+  // `오전`/`오후`를 ICU에 맡기지 않는다. 같은 `ko-KR`, 같은 옵션인데 Node는
+  // `9월 20일 PM 6:00`, 브라우저는 `9월 20일 오후 6:00`을 낸다(Node ICU 78.2 실측).
+  // 서버에서 그린 글자와 클라이언트가 그린 글자가 달라 하이드레이션이 깨지므로,
+  // 숫자만 ICU에서 받고 나머지는 직접 조립한다. 숫자는 판마다 흔들리지 않는다.
+  const parts = new Intl.DateTimeFormat("ko-KR", {
     timeZone: "Asia/Seoul",
-    month: "long",
+    month: "numeric",
     day: "numeric",
-    hour: "numeric",
+    hour: "2-digit",
     minute: "2-digit",
-  });
+    hourCycle: "h23",
+  }).formatToParts(new Date(value));
+  const find = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((part) => part.type === type)?.value ?? "";
+  const hour24 = Number(find("hour"));
+  const hour12 = hour24 % 12 === 0 ? 12 : hour24 % 12;
+  return `${Number(find("month"))}월 ${Number(find("day"))}일 ${
+    hour24 < 12 ? "오전" : "오후"
+  } ${hour12}:${find("minute")}`;
 }
 
 /** 남은 기간은 날짜가 아니라 날 수로 읽힌다.
