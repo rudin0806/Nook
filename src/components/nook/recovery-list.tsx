@@ -183,7 +183,10 @@ export function RecoveryList() {
                       : "첫 질문을 정하기 전에 적은 생각"}
                   </span>
                   <h3>{current.question}</h3>
-                  <p>{formatSeoulDeadline(current.expiresAt)}까지 이어갈 수 있어요.</p>
+                  <p>
+                    {formatSeoulDeadline(current.expiresAt)}까지 이어갈 수
+                    있어요.
+                  </p>
                   <Link href={`/resume/${current.id}`}>
                     {current.nodeId
                       ? "이 대화 이어가기 ›"

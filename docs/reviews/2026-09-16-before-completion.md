@@ -27,33 +27,33 @@
 
 ## 6개 작업의 실제 상태
 
-| 항목 | GitHub 구현 | 운영 반영 | 검증 근거 / 남은 범위 |
-| --- | --- | --- | --- |
-| 1. 프롬프트 실제 응답 최소 확인 → 배포 | claim-fidelity 프롬프트·평가기·테스트 있음 | 이전 작업의 운영 배포 완료 기록 있음 | 사용자가 전달한 5개 실제 응답 검토 완료 기록 유지. 이번 실사에서 모델 재호출하지 않음. 같은 평가를 다시 미구현으로 분류하지 않음 |
-| 2. 대화 시작 → 종료 → 저장 | UI·시작/승인/대화/보관 API·DB RPC 구현됨 | 해당 코드가 운영 배포 묶음에 포함됨 | 이전 실제 대화 실행·보관 데이터·로그인된 목록 조회 증거 있음. 이것을 모든 실패/익명/OAuth/복원 경로 통과로 확대하지 않음. 미구현 아님 |
-| 3. 노드 클릭 → 과거 대화 → 현재 복귀 | 구현·GitHub 보존 완료 | 복구 후 운영 재배포 완료 | 이전 작업 보고에 12/12 회귀, 운영 이동/복귀·모바일 2열·키보드·모션 감소·Anchor 지원 확인. 이번에 재실행하지 않았다는 이유로 완료 이력을 취소하지 않음 |
-| 4. 책장 드래그·순서 편집·저장 | 한 권 이동 방식으로 재구현. 50권 상한 제거, 페이징 노출 | **DB는 적용 완료, 앱은 재배포 안 됨** | 독립 Postgres에서 60권 이동 회귀 통과(`shelf_order.sql`). 실제 브라우저 다중 이동·재접속 정렬 미검증. 결함 3의 revision 비교는 여전히 없음 |
-| 5. 책 상세 탐색·카드 넘김 고도화 | 기본 상세 조회·구간 페이지 이동·질문 재시작 있음 | 기본 구현 배포됨 | **선행 결함(상세 조회 schema)은 `81ab2c8`에서 해결됐다.** 내부 질문/구간 탐색·카드 전환 모션·모바일/키보드·reduced-motion은 아직 구현 안 됨. 여기가 다음 착수 지점이다 |
-| 6. 닉네임·익명→로그인 후 저장 복귀 | Google OAuth/linkIdentity·동일 사용자 검사·익명 생성 기반 있음 | 인증 기반 코드 배포됨 | 닉네임 편집은 없음. 로그인 성공은 /drawer 고정 이동, 보관 UI는 새 창 로그인 링크만 제공. 원래 보관 화면 자동 복귀·선택 유지 미구현 |
+| 항목                                   | GitHub 구현                                                    | 운영 반영                             | 검증 근거 / 남은 범위                                                                                                                                                  |
+| -------------------------------------- | -------------------------------------------------------------- | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. 프롬프트 실제 응답 최소 확인 → 배포 | claim-fidelity 프롬프트·평가기·테스트 있음                     | 이전 작업의 운영 배포 완료 기록 있음  | 사용자가 전달한 5개 실제 응답 검토 완료 기록 유지. 이번 실사에서 모델 재호출하지 않음. 같은 평가를 다시 미구현으로 분류하지 않음                                       |
+| 2. 대화 시작 → 종료 → 저장             | UI·시작/승인/대화/보관 API·DB RPC 구현됨                       | 해당 코드가 운영 배포 묶음에 포함됨   | 이전 실제 대화 실행·보관 데이터·로그인된 목록 조회 증거 있음. 이것을 모든 실패/익명/OAuth/복원 경로 통과로 확대하지 않음. 미구현 아님                                  |
+| 3. 노드 클릭 → 과거 대화 → 현재 복귀   | 구현·GitHub 보존 완료                                          | 복구 후 운영 재배포 완료              | 이전 작업 보고에 12/12 회귀, 운영 이동/복귀·모바일 2열·키보드·모션 감소·Anchor 지원 확인. 이번에 재실행하지 않았다는 이유로 완료 이력을 취소하지 않음                  |
+| 4. 책장 드래그·순서 편집·저장          | 한 권 이동 방식으로 재구현. 50권 상한 제거, 페이징 노출        | **DB는 적용 완료, 앱은 재배포 안 됨** | 독립 Postgres에서 60권 이동 회귀 통과(`shelf_order.sql`). 실제 브라우저 다중 이동·재접속 정렬 미검증. 결함 3의 revision 비교는 여전히 없음                             |
+| 5. 책 상세 탐색·카드 넘김 고도화       | 기본 상세 조회·구간 페이지 이동·질문 재시작 있음               | 기본 구현 배포됨                      | **선행 결함(상세 조회 schema)은 `81ab2c8`에서 해결됐다.** 내부 질문/구간 탐색·카드 전환 모션·모바일/키보드·reduced-motion은 아직 구현 안 됨. 여기가 다음 착수 지점이다 |
+| 6. 닉네임·익명→로그인 후 저장 복귀     | Google OAuth/linkIdentity·동일 사용자 검사·익명 생성 기반 있음 | 인증 기반 코드 배포됨                 | 닉네임 편집은 없음. 로그인 성공은 /drawer 고정 이동, 보관 UI는 새 창 로그인 링크만 제공. 원래 보관 화면 자동 복귀·선택 유지 미구현                                     |
 
 완료율 %를 제시하지 않는다. 기능 수와 통합 검증 수준이 다르며, “코드 있음 / 운영 배포됨 / 사용자 흐름 검증됨”은 서로 다른 상태다.
 
 ## GitHub에 이미 기록된 기능 지도
 
-| 영역 | 구현 내용 | 대표 코드 |
-| --- | --- | --- |
-| 시작 | 입력·초점 선택·시작 질문 생성·수정/승인 | src/components/nook/thought-input.tsx, src/app/api/start/, src/engine/start-flow.ts |
-| 대화 | Safety→Judge→C/D, SHIFT 승인/거절, 종료/구간 전환 | src/app/api/conversation/route.ts, src/lib/api/conversation.ts, src/engine/conversation.ts |
-| 노드 이동 | 메시지 연결, 선택 노드 재클릭 복귀, Anchor | src/components/nook/conversation-panel.tsx, src/lib/api/conversation-context.ts, src/schemas/conversation.ts |
-| 보관 | 남기기/버리기, Branch 별도 선택, 휴지통·복원·질문 삭제 | src/components/nook/conversation-retention.tsx, src/lib/supabase/retention.ts, src/app/api/sessions/ |
-| 복귀 | 임시 대화 목록·승인 전 제안 복구·세션 복귀 | src/components/nook/recovery-list.tsx, src/components/nook/resume-panel.tsx, src/app/api/recovery/ |
-| 연결 재시작 | 승인 질문·남긴 질문·초기 입력에서 새 세션, 출처 링크 | src/app/restart/, src/components/nook/restart-panel.tsx, src/components/nook/session-origin.tsx |
-| 책장 정렬 | drag/drop, 위/아래 버튼, 취소/저장 | src/components/nook/drawer-contents.tsx, src/app/api/sessions/order/route.ts |
-| 상세 | 승인 노드·유효 clarification·10구간씩 조회 | src/components/nook/saved-story-contents.tsx, src/lib/retention/story-query.ts |
-| 인증 | Google UI, Kakao 내부 어댑터, PKCE·identity linking·로그아웃·오류 구분 | src/lib/auth/, src/app/api/auth/, src/components/nook/account-panel.tsx |
-| 익명 기반 | CAPTCHA 토큰 요구·서버 생성·동일 사용자 검증 | src/lib/auth/anonymous.ts, src/lib/supabase/anonymous.ts |
-| 자동 정리 기반 | secret·환경·활성화 조건을 확인하는 실행 API | src/app/api/cron/retention/route.ts, src/lib/retention/maintenance.ts |
-| 평가·가드 | 모델 allowlist·출력 검증·요청 제한·환경 점검 | src/engine/, src/prompts/, scripts/, tests/, supabase/tests/ |
+| 영역           | 구현 내용                                                              | 대표 코드                                                                                                    |
+| -------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| 시작           | 입력·초점 선택·시작 질문 생성·수정/승인                                | src/components/nook/thought-input.tsx, src/app/api/start/, src/engine/start-flow.ts                          |
+| 대화           | Safety→Judge→C/D, SHIFT 승인/거절, 종료/구간 전환                      | src/app/api/conversation/route.ts, src/lib/api/conversation.ts, src/engine/conversation.ts                   |
+| 노드 이동      | 메시지 연결, 선택 노드 재클릭 복귀, Anchor                             | src/components/nook/conversation-panel.tsx, src/lib/api/conversation-context.ts, src/schemas/conversation.ts |
+| 보관           | 남기기/버리기, Branch 별도 선택, 휴지통·복원·질문 삭제                 | src/components/nook/conversation-retention.tsx, src/lib/supabase/retention.ts, src/app/api/sessions/         |
+| 복귀           | 임시 대화 목록·승인 전 제안 복구·세션 복귀                             | src/components/nook/recovery-list.tsx, src/components/nook/resume-panel.tsx, src/app/api/recovery/           |
+| 연결 재시작    | 승인 질문·남긴 질문·초기 입력에서 새 세션, 출처 링크                   | src/app/restart/, src/components/nook/restart-panel.tsx, src/components/nook/session-origin.tsx              |
+| 책장 정렬      | drag/drop, 위/아래 버튼, 취소/저장                                     | src/components/nook/drawer-contents.tsx, src/app/api/sessions/order/route.ts                                 |
+| 상세           | 승인 노드·유효 clarification·10구간씩 조회                             | src/components/nook/saved-story-contents.tsx, src/lib/retention/story-query.ts                               |
+| 인증           | Google UI, Kakao 내부 어댑터, PKCE·identity linking·로그아웃·오류 구분 | src/lib/auth/, src/app/api/auth/, src/components/nook/account-panel.tsx                                      |
+| 익명 기반      | CAPTCHA 토큰 요구·서버 생성·동일 사용자 검증                           | src/lib/auth/anonymous.ts, src/lib/supabase/anonymous.ts                                                     |
+| 자동 정리 기반 | secret·환경·활성화 조건을 확인하는 실행 API                            | src/app/api/cron/retention/route.ts, src/lib/retention/maintenance.ts                                        |
+| 평가·가드      | 모델 allowlist·출력 검증·요청 제한·환경 점검                           | src/engine/, src/prompts/, scripts/, tests/, supabase/tests/                                                 |
 
 익명 생성 모듈의 존재가 실제 CAPTCHA UI 연결·공급자 설정·익명 공개 운영 검증 완료를 의미하지 않는다. Cron API 존재도 예약 등록·정상 실행을 의미하지 않는다.
 
@@ -100,21 +100,21 @@ command: select public.purge_expired_sessions();
 
 함수가 실제로 하는 일(`settle_retention_for_user`): 계정이 연결된 사용자의 만료된 임시 대화는 삭제가 아니라 `COMPLETED + TRASHED`로 옮기고 `purge_after = 만료시각 + 7일`을 준다. 익명 사용자의 만료 임시 대화, Safety로 멈춘 세션, 휴지통에서 기한이 지난 것은 hard delete한다. 아직 실제 만료 데이터가 발생한 뒤의 실행 이력은 관찰하지 않았다.
 
-| 이름 | 원격 버전 |
-| --- | --- |
-| nook_core_schema | 20260912000918 |
-| nook_access_and_retention | 20260912000940 |
-| fix_temporary_expiry_nullable | 20260912001339 |
-| harden_retention_rls_and_indexes | 20260912011744 |
-| validate_final_branch_sources | 20260913003147 |
-| ai_request_admission | 20260914090858 |
-| approve_start_question | 20260914090912 |
-| start_api_persistence | 20260914093022 |
-| conversation_runtime | 20260915015038 |
-| session_recovery_and_restart | 20260915015057 |
-| closure_choice | 20260915123746 |
-| saved_session_shelf_order | 20260916063642 |
-| move_saved_session | 이번 적용 (13번째) |
+| 이름                             | 원격 버전          |
+| -------------------------------- | ------------------ |
+| nook_core_schema                 | 20260912000918     |
+| nook_access_and_retention        | 20260912000940     |
+| fix_temporary_expiry_nullable    | 20260912001339     |
+| harden_retention_rls_and_indexes | 20260912011744     |
+| validate_final_branch_sources    | 20260913003147     |
+| ai_request_admission             | 20260914090858     |
+| approve_start_question           | 20260914090912     |
+| start_api_persistence            | 20260914093022     |
+| conversation_runtime             | 20260915015038     |
+| session_recovery_and_restart     | 20260915015057     |
+| closure_choice                   | 20260915123746     |
+| saved_session_shelf_order        | 20260916063642     |
+| move_saved_session               | 이번 적용 (13번째) |
 
 저장소 정렬 파일명은 20260916050000_saved_session_shelf_order.sql이다. 파일명과 원격 버전 차이를 알고 적용 이력을 대조해야 하며 중복 적용하지 않는다. 보안 advisor 경고는 이전 점검에 남아 있으며 “DB 적용 완료”가 “보안 경고 0”을 뜻하지 않는다.
 
@@ -131,16 +131,16 @@ command: select public.purge_expired_sessions();
 
 팔레트를 페리윙클 주색으로 재정의하고 앰비언트 광원을 제거했다. 값과 사용 규칙은 [디자인 문서](design/README.md)가 기준이다. 조명을 켤 수 있게 되면서 드러난 다크 전용 하드코딩과 UX 결함을 함께 고쳤다.
 
-| 고친 것 | 내용 |
-| --- | --- |
-| 메뉴 | 좌측 사이드바 → **상단탭**(선택 탭 밑줄). 모바일은 하단바 유지 |
-| h1 중복 | 한 페이지에 h1이 둘이었다. 카드 제목을 h2로 내렸다 |
-| 비로그인 책장 | "로그인하면 볼 수 있어요"만 있고 갈 곳이 없었다. `계정 연결하기` 링크를 넣었다 |
-| 모바일 하단바 | `globals.css:818`이 `#202323` 하드코딩이라 라이트에서 검은 바였다. 토큰화하고 불투명하게 |
-| 로그인 좌측 패널 | `.account-art`가 근검정 하드코딩이라 라이트에서 검은 슬래브였다. 분할 레이아웃 자체를 없애고 단일 중앙 카드로 재구성 |
-| 로그인 브랜드 마크 | 헤더 워드마크·`n.`·`MY LITTLE NOOK` 셋이 경쟁했다. 하나만 남겼다 |
-| 레거시 토큰 | 새 팔레트가 `--nook-gold/mint/peach`를 정의에서 빼자 `/talk`·`/drawer`·`/login`이 옛 다크 값으로 떨어졌다. 새 팔레트에 매핑했다 |
-| 예시 칩 | 사용자 요청으로 제거. **PRD §4·§19에는 아직 칩이 명세돼 있어 모순이 열려 있다** |
+| 고친 것            | 내용                                                                                                                            |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
+| 메뉴               | 좌측 사이드바 → **상단탭**(선택 탭 밑줄). 모바일은 하단바 유지                                                                  |
+| h1 중복            | 한 페이지에 h1이 둘이었다. 카드 제목을 h2로 내렸다                                                                              |
+| 비로그인 책장      | "로그인하면 볼 수 있어요"만 있고 갈 곳이 없었다. `계정 연결하기` 링크를 넣었다                                                  |
+| 모바일 하단바      | `globals.css:818`이 `#202323` 하드코딩이라 라이트에서 검은 바였다. 토큰화하고 불투명하게                                        |
+| 로그인 좌측 패널   | `.account-art`가 근검정 하드코딩이라 라이트에서 검은 슬래브였다. 분할 레이아웃 자체를 없애고 단일 중앙 카드로 재구성            |
+| 로그인 브랜드 마크 | 헤더 워드마크·`n.`·`MY LITTLE NOOK` 셋이 경쟁했다. 하나만 남겼다                                                                |
+| 레거시 토큰        | 새 팔레트가 `--nook-gold/mint/peach`를 정의에서 빼자 `/talk`·`/drawer`·`/login`이 옛 다크 값으로 떨어졌다. 새 팔레트에 매핑했다 |
+| 예시 칩            | 사용자 요청으로 제거. **PRD §4·§19에는 아직 칩이 명세돼 있어 모순이 열려 있다**                                                 |
 
 ### 남은 UI 작업
 

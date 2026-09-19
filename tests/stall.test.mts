@@ -1,10 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import {
-  isStalled,
-  replyLength,
-  STALL_ABSOLUTE,
-} from "../src/engine/stall.ts";
+import { isStalled, replyLength, STALL_ABSOLUTE } from "../src/engine/stall.ts";
 
 const ai = (text: string) => ({ role: "assistant" as const, text });
 const me = (text: string) => ({ role: "user" as const, text });

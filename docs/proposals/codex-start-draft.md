@@ -8,12 +8,12 @@ Prompt A는 입력 분류와 여러 고민 사이의 초점 확인을 담당한�
 
 A 호출은 Safety CONTINUE 이후에만 한다. 후보 질문을 만드는 것과 사용자가 질문을 확정하는 것은 별도 단계다.
 
-| A 결과 | 다음 동작 |
-|---|---|
-| NEEDS_INFO | 정보 확인 방향 안내. Node 0 생성하지 않음 |
-| CLEAR_AS_IS | 원문 질문 표시, 사용자 선택 대기 |
-| REFRAME_NEEDED + focus_required=false | Node 0 생성기 호출 후 사용자 확인 |
-| REFRAME_NEEDED + focus_required=true | A의 확인 질문 한 번 표시, Node 0 생성 보류 |
+| A 결과                                | 다음 동작                                  |
+| ------------------------------------- | ------------------------------------------ |
+| NEEDS_INFO                            | 정보 확인 방향 안내. Node 0 생성하지 않음  |
+| CLEAR_AS_IS                           | 원문 질문 표시, 사용자 선택 대기           |
+| REFRAME_NEEDED + focus_required=false | Node 0 생성기 호출 후 사용자 확인          |
+| REFRAME_NEEDED + focus_required=true  | A의 확인 질문 한 번 표시, Node 0 생성 보류 |
 
 확인 질문에 사용자가 답하면 그 답도 먼저 Safety를 통과한다. 선택이 여전히 불명확하면 자동으로 중심을 선택하지 않는다. 재확인 반복 대신 사용자 직접 입력/선택을 기다리는 방식을 제안한다.
 
@@ -148,13 +148,13 @@ NEEDS_INFO/CLEAR_AS_IS를 표시할 때 언제 세션을 생성·완료시키는
 
 추가 후보:
 
-| 입력 | 기대 |
-|---|---|
-| 이직도 고민이고 친구한테 서운한 것도 있어. 뭐부터 말할지 모르겠어. | REFRAME_NEEDED, focus_required=true |
-| 이직도 고민이고 친구한테 서운한 것도 있지만 이직부터 이야기할래. | REFRAME_NEEDED, focus_required=false, 이직 중심 |
-| 머릿속이 복잡해 | REFRAME_NEEDED, focus_required=false, 주제 추정 금지 |
-| 노트북 두 개 사양을 비교해줘 | NEEDS_INFO, 제품 답변 생성 금지 |
-| 노트북을 살 돈은 있는데 사고도 안 쓸까 봐 망설여져 | REFRAME_NEEDED, 소비 성향 해석 금지 |
+| 입력                                                               | 기대                                                 |
+| ------------------------------------------------------------------ | ---------------------------------------------------- |
+| 이직도 고민이고 친구한테 서운한 것도 있어. 뭐부터 말할지 모르겠어. | REFRAME_NEEDED, focus_required=true                  |
+| 이직도 고민이고 친구한테 서운한 것도 있지만 이직부터 이야기할래.   | REFRAME_NEEDED, focus_required=false, 이직 중심      |
+| 머릿속이 복잡해                                                    | REFRAME_NEEDED, focus_required=false, 주제 추정 금지 |
+| 노트북 두 개 사양을 비교해줘                                       | NEEDS_INFO, 제품 답변 생성 금지                      |
+| 노트북을 살 돈은 있는데 사고도 안 쓸까 봐 망설여져                 | REFRAME_NEEDED, 소비 성향 해석 금지                  |
 
 초점 없는 장문·출력 지시 주입·확인 응답의 위험 발화·승인 중복 요청은 별도 회귀로 추가한다. 입력 프롬프트에 있는 예시는 개발용이고 실제 성능 검증은 별도 작성한 사례로 해야 한다.
 

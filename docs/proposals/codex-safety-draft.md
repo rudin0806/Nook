@@ -20,7 +20,7 @@ context는 서버가 보유한 실제 사용자 발화만 전달한다. AI가 �
 출력은 아래 두 필드만 허용한다.
 
 ```json
-{"label":"NONE","category":"NONE"}
+{ "label": "NONE", "category": "NONE" }
 ```
 
 label: NONE / AMBIGUOUS / HIGH_RISK
@@ -71,11 +71,11 @@ category null, THIRD_PARTY_RISK, MENTAL_HEALTH_CARE는 사용하지 않는다.
 
 기존 safety_mapping.json으로 허용 조합을 검증하고 behavior를 조회한다. 분류기 자체가 반환한 behavior나 연락처는 받지 않는다.
 
-| 매핑 결과 | 실행·저장 |
-|---|---|
-| CONTINUE | Message 저장 후 일반 엔진 진행 |
-| HANDOFF | Message 저장, Judge/D/Node 생성 중단, HANDOFF_STOPPED |
-| STOP | 해당 위험 발화 원문을 Message/Judge Log에 저장하지 않음, SAFETY_STOPPED |
+| 매핑 결과 | 실행·저장                                                               |
+| --------- | ----------------------------------------------------------------------- |
+| CONTINUE  | Message 저장 후 일반 엔진 진행                                          |
+| HANDOFF   | Message 저장, Judge/D/Node 생성 중단, HANDOFF_STOPPED                   |
+| STOP      | 해당 위험 발화 원문을 Message/Judge Log에 저장하지 않음, SAFETY_STOPPED |
 
 분류 실패·잘못된 JSON·모델 시간 초과는 **분류 성공이 아니다**. 일반 엔진을 실행하지 않고 재시도 안내 상태로 두는 방식을 제안한다. 모델 실패를 사용자 위험으로 기록하지 않는다. 요청 본문·원문 포함 오류를 앱 로그/분석/에러 추적에 남기지 않는다. SDK store:false는 외부 제공자의 모든 보존을 없앤다는 뜻이 아니다.
 
@@ -83,11 +83,11 @@ category null, THIRD_PARTY_RISK, MENTAL_HEALTH_CARE는 사용하지 않는다.
 
 기존 원문·label·behavior는 유지하고 다음 category만 최신 계약에 맞춘다. 원본 eval/safety.jsonl에는 아직 적용하지 않았다.
 
-| 케이스 | 기존 | 제안 |
-|---|---|---|
-| S-01~S-06 | null | NONE |
-| S-14 | THIRD_PARTY_RISK | SUICIDE_SELF_HARM |
-| S-15 | MENTAL_HEALTH_CARE | GENERAL_MENTAL_HEALTH |
+| 케이스    | 기존               | 제안                  |
+| --------- | ------------------ | --------------------- |
+| S-01~S-06 | null               | NONE                  |
+| S-14      | THIRD_PARTY_RISK   | SUICIDE_SELF_HARM     |
+| S-15      | MENTAL_HEALTH_CARE | GENERAL_MENTAL_HEALTH |
 
 S-14 contact의 '친구에게 전달할 수 있도록' 문구는 RULES §9.3과 충돌하므로 제거한다. contact 문자열을 임의로 재작성하기보다 mapping을 기준으로 안내 문구 테스트를 별도 둔다. label/category 채점과 사용자 안내문 채점을 합치지 않는다.
 

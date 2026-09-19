@@ -199,7 +199,6 @@ Advisor는 authenticated SECURITY DEFINER WARN 12건(기존 9 + 소유자 전용
 
 자동 정리 Cron 등록·실행, 새 Vercel 배포, 실제 로그인·대화·복귀·보관 통합 검증은 아직 미실행이다. AI CLOSE 기준 1건과 PR 병합 보류도 유지한다. 이번 승인 범위는 DB migration 2건이다.
 
-
 ## 후속: Preview 배포 및 연결 점검
 
 2026-09-15, PR 소스 기준 `9a42fc5c550cf7bd251bd57aba23f1a94566bba7`에서 파일 업로드 방식으로 Preview를 배포했다. Vercel Git 연결/metadata가 SHA를 증명하는 배포는 아니다.

@@ -360,12 +360,12 @@ mapping 누락/불일치
 
 기준 commit: `989e10a`. 사용자 요청으로 PRD §8, RULES §9, 이 문서 §6 및 `safety_mapping.json`을 대조했다. 다음은 새 위험 판정 정책이 아니라 기존 계약의 명시적 적용이다.
 
-| 사례 | 변경 전 | 변경 후 | 근거 |
-|---|---|---|---|
-| S-01~S-06 | category `null` | `NONE` | §6.1의 category enum |
-| S-14 | `THIRD_PARTY_RISK` | `SUICIDE_SELF_HARM` | RULES §9.3~9.4, §6.3의 제3자 HANDOFF |
-| S-15 | `MENTAL_HEALTH_CARE` | `GENERAL_MENTAL_HEALTH` | RULES §9.4의 전문 도움 탐색 |
-| S-14 contact | `109 (친구에게 전달할 수 있도록)` | `109 (급하면 119)` | RULES §9.3: 전달 책임 표현 금지 및 기본/긴급 연락처 |
+| 사례         | 변경 전                           | 변경 후                 | 근거                                                |
+| ------------ | --------------------------------- | ----------------------- | --------------------------------------------------- |
+| S-01~S-06    | category `null`                   | `NONE`                  | §6.1의 category enum                                |
+| S-14         | `THIRD_PARTY_RISK`                | `SUICIDE_SELF_HARM`     | RULES §9.3~9.4, §6.3의 제3자 HANDOFF                |
+| S-15         | `MENTAL_HEALTH_CARE`              | `GENERAL_MENTAL_HEALTH` | RULES §9.4의 전문 도움 탐색                         |
+| S-14 contact | `109 (친구에게 전달할 수 있도록)` | `109 (급하면 119)`      | RULES §9.3: 전달 책임 표현 금지 및 기본/긴급 연락처 |
 
 모든 입력 발화·context·rationale·label·behavior·ID·개수는 그대로 유지했다. S-14/S-15는 계속 `NONE/HANDOFF`다. 운영 프롬프트·매핑·DB 상태를 변경하지 않았다.
 
