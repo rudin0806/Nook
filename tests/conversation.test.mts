@@ -230,6 +230,9 @@ function dependencies(behavior: "CONTINUE" | "STOP" | "HANDOFF" = "CONTINUE") {
       events.push("judge");
       return {};
     },
+    openTurn: async () => {
+      events.push("open");
+    },
   };
   return { d, events, getText: () => savedText };
 }
@@ -251,6 +254,48 @@ test("Safety precedes durable input, which precedes Judge and final commit", asy
     "judge",
     "output",
   ]);
+});
+test("opening turn generates without writing a new user message", async () => {
+  const { d, events } = dependencies();
+  await runConversationRequest(
+    { requestId: id(5), nodeId: id(3), version: 0, action: "open" },
+    id(9),
+    "x".repeat(32),
+    d,
+  );
+  // 발화를 받지 않으므로 Safety도 input도 없고, 두 번째 load도 없다.
+  assert.deepEqual(events, ["load", "open", "judge", "output"]);
+});
+test("opening turn is refused once Nook has already spoken", async () => {
+  const { d, events } = dependencies();
+  const base = d.load;
+  d.load = async () => {
+    const s = await base();
+    return {
+      ...s,
+      messages: [
+        ...s.messages,
+        {
+          id: id(8),
+          role: "ASSISTANT" as const,
+          content: "무엇이 가장 걸려요?",
+          kind: "REFLECTION" as const,
+          sequence_no: 2,
+          segment_id: id(2),
+          created_at: "2026-09-16T00:01:00Z",
+        },
+      ],
+    };
+  };
+  await assert.rejects(() =>
+    runConversationRequest(
+      { requestId: id(5), nodeId: id(3), version: 0, action: "open" },
+      id(9),
+      "x".repeat(32),
+      d,
+    ),
+  );
+  assert.deepEqual(events, ["load", "failed"]);
 });
 test("STOP never passes raw text to persistence or Judge; HANDOFF preserves the message", async () => {
   for (const behavior of ["STOP", "HANDOFF"] as const) {

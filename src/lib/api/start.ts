@@ -14,6 +14,7 @@ import { createOpenAIClient } from "@/lib/openai/server";
 import { getStartEnvironment } from "@/lib/env/server";
 import { ensureConversationActor } from "@/lib/supabase/anonymous";
 import { createAdmissionContext } from "./ai-admission";
+import { createStageTimer } from "./stage-timing";
 
 export async function startConversation(
   input: z.infer<typeof startRequestSchema>,
@@ -41,7 +42,11 @@ export async function startConversation(
         if (source.error) throw new Error("START_SOURCE_INVALID");
         restartSourceViewSchema.parse(source.data);
       }
-      return createServerStartFlow(input.thought, options).start();
+      return createServerStartFlow(
+        input.thought,
+        options,
+        createStageTimer(context.admin),
+      ).start();
     },
     (result, token, fingerprint) =>
       commit(context, {

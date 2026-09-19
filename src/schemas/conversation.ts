@@ -6,7 +6,11 @@ export const conversationRequestSchema = z
     requestId: z.uuid(),
     nodeId: z.uuid(),
     version: z.number().int().nonnegative(),
-    action: z.enum(["reply", "approve", "reject", "finish", "continue"]),
+    /** `open`은 세션의 첫 되묻기를 만든다. 질문을 확정한 직후 화면에는 사용자가
+     *  처음 적은 생각만 있고 누크의 말이 없는데, 거기서 사용자가 한 번 더 적어야
+     *  대화가 시작되는 것은 물어 놓고 기다리게 하는 흐름이다. 새 발화를 받지
+     *  않으므로 `text`가 없다. */
+    action: z.enum(["reply", "open", "approve", "reject", "finish", "continue"]),
     text: z.string().trim().min(1).max(1000).optional(),
   })
   .superRefine((v, c) => {

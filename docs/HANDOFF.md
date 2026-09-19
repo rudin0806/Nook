@@ -87,6 +87,19 @@
 
 `/example`은 그 이전에 만든 별도 정적 라우트로 남아 있다. 홈에서 링크하지 않는다.
 
+## 첫 질문에서 대화까지
+
+- **확인과 대화 사이에 화면을 두지 않는다.** 질문을 확인하면 `/talk`로 바로 간다.
+  `router.push`라서 뒤로 가면 홈이다.
+- **첫 되묻기는 화면이 청한다.** `ConversationPanel`이 마운트될 때 Nook의 발화가 없으면
+  `open` 액션을 **한 번** 보낸다. 실패해도 다시 보내지 않는다 — 되묻기 하나가 유료
+  호출이므로 자동 반복이 비용이 된다. 실패하면 입력란이 그대로 있다.
+- **`open`은 새 발화를 받지 않는다.** 그래서 `input` 단계가 없고,
+  `commit_conversation_step`의 `output`이 요구하는 `last_request`를
+  `begin_conversation_opening`이 먼저 옮겨 준다. 본 함수는 그대로 두었다 — 400줄을 다시
+  적는 대신 작은 함수를 더하는 쪽이 바꾸는 면이 작다.
+- 이 경로는 **세션당 한 번**이다. 엔진과 DB 양쪽에서 `ASSISTANT 발화 없음`을 확인한다.
+
 ## 이 작업 환경의 제약
 
 - **`api.openai.com`은 닿는다**(2026-09-19). 환경의 API credential에 키가 들어 있어
@@ -104,7 +117,9 @@
   환경변수 값 복호화는 막혀 있어 **설정값을 읽을 수 없다** — 무엇이 걸려 있는지는
   `judge_logs.model_name`처럼 DB에 남은 흔적으로 역추적한다. 그래서 운영에서 관찰할
   값은 Vercel 런타임 로그가 아니라 DB에 남긴다. 단계 지연이 `ai_stage_timings`에 있는
-  이유이고, 사람이 대시보드를 열어 복붙하지 않아도 된다.
+  이유이고, 사람이 대시보드를 열어 복붙하지 않아도 된다. 단계 계측은
+  `lib/api/stage-timing.ts` 한 곳이고 대화 턴과 `/api/start`가 함께 쓴다 — 새 경로를
+  재려면 `createStageTimer(admin)`을 넘긴다.
 - 엔진(`src/engine/`)은 순수 함수이고 `JsonTransport`만 받는다. 키가 닿는 환경에서는
   DB·Next.js 없이 운영과 같은 프롬프트를 돌릴 수 있다.
 
@@ -115,7 +130,7 @@
 
 ```bash
 npm run validate
-node --experimental-strip-types --test tests/*.test.mts   # 172개
+node --experimental-strip-types --test tests/*.test.mts   # 174개
 npm run eval:validate            # fixture 계약. 개수 가드가 있다
 npm run eval:judge:validate      # Judge 계약. 모델 호출 없음
 npm run format:check             # CI에는 없다

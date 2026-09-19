@@ -46,6 +46,7 @@ export function ConversationPanel({
   const [bornMessageId, setBornMessageId] = useState<string | null>(null);
   const bornTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pending = useRef<string | null>(null);
+  const opened = useRef(false);
   const lock = useRef(false);
   const alive = useRef(true);
   const messageElements = useRef(new Map<string, HTMLLIElement>());
@@ -78,6 +79,21 @@ export function ConversationPanel({
     const timer = setTimeout(() => setWait((v) => Math.max(0, v - 1)), 1000);
     return () => clearTimeout(timer);
   }, [wait]);
+  /** 질문을 확정하고 들어온 자리에는 처음 적은 생각만 있고 누크의 말이 없다. 물어
+   *  놓고 기다리게 하지 않도록 첫 되묻기를 여기서 바로 청한다. 사용자가 한 번 더
+   *  적어야 대화가 시작되던 것이 이 화면이 어색했던 이유다.
+   *
+   *  한 번만 보낸다. 실패해도 다시 청하지 않는 것은 되묻기 하나가 유료 호출이고,
+   *  실패한 자리에서 자동으로 반복하면 사용자가 모르는 채로 비용이 쌓이기 때문이다.
+   *  그때는 아래 입력란이 그대로 있으므로 사용자가 이어서 적으면 된다. */
+  useEffect(() => {
+    if (preview || opened.current || !view) return;
+    if (view.mode !== "READY") return;
+    if (view.messages.some((message) => message.role === "ASSISTANT")) return;
+    opened.current = true;
+    act("open");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view, preview]);
   function scrollTo(element: HTMLElement | null) {
     if (!element) return;
     const reducedMotion = window.matchMedia(

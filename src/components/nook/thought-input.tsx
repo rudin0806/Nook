@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ActionButton, TextField } from "@seed-design/react";
 import { ConversationRetention } from "./conversation-retention";
 import type { StartView } from "@/lib/start/client";
@@ -44,10 +45,17 @@ export function ThoughtInput({
   const setExpanded = onExpandedChange ?? setOwnExpanded;
   const flow = useStartConversation(initialView, initialSessionId);
   const { view, locked } = flow;
+  const router = useRouter();
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
     if (view.kind !== "input") heading.current?.focus();
   }, [view.kind]);
+  /** 질문을 확정하면 대화로 간다. 사이에 "기록했어요 → 이어가기" 한 화면이 있었는데,
+   *  사용자가 방금 확정을 눌러 뜻을 밝힌 자리에서 같은 뜻을 한 번 더 누르게 하는
+   *  화면이라 흐름이 끊겼다. push라서 뒤로 가면 홈이다. */
+  useEffect(() => {
+    if (view.kind === "approved") router.push(`/talk/${view.nodeId}`);
+  }, [view, router]);
   const waitLabel =
     flow.waitSeconds >= 3600
       ? `약 ${Math.ceil(flow.waitSeconds / 3600)}시간 뒤`
@@ -106,7 +114,7 @@ export function ThoughtInput({
               : view.kind === "focus"
                 ? "무엇부터 볼까요?"
                 : view.kind === "approved"
-                  ? "첫 질문을 기록했어요."
+                  ? "대화를 여는 중이에요"
                   : "잠시 살펴봐요."}
         </h2>
       </div>
@@ -261,11 +269,11 @@ export function ThoughtInput({
       )}
       {view.kind === "approved" && (
         <div className="start-response">
-          <p>
-            확인한 질문이 기록됐어요. 지금 떠오르는 이야기를 이어갈 수 있어요.
-          </p>
+          <p role="status">확인한 질문으로 대화를 열고 있어요.</p>
+          {/* 이동이 막힌 브라우저를 위한 대비. 정상 흐름에서는 위 effect가 먼저
+              옮겨 가므로 이 줄이 보이는 시간은 한순간이다. */}
           <Link href={`/talk/${view.nodeId}`} className="editorial-link">
-            이 질문으로 이야기 이어가기 ↗
+            열리지 않으면 여기를 눌러 주세요 ↗
           </Link>
         </div>
       )}

@@ -27,6 +27,7 @@
 | ---------------------- | ----------------------------------------------------------------------- |
 | 프롬프트·엔진          | 운영 완료. Prompt D와 Node Zero를 고치고 fixture로 검증했다             |
 | 시작 → 종료 → 보관     | 운영 완료. 익명 시작은 hCaptcha 통과 후                                 |
+| 첫 질문 → 대화 진입    | 확인하면 대화가 바로 열리고 Nook이 첫 되묻기를 건다. 중간 화면 없음     |
 | 노드 이동·Shift        | 운영 완료                                                               |
 | 대화 화면              | 말하는 자리 + 질문 지도 두 단. 폰은 질문 → 대화 → 지도 한 단            |
 | 생각 더미              | 세 탭(내 서랍 · 이어갈 대화 · 휴지통), 전부 목록. 알림은 토스트         |
@@ -59,6 +60,13 @@
   네 줄이고, `GENERATE`에서 `judge_logs.latency_ms`를 빼면 생성 단계가 떨어진다. 모델
   호출을 추가하지 않고 이미 일어나는 호출의 시간만 잰다. 발화·사용자·세션은 담지 않고
   `anon`·`authenticated`에 권한이 없다. 같은 값이 표준 출력에도 `nook_stage`로 나간다.
+- **첫 되묻기는 Nook이 건다.** 질문을 확인하면 `/talk`로 바로 이동하고(중간 확인 화면
+  없음), 대화 화면이 사용자가 처음 적은 생각을 재료로 `open` 요청을 한 번 보낸다. 새
+  발화를 받지 않으므로 `input` 단계가 없고, `commit_conversation_step`의 `output`이
+  기대하는 자리는 `begin_conversation_opening`이 만든다 — 리스·소유권·`READY`·
+  **ASSISTANT 발화 없음**을 확인한 뒤 `last_request`만 옮기고 version은 건드리지 않는다.
+  400줄짜리 본 함수를 다시 적지 않으려고 작은 함수로 뺐다. 세션당 한 번뿐이고 실패해도
+  자동 재시도하지 않는다.
 - **되묻기 정체는 코드가 센다.** `src/engine/stall.ts`가 마지막 두 사용자 발화 길이를
   그 사람의 앞선 중앙값과 비교해 `stalled` boolean을 만들고, Judge와 Prompt D에 그것만
   넘긴다. 사용자 상태를 추정하지 않는다. 임계값은 코드 상수이며 실제 세션으로 조정한다.
@@ -99,6 +107,8 @@
 ## DB·동시성
 
 - 운영 적용 migration: 16건 + 동의/탈퇴/재가입/노드 제한/책 크기 관련 migration.
+  2026-09-19 `begin_conversation_opening` 적용 완료. 새 함수 하나뿐이고 기존 함수·테이블·
+  데이터는 건드리지 않는다. `anon`·`authenticated`에 EXECUTE가 없음을 적용 후 확인했다.
 - `saved_thought_sessions.shelf_revision`: RLS 적용 단일 SELECT snapshot의 전체 책장
   ID/자리 fingerprint. 단조 증가 revision이 아니므로, 다른 탭 변경 뒤 순서가 원래와
   완전히 같아졌다면 충돌로 보지 않는다.
@@ -108,7 +118,7 @@
 
 ## 검증
 
-- 단위 테스트 **172/172**, PGlite migration suite **36 PASS**, `npm run validate` exit 0.
+- 단위 테스트 **174/174**, PGlite migration suite **36 PASS**, `npm run validate` exit 0.
 - 유료 모델 호출 **0회**. `npm run eval -- --dry`, `eval:judge:validate`만 실행.
 - UI 실측(Chromium, 로컬 프로덕션 빌드, 데스크톱 1280·1440 / 모바일 390):
   가로 오버플로 0, 0×0 아이콘 0개, h1 전부 `desk-greeting` 34/27px,
@@ -116,6 +126,16 @@
   처리방침은 접힌 상태 1.9화면(이전 5.5), 약관 1.1화면.
   대화 화면은 1440에서 스트림 752px / 지도 300px, 390에서 첫 메시지 y268 · 지도 y869.
   빈 상태 일러스트 셋은 폭 85px에 같은 바닥선, 하단 고정 탭 여유 9px.
+- **첫 질문까지의 지연**(운영 실측, `ai_requests.created_at` → `RAW_THOUGHT.created_at`):
+  8,167 / 8,691 / 18,490 / **11,935**ms. 마지막이 `icn1` 이전 뒤 값이다. `/api/start` 한
+  번에 모델 호출이 넷(Moderation · Safety classifier · START · NODE_ZERO)이고 넷 다
+  순차다 — Safety Gate가 대화 엔진보다 먼저여야 하므로 병렬로 묶을 수 없다. 어느 호출이
+  이 시간을 쓰는지는 아직 모른다. 그래서 대화 턴과 같은 계측을 `/api/start`에도 붙였고
+  (`ai_stage_timings`의 `SAFETY` / `START` / `NODE_ZERO`), **대화 한 번이면 분해가 나온다.**
+  줄일 수 있는 자리는 등급과 effort이며 값은 Vercel 환경변수에 있다.
+- **질문 확인(`/api/start/approve`)은 178~2,064ms다.** 사용자가 질문을 고치지 않으면
+  Safety Gate를 돌지 않기 때문이다(`finalText !== receipt.question`일 때만 호출).
+  최근 값 178ms는 DB 왕복뿐이다.
 - **지연**: 운영 실측(2026-09-18, effort `high`)은 한 턴 평균 15.3초였다. 재연 실측
   (2026-09-19)은 `sol/medium + sol/medium`에서 19,020ms, 새 조합에서 **6,306ms**다.
   재연은 모델 대기만 재므로 DB·네트워크가 빠져 있다. 운영 전체 분해는 `ai_stage_timings`가
@@ -138,8 +158,9 @@
    고른 질문을 어디서 다시 만나게 할지는 제품 결정이라 손대지 않았다.
    `/api/branch-questions`와 `listKeptBranchQuestions`도 부르는 화면 없이 남아 있다.
 3. **운영 지연 재측정.** `ai_stage_timings`가 아직 0행이다. 계측 배포(`1b7192a`,
-   08:03 UTC)보다 마지막 대화(07:22 UTC)가 빨랐다. 새 조합으로 대화 한 번이면
-   턴 전체 시간과 `LOAD / SAFETY / GENERATE / COMMIT` 분해가 한꺼번에 나온다.
+   08:03 UTC)보다 마지막 대화(07:22 UTC)가 빨랐다. 대화 한 번이면 `/api/start`의
+   `SAFETY / START / NODE_ZERO`와 대화 턴의 `LOAD / SAFETY / GENERATE / COMMIT`이
+   한꺼번에 나온다. 첫 질문이 8~18초인데 그중 어느 호출이 긴지가 아직 없는 값이다.
 4. ~~이야기 상세(`/drawer/:id`) UI 미점검~~ **점검 완료**(2026-09-19). `/api/sessions/:id/story`와
    `/origin`을 목으로 넣어 1440·390, 라이트·다크로 실측했다. 네 가지를 고쳤다 — 동의
    게이트가 없어 재동의 사용자가 목록은 막히고 상세는 열리던 것, 앱 화면 중 유일하게
@@ -165,6 +186,7 @@
 
 | SHA       | 내용                                                                |
 | --------- | ------------------------------------------------------------------- |
+| `PENDING` | 확인 → 대화 직행, Nook이 거는 첫 되묻기, `/api/start` 단계 계측     |
 | `9941eee` | 한 기둥에서 시작하는 여백, 토스트 알림, 책등 세 가지                |
 | `9f0e62c` | 지나온 질문이 어디로 데려가는지 보이게                              |
 | `97d3fd2` | 문서를 지금 상태에 맞춤                                             |
