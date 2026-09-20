@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { judgeInputSchema, judgeOutputSchema } from "./judge.ts";
-import { questionTypeSchema } from "./reflect.ts";
+import { questionScopeSchema, questionTypeSchema } from "./reflect.ts";
 export const conversationRequestSchema = z
   .strictObject({
     requestId: z.uuid(),
@@ -10,7 +10,14 @@ export const conversationRequestSchema = z
      *  처음 적은 생각만 있고 누크의 말이 없는데, 거기서 사용자가 한 번 더 적어야
      *  대화가 시작되는 것은 물어 놓고 기다리게 하는 흐름이다. 새 발화를 받지
      *  않으므로 `text`가 없다. */
-    action: z.enum(["reply", "open", "approve", "reject", "finish", "continue"]),
+    action: z.enum([
+      "reply",
+      "open",
+      "approve",
+      "reject",
+      "finish",
+      "continue",
+    ]),
     text: z.string().trim().min(1).max(1000).optional(),
   })
   .superRefine((v, c) => {
@@ -57,6 +64,8 @@ export const conversationStateSchema = z.object({
     })
     .nullable(),
   last_question_type: questionTypeSchema.nullable(),
+  /** 연달아 나간 DETAIL 질문의 수. 모델이 붙인 scope 라벨을 DB가 센다(RULES 8.3). */
+  detail_streak: z.number().int().min(0).max(9).default(0),
   carryover: judgeInputSchema.shape.carryover,
 });
 export const conversationSnapshotSchema = z.object({
@@ -116,6 +125,8 @@ export const conversationPlanSchema = z.object({
   kind: z.enum(["REFLECT", "SHIFT", "CLOSE", "STRUCTURAL", "FINISH"]),
   question: z.string().max(1000).optional(),
   type: questionTypeSchema.optional(),
+  /** REFLECT에서만 온다. 커밋 payload로 그대로 넘어가 DB가 연속 횟수를 센다. */
+  scope: questionScopeSchema.optional(),
   evidence_sentence: z.string().max(1000).optional(),
   evidence_ids: z.array(z.uuid()).max(10).default([]),
   promoted_branch_id: z.uuid().nullable().default(null),

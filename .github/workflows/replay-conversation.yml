@@ -1,0 +1,45 @@
+name: Conversation replay
+
+# 운영에서 보고된 대화를 실제 모델로 다시 태워 본다. 고정 fixture의 합격/불합격이
+# 아니라 질문이 어떻게 나오는지를 눈으로 보는 용도다. 유료 호출이므로 수동으로만 돈다.
+on:
+  workflow_dispatch:
+    inputs:
+      case:
+        description: 사례 (lizard | company | drift | gecko)
+        required: true
+        default: drift
+        type: choice
+        options:
+          - lizard
+          - company
+          - drift
+          - gecko
+
+permissions:
+  contents: read
+
+concurrency:
+  group: conversation-replay
+  cancel-in-progress: false
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Typecheck lint and build before paid calls
+        run: npm run validate
+      - name: Replay the reported conversation
+        env:
+          OPENAI_API_KEY: ${{ secrets.AI_API_KEY }}
+        run: node --experimental-strip-types scripts/replay-conversation.mts --case=${{ inputs.case }}

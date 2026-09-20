@@ -143,6 +143,7 @@ export async function planConversationTurn(
         [...turns].reverse().find((t) => t.role === "assistant")?.text ?? null,
       stalled: input.stalled ?? false,
       confused: input.confused ?? false,
+      detail_streak: snapshot.state.detail_streak,
       turns: input.turns,
       carryover: input.carryover.map((c) => ({ turn: c.turn, text: c.text })),
     },

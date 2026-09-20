@@ -79,11 +79,16 @@ test("PAST is blocked by used quota or immediately preceding PAST", () => {
     assert.ok(r.user.includes("past_allowed: false"));
     assert.throws(
       () =>
-        r.validateOutput({ question: "전에 그런 적 있어요?", type: "PAST" }),
+        r.validateOutput({
+          scope: "DETAIL",
+          question: "전에 그런 적 있어요?",
+          type: "PAST",
+        }),
       /PAST_NOT_ALLOWED/,
     );
     assert.equal(
       r.validateOutput({
+        scope: "CENTER",
         question: "그때와 지금은 뭐가 달라요?",
         type: "COMPARE",
       }).type,
@@ -92,6 +97,7 @@ test("PAST is blocked by used quota or immediately preceding PAST", () => {
   }
   assert.equal(
     prepareReflection(judge(), context()).validateOutput({
+      scope: "CENTER",
       question: "전에 산 것이 있어요?",
       type: "PAST",
     }).type,
@@ -104,9 +110,16 @@ test("no Node 0 and malformed output cannot enter regular reflection", () => {
   );
   const r = prepareReflection(judge(), context());
   for (const out of [
-    { question: "", type: "PRESENT" },
-    { question: "언제예요?", type: "OTHER" },
-    { question: "언제예요?", type: "PRESENT", lead_in: "그렇군요" },
+    { scope: "CENTER", question: "", type: "PRESENT" },
+    { scope: "CENTER", question: "언제예요?", type: "OTHER" },
+    { scope: "OTHER", question: "언제예요?", type: "PRESENT" },
+    { question: "언제예요?", type: "PRESENT" },
+    {
+      scope: "CENTER",
+      question: "언제예요?",
+      type: "PRESENT",
+      lead_in: "그렇군요",
+    },
   ])
     assert.throws(() => r.validateOutput(out));
 });
@@ -147,4 +160,36 @@ test("keyword diagnostics do not reject legitimate frequency question D-08", () 
     "HEDGE_INDUCING_ENDING",
   ]);
   // No flags is not proof of semantic compliance.
+});
+
+test("the detail streak is counted by code, not by the model's memory", () => {
+  // 한계에 닿기 전에는 지시하지 않는다.
+  for (const streak of [0, 1]) {
+    const r = prepareReflection(judge(), {
+      ...context(),
+      detail_streak: streak,
+    });
+    assert.ok(r.user.includes(`detail_streak: ${streak}`));
+    assert.ok(r.user.includes("must_return_to_center: false"));
+    assert.ok(!r.user.includes("중심 질문의 말로 묻고 scope를 CENTER로"));
+  }
+  // 넘기지 않으면 지금까지와 같이 동작한다.
+  assert.ok(
+    prepareReflection(judge(), context()).user.includes(
+      "must_return_to_center: false",
+    ),
+  );
+  // 연달아 두 번 내려갔으면 다음은 중심으로 돌아오라고 시킨다.
+  const r = prepareReflection(judge(), { ...context(), detail_streak: 2 });
+  assert.ok(r.user.includes("must_return_to_center: true"));
+  assert.ok(r.user.includes("중심 질문의 말로 묻고 scope를 CENTER로 적는다."));
+  // 지시는 입력에만 있다. 되묻기 한 번이 유료 호출이라 출력으로 턴을 깨지 않는다.
+  assert.equal(
+    r.validateOutput({
+      scope: "DETAIL",
+      question: "그 일이 언제였어요?",
+      type: "PRESENT",
+    }).scope,
+    "DETAIL",
+  );
 });

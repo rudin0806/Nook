@@ -146,7 +146,11 @@
 
 ## 검증
 
-- 단위 테스트 **179/179**, PGlite migration suite **36 PASS**, `npm run validate` exit 0.
+- 단위 테스트 **181/181**, PGlite migration suite **36 PASS**, `npm run validate` exit 0.
+- **세부 되묻기 연쇄는 아직 실제 모델로 검증하지 않았다.** `detail_streak` 배선은 단위
+  테스트로 막았지만(저장된 라벨이 Prompt D까지 닿는지, `scope`가 커밋 payload로
+  넘어가는지), 모델이 `scope`를 정직하게 붙이는지와 `must_return_to_center: true`를
+  실제로 따르는지는 `replay-conversation` 워크플로의 `drift`·`gecko` 사례로 확인한다.
 - **START·Safety 평가 통과**(2026-09-20, GitHub Actions 수동 실행, 15+17 fixture,
   실제 모델). `start-v2.1`의 자기 능력 경계와 `info_guidance` 문체 변경이 기존 라벨을
   깨지 않았다.
@@ -218,6 +222,7 @@
 
 | SHA       | 내용                                                                 |
 | --------- | -------------------------------------------------------------------- |
+| (이번)    | 세부로 내려간 횟수를 DB가 세고, 힘들었던 일의 사실을 캐묻지 않는다   |
 | `669934e` | 내 정보 순서·내 계정 칸, 미리보기 생각 더미 표본, 잠긴 칸·다이얼로그 |
 | `c4fdf51` | 확인 → 대화 직행, Nook이 거는 첫 되묻기, `/api/start` 단계 계측      |
 | `9941eee` | 한 기둥에서 시작하는 여백, 토스트 알림, 책등 세 가지                 |

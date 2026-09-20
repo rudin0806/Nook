@@ -32,7 +32,7 @@ export async function loadConversation(auth: SupabaseClient, nodeId: string) {
     auth
       .from("conversation_runtime")
       .select(
-        "version,mode,pending,last_question_type,carryover,dismissed_closure",
+        "version,mode,pending,last_question_type,detail_streak,carryover,dismissed_closure",
       )
       .eq("session_id", sessionId)
       .maybeSingle(),
@@ -105,6 +105,7 @@ export async function loadConversation(auth: SupabaseClient, nodeId: string) {
             mode: "FINISHED",
             pending: null,
             last_question_type: null,
+            detail_streak: 0,
             carryover: [],
           }
         : (rr.data ?? {
@@ -112,6 +113,7 @@ export async function loadConversation(auth: SupabaseClient, nodeId: string) {
             mode: "READY",
             pending: null,
             last_question_type: null,
+            detail_streak: 0,
             carryover: [],
           }),
   });

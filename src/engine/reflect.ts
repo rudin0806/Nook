@@ -5,6 +5,10 @@ import {
 } from "../schemas/reflect.ts";
 import { REFLECT_SYSTEM, buildReflectUser } from "../prompts/prompt-reflect.ts";
 
+/** 세부로 연달아 내려갈 수 있는 횟수. 이 값에 닿으면 다음은 중심 질문으로 돌아온다.
+ *  RULES 8.3과 Prompt D 4.6이 같은 수를 본다. */
+export const REFLECT_DETAIL_LIMIT = 2;
+
 // Pure adapter only. The caller must first pass Safety, explicit-control and
 // structural gates. This module does not call a model or mutate DB counters.
 export function prepareReflection(rawJudge: unknown, rawContext: unknown) {
@@ -26,8 +30,12 @@ export function prepareReflection(rawJudge: unknown, rawContext: unknown) {
     throw new Error("EVIDENCE_UNAVAILABLE");
   const pastAllowed =
     context.past_probe_count === 0 && context.last_question_type !== "PAST";
+  // 세부로 내려간 질문이 연달아 한계에 닿으면 다음 질문은 중심으로 돌아온다.
+  // 모델이 자기 과거 질문을 세게 하지 않는다. 저장된 라벨을 코드가 센다.
+  const mustReturnToCenter = context.detail_streak >= REFLECT_DETAIL_LIMIT;
   const input = {
     ...context,
+    must_return_to_center: mustReturnToCenter,
     shift_confidence: judge.shift_confidence as "MEDIUM" | "LOW",
     evidence_turns: judge.evidence_turns,
     medium_reason: judge.medium_reason,

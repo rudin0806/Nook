@@ -2,7 +2,11 @@ import { z } from "zod";
 import { mediumReasonSchema } from "./judge.ts";
 export type MediumReason = z.infer<typeof mediumReasonSchema>;
 export const questionTypeSchema = z.enum(["PRESENT", "PAST", "COMPARE"]);
+/** 질문이 중심 질문에 닿는지, 그 아래 세부로 내려가는지. 모델이 라벨만 내고
+ *  연속 횟수를 세는 것과 돌아오라고 시키는 것은 코드가 한다(RULES 8.3). */
+export const questionScopeSchema = z.enum(["CENTER", "DETAIL"]);
 export const reflectOutputSchema = z.strictObject({
+  scope: questionScopeSchema,
   question: z.string().trim().min(1),
   type: questionTypeSchema,
 });
@@ -18,6 +22,9 @@ export const reflectContextSchema = z.strictObject({
   stalled: z.boolean().default(false),
   /** 코드가 센 값(RULES 8.2). 방금의 질문이 닿지 않았다고 사용자가 직접 쓴 경우. */
   confused: z.boolean().default(false),
+  /** 코드가 센 값(RULES 8.3). 직전까지 DETAIL이 연달아 몇 번 나갔는가.
+   *  모델의 기억이 아니라 저장된 라벨을 센 것이다. */
+  detail_streak: z.number().int().min(0).max(9).default(0),
   current_clarifications: z.array(
     z.strictObject({ id: z.string(), text: z.string().min(1) }),
   ),

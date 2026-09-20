@@ -17,7 +17,10 @@ export async function GET() {
         userId: data.user?.id ?? null,
         // 어떤 계정으로 들어와 있는지 화면이 말할 수 있어야 한다. 자기 계정을
         // 자기에게 돌려주는 값이라 새로 수집하는 것은 없다.
-        email: data.user && !data.user.is_anonymous ? (data.user.email ?? null) : null,
+        email:
+          data.user && !data.user.is_anonymous
+            ? (data.user.email ?? null)
+            : null,
         provider: data.user?.app_metadata?.provider ?? null,
         nickname: readNickname(data.user?.user_metadata.nickname),
         state:

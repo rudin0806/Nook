@@ -75,6 +75,7 @@ function snapshot() {
       mode: "READY",
       pending: null,
       last_question_type: null,
+      detail_streak: 0,
       carryover: [],
     },
   });
@@ -84,6 +85,7 @@ test("REFLECT routes through Judge then D and preserves no-store bounded request
   const replies = [
     low,
     {
+      scope: "CENTER",
       question:
         "새 회사에서도 같은 일을 할까 봐 고민되는 건 어떤 점 때문인가요?",
       type: "PRESENT",
@@ -104,6 +106,8 @@ test("REFLECT routes through Judge then D and preserves no-store bounded request
   );
   assert.equal(calls, 2);
   assert.equal(plan.kind, "REFLECT");
+  // scope는 커밋 payload로 그대로 넘어가야 한다. DB가 이 라벨로 연속 횟수를 센다.
+  assert.equal(plan.scope, "CENTER");
   assert.equal(plan.turnIds.U1, id(4));
 });
 test("SHIFT produces only a proposal with trusted evidence references", async () => {
@@ -173,6 +177,7 @@ test("Reflection rejects a second past probe and multi-question output", async (
       executeReflection(low, context, config, async () => ({
         status: "completed",
         output_text: JSON.stringify({
+          scope: "CENTER",
           question: "예전에는 어땠나요?",
           type: "PAST",
         }),
@@ -184,6 +189,7 @@ test("Reflection rejects a second past probe and multi-question output", async (
       executeReflection(low, context, config, async () => ({
         status: "completed",
         output_text: JSON.stringify({
+          scope: "CENTER",
           question: "언제인가요? 왜인가요?",
           type: "PRESENT",
         }),
@@ -373,6 +379,7 @@ test("continuing preserves the declined closure context outside the current wind
         calls++ === 0
           ? low
           : {
+              scope: "CENTER",
               question: "업무에서 더 살펴보고 싶은 부분은 무엇인가요?",
               type: "PRESENT",
             },
@@ -381,4 +388,31 @@ test("continuing preserves the declined closure context outside the current wind
   });
   assert.equal(plan.kind, "REFLECT");
   assert.equal(calls, 2);
+});
+
+test("the stored detail streak reaches Prompt D", async () => {
+  const base = snapshot();
+  const raw = {
+    ...base,
+    state: { ...base.state, detail_streak: 2 },
+  };
+  let seen = "";
+  let calls = 0;
+  await planConversationTurn(raw, options, async (request) => {
+    const text = (request.input[0].content[0] as { text: string }).text;
+    if (calls++ === 1) seen = text;
+    return {
+      status: "completed",
+      output_text: JSON.stringify(
+        calls === 1
+          ? low
+          : {
+              scope: "CENTER",
+              question: "지금 가장 걸리는 게 뭐예요?",
+              type: "PRESENT",
+            },
+      ),
+    };
+  });
+  assert.ok(seen.includes("must_return_to_center: true"));
 });

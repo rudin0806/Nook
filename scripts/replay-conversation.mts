@@ -55,6 +55,41 @@ const CASES = {
       "업무에 대한 지식을 배우고 싶다는 점이, 회사를 잘 다닐 수 있을지와는 어떻게 이어져요?",
     ],
   },
+  // 2026-09-20 보고. 중심 질문에서 성취 → 배울 점 → 책임감 있는 업무로 세 번
+  // 내려가며 질문이 멀어졌다. 사용자는 세 번째를 보고 "이 질문을 왜 하지?"라고 했다.
+  drift: {
+    question: "나는 회사를 잘 다닐 수 있을까?",
+    users: [
+      "내가 회사를 잘 다닐 수 있을까?",
+      "회사얘기 좀 더 해보자",
+      "지금 회사는 안정적이라, 일도 적고 편하게 일하기 좋아",
+      "성취, 같이 일하는 사람들이 열정적으로 일하는 것",
+      "거기서 배우는 점이 생기겠지?",
+      "책임감 있는 업무",
+    ],
+    observed: [
+      "회사를 잘 다닐 수 있을지 생각할 때, 지금 가장 걸리는 장면은 뭐예요?",
+      "업무 지식을 배우는 것 말고도 지금 회사를 계속 다니게 할 이유가 뭐예요?",
+      "지금처럼 안정적이고 일이 적은 환경이 이어져도 회사를 잘 다니고 있다고 느끼려면 무엇이 있어야 해요?",
+      "지금 회사에서 성취를 얻고 같이 일하는 사람들이 열정적으로 일한다면, 배우는 것이 없다는 점은 어떻게 달라져요?",
+      "지금 회사에서 배우는 점이 생겼다고 보려면 어떤 업무를 맡고 있어야 해요?  ← 사용자가 지적한 질문",
+      "지금 회사에서 책임감 있는 업무를 맡을 기회가 있는지는 무엇을 보면 알 수 있어요?",
+    ],
+  },
+  // 2026-09-20 보고. 힘들었던 장면에 사실관계를 캐물어 조사가 됐다.
+  gecko: {
+    question: "나 마음이 너무 힘들어",
+    users: [
+      "나 마음이 너무 힘들어",
+      "내가 키우던 크레가 죽은 줄 알았어",
+      "죽었는지 확인했지",
+    ],
+    observed: [
+      "마음이 너무 힘들다고 느끼는 건 오늘 어떤 때예요?",
+      "크레가 죽은 줄 알았을 때, 바로 무엇을 확인했어요?  ← 사실 확인",
+      "죽은 줄 알았던 뒤에 크레 상태가 어떻게 달라졌어요?  ← 사실 확인",
+    ],
+  },
 } as const;
 const caseName = (process.argv.find((a) => a.startsWith("--case="))?.slice(7) ??
   "company") as keyof typeof CASES;
@@ -127,6 +162,9 @@ let userNo = 0;
 let assistantNo = 0;
 let lastQuestionType: "PRESENT" | "PAST" | "COMPARE" | null = null;
 let pastProbeCount: 0 | 1 = 0;
+// commit_conversation_step이 세는 방식 그대로 따라간다. DETAIL이면 올리고
+// CENTER면 0으로 돌린다.
+let detailStreak = 0;
 
 for (const [index, text] of USER_TURNS.entries()) {
   turns.push({ id: `U${++userNo}`, role: "user", text });
@@ -135,7 +173,9 @@ for (const [index, text] of USER_TURNS.entries()) {
 
   console.log(`\n${"─".repeat(72)}`);
   console.log(`턴 ${index + 1}  U${userNo}: ${text}`);
-  console.log(`  코드 신호  stalled=${stalled} confused=${confused}`);
+  console.log(
+    `  코드 신호  stalled=${stalled} confused=${confused} detail_streak=${detailStreak}`,
+  );
 
   const judgeInput = {
     main_question: MAIN_QUESTION,
@@ -177,6 +217,7 @@ for (const [index, text] of USER_TURNS.entries()) {
         [...turns].reverse().find((t) => t.role === "assistant")?.text ?? null,
       stalled,
       confused,
+      detail_streak: detailStreak,
       current_clarifications: [],
       turns,
       carryover: [],
@@ -188,9 +229,10 @@ for (const [index, text] of USER_TURNS.entries()) {
   console.log(`  질문       ${reflection.question}`);
   console.log(`  (관찰됐던)  ${OBSERVED[index] ?? "—"}`);
   console.log(
-    `  type=${reflection.type}${flags.length ? "  flags=" + flags.join(",") : ""}`,
+    `  scope=${reflection.scope}  type=${reflection.type}${flags.length ? "  flags=" + flags.join(",") : ""}`,
   );
 
+  detailStreak = reflection.scope === "DETAIL" ? detailStreak + 1 : 0;
   lastQuestionType = reflection.type;
   if (reflection.type === "PAST") pastProbeCount = 1;
   turns.push({
