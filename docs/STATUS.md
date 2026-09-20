@@ -67,6 +67,10 @@
   **ASSISTANT 발화 없음**을 확인한 뒤 `last_request`만 옮기고 version은 건드리지 않는다.
   400줄짜리 본 함수를 다시 적지 않으려고 작은 함수로 뺐다. 세션당 한 번뿐이고 실패해도
   자동 재시도하지 않는다.
+- **질문이 닿지 않은 턴은 코드가 센다.** `src/engine/confusion.ts`가 사용자가 **직접**
+  못 알아듣겠다고 했거나 되묻기를 그만하라고 쓴 말에서 `confused`를 만들고, Judge와
+  Prompt D에는 boolean 하나만 간다. 고민에 대한 모름(`성장할 수 있을지 모르겠어`)과
+  질문에 대한 모름을 가른다. `stalled`와 같은 구조이고 상태 추정이 아니다.
 - **되묻기 정체는 코드가 센다.** `src/engine/stall.ts`가 마지막 두 사용자 발화 길이를
   그 사람의 앞선 중앙값과 비교해 `stalled` boolean을 만들고, Judge와 Prompt D에 그것만
   넘긴다. 사용자 상태를 추정하지 않는다. 임계값은 코드 상수이며 실제 세션으로 조정한다.
@@ -80,6 +84,26 @@
   | sol/medium (이전)  | 35/39 | 0            | 9,554ms    |
   | **sol/low (현재)** | 36/39 | 0            | 4,060ms    |
   | terra/medium       | 34/39 | 3            | 3,919ms    |
+
+  **2026-09-20 프롬프트 수정 뒤 재측정(sol/low, GitHub Actions).** 1차 32건에서 strict
+  28/31이었고 실패는 `J-SHIFT-03`·`J-HEDGE-01b`·`J-CLOSE-02`였다. MISSED_SHIFT가 0에서
+  1이 되어 같은 8건을 한 번 더 돌렸다.
+
+  | fixture       | 1차                         | 2차        |
+  | ------------- | --------------------------- | ---------- |
+  | `J-SHIFT-03`  | CLOSE · **MISSED_SHIFT**    | SHIFT/HIGH |
+  | `J-HEDGE-01b` | EVIDENCE_MISSING·MED_REASON | 통과       |
+  | `J-CLOSE-02`  | ACTION                      | ACTION     |
+  | 나머지 5건    | 통과                        | 통과       |
+
+  **앞의 둘은 편차였다** — 재실행에서 통과했고 strict 케이스의 MISSED_SHIFT는 0으로
+  돌아왔다. 두 번 다 실패한 것은 `J-CLOSE-02` 하나이고, 기준선(36/39, 실패 3건)에 이미
+  포함돼 있던 자리로 본다. 이번 프롬프트 수정이 Judge를 나쁘게 만들었다는 근거는 없다.
+  다만 **한 번의 실행으로 통과·실패를 판단할 수 없다는 것**이 이 fixture 세트의
+  성질이므로, 다음 평가도 재실행해서 가른다.
+
+  1차에서 돌리지 않은 7건은 `J-CLOSE-SUMMARY-01`·`J-CLOSE-CONTINUE-01`·
+  `J-CLOSE-DECLINED-01`·`J-CLOSE-RENEWED-01`·`J-CLAIM-01~03`이다(워크플로 상한 32건).
 
   terra는 `J-SHIFT-03`·`J-HEDGE-01a`·`J-CARRY-01b`에서 중심 질문의 이동을 놓쳐 Judge에
   쓰지 않는다. sol/low는 `J-CARRY-02`·`J-DEPTH-01`을 고치고 `J-CLARI-02` 하나를 잃는다.
