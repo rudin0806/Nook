@@ -16,6 +16,15 @@ export function loginProvider(value: unknown): LoginProvider | null {
   return value === "google" || value === "kakao" ? value : null;
 }
 
+/** 화면에 쓰는 제공자 이름. 전에는 `내 정보`가 google만 알고 나머지는 받은 값을
+ *  그대로 썼다 — 카카오로 들어오면 `kakao로 연결됨`이라는 영어가 나왔다. 이름을
+ *  아는 곳을 한 군데로 둔다. */
+export function providerLabel(value: unknown): string | null {
+  if (value === "google") return "Google";
+  if (value === "kakao") return "카카오";
+  return typeof value === "string" && value ? value : null;
+}
+
 /** Use a deployment-owned origin, never a forwarded host or a return URL. */
 export function siteOrigin(value: string | undefined): string {
   if (!value) throw new Error("Site URL is not configured");

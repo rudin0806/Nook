@@ -7,6 +7,7 @@ import { AccountDeletion } from "./account-deletion";
 import { ConsentGate } from "./consent-gate";
 import { SignInGate } from "./sign-in-gate";
 import { readNickname } from "@/schemas/profile";
+import { providerLabel } from "@/lib/auth/policy";
 export function AccountPanel({
   message,
   returnTo = "/drawer",
@@ -116,14 +117,18 @@ export function AccountPanel({
               읽는 값이지 고치는 값이 아니므로 입력칸 모양을 빌리되 잠가 둔다. */}
           <div className="account-identity">
             <span className="account-identity-label">내 계정</span>
+            {/* 카카오는 이메일이 선택 동의라 주지 않을 수 있다. 그때 "확인하지
+                못했어요"라고 쓰면 정상인 상태를 고장으로 읽게 만든다. 연결된
+                제공자를 알고 있으면 그 사실을 그대로 말한다. */}
             <p className="account-identity-value">
-              {account.email ?? "연결된 계정을 확인하지 못했어요"}
+              {account.email ??
+                (account.provider
+                  ? "이메일은 받지 않았어요"
+                  : "연결된 계정을 확인하지 못했어요")}
             </p>
-            {account.provider && (
+            {providerLabel(account.provider) && (
               <span className="account-identity-provider">
-                {account.provider === "google"
-                  ? "Google로 연결됨"
-                  : `${account.provider}로 연결됨`}
+                {providerLabel(account.provider)}로 연결됨
               </span>
             )}
           </div>

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   loginProvider,
+  providerLabel,
   siteOrigin,
   deploymentOrigin,
   isSameOriginPost,
@@ -195,4 +196,23 @@ test("preview uses its own deployment while production and local require configu
     ),
     false,
   );
+});
+
+test("제공자 이름을 화면 말로 돌려준다", () => {
+  // 이 이름을 아는 곳이 화면마다 따로 있으면 하나만 고쳐진 채로 갈라진다.
+  assert.equal(providerLabel("google"), "Google");
+  assert.equal(providerLabel("kakao"), "카카오");
+  // 모르는 값은 지어내지 않고 그대로 돌려준다. 빈 값과 값 아닌 것은 없는 것이다.
+  assert.equal(providerLabel("apple"), "apple");
+  assert.equal(providerLabel(null), null);
+  assert.equal(providerLabel(""), null);
+  assert.equal(providerLabel(undefined), null);
+  assert.equal(providerLabel(7), null);
+});
+
+test("로그인에 쓸 수 있는 제공자는 둘뿐이다", () => {
+  assert.equal(loginProvider("kakao"), "kakao");
+  assert.equal(loginProvider("google"), "google");
+  for (const bad of ["apple", "naver", "", null, undefined, 1])
+    assert.equal(loginProvider(bad), null);
 });
