@@ -1,25 +1,19 @@
+import Image from "next/image";
 import Link from "next/link";
 
 /** The one place the mark is built. It was previously written out at six call
  * sites, three of which still carried a lowercase "nook" and a coloured full
  * stop, which is how the dot kept coming back. Do not inline it again.
  *
- * The mark is three leaning bars over "Nook" in SUIT 800. The wide half of the
- * word is scaled because SUIT has a weight axis but no width axis.
+ * 마크는 받은 파일 그대로다. 앞서 색과 기하를 재서 다시 그렸더니 원본과 미묘하게
+ * 달랐다 — 재현보다 원본이 낫다.
  *
- * Geometry and colour are measured from the supplied artwork (108×64), not
- * guessed. Each bar is 23×25 with a 7 corner radius, skewed 17° so the top
- * leans right, on a 26 pitch. Those numbers were fitted by rendering
- * candidates headless and comparing bounding boxes against the artwork: this
- * pair reproduces span 26 and height 25 per bar, the closest of the sweep.
+ * 파일의 잉크는 `#212027` 고정이라 조명을 끄면 배경에 묻힌다. 그래서 잉크 픽셀만
+ * `--nook-ink`(다크)로 갈아 끼운 짝을 함께 두고 테마에 따라 바꾼다. 세 브랜드 색은
+ * 양쪽 다 그대로다.
  */
-/** Degrees of lean, fitted against the artwork. */
-const SKEW = 17;
-const BARS = [
-  { fill: "#6C6BF1", x: 2 },
-  { fill: "#00C38B", x: 28 },
-  { fill: "#FF831A", x: 54 },
-] as const;
+const WIDTH = 108;
+const HEIGHT = 64;
 
 export function Wordmark({ className }: { className?: string }) {
   return (
@@ -28,29 +22,23 @@ export function Wordmark({ className }: { className?: string }) {
       href="/"
       aria-label="Nook 홈"
     >
-      <svg
-        className="logo-bars"
-        viewBox="0 0 80 25"
-        aria-hidden="true"
-        focusable="false"
-      >
-        {BARS.map((bar) => (
-          <rect
-            key={bar.fill}
-            x={bar.x}
-            y="0"
-            width="23"
-            height="25"
-            rx="7"
-            fill={bar.fill}
-            transform={`skewX(-${SKEW}) translate(${(25 * Math.tan((SKEW * Math.PI) / 180) - 2).toFixed(3)} 0)`}
-          />
-        ))}
-      </svg>
-      <span className="logo-word">
-        <span className="logo-n">N</span>
-        <span className="logo-wide">ook</span>
-      </span>
+      {/* 링크가 이름을 갖고 있으므로 그림은 장식으로 둔다. */}
+      <Image
+        className="logo-mark logo-mark-light"
+        src="/nook-logo.png"
+        alt=""
+        width={WIDTH}
+        height={HEIGHT}
+        priority
+      />
+      <Image
+        className="logo-mark logo-mark-dark"
+        src="/nook-logo-dark.png"
+        alt=""
+        width={WIDTH}
+        height={HEIGHT}
+        priority
+      />
     </Link>
   );
 }

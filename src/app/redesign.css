@@ -149,41 +149,27 @@ body {
   border-radius: 8px;
 }
 
-.app-wordmark,
-.app-wordmark span,
-.app-wordmark .logo-n {
-  color: var(--nook-ink);
-}
-/* The mark stacks: three bars, a gap, then the word. Measured from the
-   artwork — bars 25 tall over a 32 tall word, with a 7 gap between. */
+/* 마크는 받은 파일 그대로다. 높이만 정한다 — 앞선 판(막대와 글자를 따로 쌓은 것)은
+   덩어리가 59px이었고, 그보다 1.25배 작은 47.2px로 맞춘다. 38px 기준 1.242em. */
 .app-wordmark {
   display: inline-flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.08em;
-  line-height: 1;
+  line-height: 0;
 }
-/* Sized against the artwork's own proportions — the bars are 74% of the word's
-   width and sit a seventh of the word's height above it. Both were measured
-   from a real render, not eyeballed. */
-.app-wordmark .logo-bars {
+.app-wordmark .logo-mark {
   display: block;
-  width: 1.96em;
-  height: 0.6125em;
-  overflow: visible;
+  width: auto;
+  height: 1.242em;
 }
-.app-wordmark .logo-word {
-  display: inline-flex;
-  align-items: baseline;
+/* 조명이 켜져 있으면 원본, 꺼져 있으면 잉크만 바꾼 짝을 쓴다. 세 브랜드 색은
+   양쪽이 같고 바뀌는 것은 글자색뿐이다. */
+.app-wordmark .logo-mark-dark {
+  display: none;
 }
-/* SUIT carries a weight axis but no width axis, so the wide half of the mark
-   is scaled horizontally rather than swapped for another family. */
-.app-wordmark .logo-wide {
-  display: inline-block;
-  transform: scaleX(1.22);
-  transform-origin: left center;
-  margin-right: 0.18em;
-  letter-spacing: -0.06em;
+:root[data-theme="dark"] .app-wordmark .logo-mark-light {
+  display: none;
+}
+:root[data-theme="dark"] .app-wordmark .logo-mark-dark {
+  display: block;
 }
 .app-header,
 .preview-header {
