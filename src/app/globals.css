@@ -1984,3 +1984,62 @@ body button {
 .recovery-list a {
   color: var(--nook-muted);
 }
+
+/* 카드 더미에서 뒤의 장으로 넘어가는 손잡이. 비죽 나온 자리 위에만 얹어, 맨 위
+   카드 안의 링크와 겹치지 않는다. 글자는 화면 낭독기에만 남긴다. */
+.card-stack {
+  position: relative;
+}
+.card-stack-next {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 64px;
+  height: 34px;
+  border: 0;
+  background: transparent;
+  color: transparent;
+  cursor: pointer;
+  z-index: 4;
+}
+.card-stack-next:focus-visible {
+  outline: 2px solid var(--nook-primary);
+  outline-offset: 2px;
+  border-radius: 10px;
+}
+/* 몇 번째인지는 더미가 쌓인 모양과 머리말의 `n개`가 이미 말한다. 글자로 한 번 더
+   세면 시안에 없는 줄이 하나 붙으므로, 읽어 주는 기계에만 남긴다. */
+.card-stack-position {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.card-stack-card .card-mark {
+  font-size: 11px;
+  color: var(--nook-subtle);
+  letter-spacing: 1px;
+}
+.card-stack-open {
+  align-self: flex-start;
+  margin-top: 4px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  background: var(--nook-primary);
+  color: var(--nook-primary-ink);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.card-stack-card small {
+  color: var(--nook-muted);
+  font-size: 13px;
+}
+/* 개수와 전체 보기가 머리말 오른쪽에 나란히 선다. */
+.panel-heading-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}

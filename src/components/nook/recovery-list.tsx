@@ -1,17 +1,18 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ActionButton } from "@seed-design/react";
 import { recoveryPageSchema, type RecoveryItem } from "@/schemas/recovery";
-import { CardNavigation } from "./card-navigation";
+import { CardStack } from "./card-stack";
 import { NookIcon } from "./nook-icon";
 import { formatSeoulDeadline } from "@/lib/format/datetime";
-import { previewRecovery, PREVIEW_EXPIRES_AT } from "@/lib/example/preview";
+import {
+  previewRecovery,
+  PREVIEW_EXPIRES_AT,
+  PREVIEW_DEADLINE_LABEL,
+} from "@/lib/example/preview";
 export function RecoveryList({ preview = false }: { preview?: boolean }) {
-  const [selected, setSelected] = useState(0);
-  // 어느 쪽으로 넘겼는지 기억해야 카드가 그 방향으로 지나간다. CardNavigation이
-  // `data-turn`으로 읽는다.
-  const [turn, setTurn] = useState<"next" | "previous" | null>(null);
+  // 몇 번째 카드인지는 CardStack이 쥔다. 넘김과 애니메이션이 한 곳에 있어야
+  // 방향과 자리가 어긋나지 않는다.
   const [loaded, setLoaded] = useState<RecoveryItem[]>([]),
     [more, setMore] = useState(false),
     [notice, setNotice] = useState("");
@@ -75,9 +76,11 @@ export function RecoveryList({ preview = false }: { preview?: boolean }) {
       clearInterval(timer);
     };
   }, [preview]);
-  const visible = items.filter((i) => Date.parse(i.expiresAt) > now);
-  const activeIndex = Math.min(selected, Math.max(0, visible.length - 1));
-  const current = visible[activeIndex];
+  // 미리보기는 만료를 세지 않는다. 고정된 표본 시각이 지나가면 화면이 통째로
+  // 비어 버렸고, 그것은 미리보기가 말하려던 것과 정반대다.
+  const visible = preview
+    ? items
+    : items.filter((i) => Date.parse(i.expiresAt) > now);
   return (
     <section aria-label="이어갈 대화" className="recovery-panel">
       <div className="panel-heading">
@@ -88,9 +91,24 @@ export function RecoveryList({ preview = false }: { preview?: boolean }) {
             <h2>이어갈 대화</h2>
           </div>
         </div>
-        <span>
-          {visible.length > 0 ? `${visible.length}${more ? "+" : ""}개` : ""}
-        </span>
+        {visible.length > 0 && (
+          <div className="panel-heading-actions">
+            <span>{`${visible.length}${more ? "+" : ""}개`}</span>
+            {/* 더 있는 것은 여기로 간다. 패널 안에서 끝까지 넘기게 두면 스무 장을
+                손으로 넘겨야 한다. */}
+            <Link
+              className="quiet-link"
+              href={
+                preview
+                  ? "/drawer?preview=1&collection=recovery"
+                  : "/drawer?collection=recovery"
+              }
+            >
+              {/* 꺾쇠는 `.quiet-link::after`가 붙인다. 여기 또 적으면 둘이 된다. */}
+              전체 보기
+            </Link>
+          </div>
+        )}
       </div>
       {busy && !items.length ? (
         <p role="status">대화를 불러오고 있어요.</p>
@@ -108,99 +126,37 @@ export function RecoveryList({ preview = false }: { preview?: boolean }) {
           </div>
         </div>
       ) : null}
-      {/* 홈에서 바로 넘긴다. 카드를 눌러야 열리는 모달을 따로 두면 같은 것을
-          보는 길이 둘이 되고, 쌓인 카드를 훑는 데 한 번 더 눌러야 했다.
-          좌우로 쓸거나 화살표를 누르면 넘어가고, 방향대로 카드가 지나간다. */}
-      {current ? (
-        <CardNavigation
-          label="이어갈 대화 카드"
-          turn={turn}
-          previous={
-            activeIndex > 0
-              ? () => {
-                  setTurn("previous");
-                  setSelected(activeIndex - 1);
-                }
-              : undefined
-          }
-          next={
-            activeIndex < visible.length - 1
-              ? () => {
-                  setTurn("next");
-                  setSelected(activeIndex + 1);
-                }
-              : undefined
-          }
-        >
-          <div className="card-stack">
-            <article className="browse-card" key={current.id}>
+      {/* 카드 더미. 뒤의 장이 비죽 보이고, 쓸어 넘기면 그 장이 올라온다.
+          `a618bb6`이 지운 CardStack을 되살려 쓴다 — CSS는 그대로 남아 있었다. */}
+      <CardStack
+        label="이어갈 대화 카드"
+        cards={visible.map((item, index) => ({
+          id: item.id,
+          content: (
+            <>
               <span className="card-mark">
-                {String(activeIndex + 1).padStart(2, "0")}
+                {String(index + 1).padStart(2, "0")}
               </span>
-              <h3>{current.question}</h3>
-              <p>
-                {formatSeoulDeadline(current.expiresAt)}까지 이어갈 수 있어요.
-              </p>
+              <p className="retention-card-title">{item.question}</p>
+              <small>
+                {preview
+                  ? PREVIEW_DEADLINE_LABEL
+                  : `${formatSeoulDeadline(item.expiresAt)}까지 이어갈 수 있어요.`}
+              </small>
               <Link
+                className="card-stack-open"
                 href={
                   preview
-                    ? `/talk/${current.nodeId}?preview=1`
-                    : `/resume/${current.id}`
+                    ? `/talk/${item.nodeId}?preview=1`
+                    : `/resume/${item.id}`
                 }
               >
-                {current.nodeId ? "이 대화 이어가기 ›" : "여기서 이어 적기 ›"}
+                {item.nodeId ? "이 대화 이어가기 ›" : "여기서 이어 적기 ›"}
               </Link>
-            </article>
-          </div>
-          {visible.length > 1 ? (
-            <div className="card-controls">
-              <button
-                type="button"
-                aria-label="이전 카드"
-                disabled={activeIndex <= 0}
-                onClick={() => {
-                  setTurn("previous");
-                  setSelected(Math.max(0, activeIndex - 1));
-                }}
-              >
-                ←
-              </button>
-              <span aria-live="polite">
-                {activeIndex + 1} / {visible.length}
-              </span>
-              <button
-                type="button"
-                aria-label="다음 카드"
-                disabled={activeIndex >= visible.length - 1}
-                onClick={() => {
-                  setTurn("next");
-                  setSelected(Math.min(visible.length - 1, activeIndex + 1));
-                }}
-              >
-                →
-              </button>
-            </div>
-          ) : null}
-          {/* 모달에 있던 안내다. 모달을 걷어내면서 사라질 뻔했는데, 지금은
-              사용자가 직접 치울 수도 있어 더 필요해졌다. */}
-          <p className="card-policy">
-            만료되면 계정에 연결된 대화는 휴지통으로 이동하고, 익명 대화는
-            삭제돼요.
-          </p>
-        </CardNavigation>
-      ) : null}
-      {more ? (
-        <ActionButton
-          variant="ghost"
-          disabled={busy}
-          onClick={() => {
-            setLoading(true);
-            void load(items.length);
-          }}
-        >
-          이전 대화 더 불러오기
-        </ActionButton>
-      ) : null}
+            </>
+          ),
+        }))}
+      />
       {notice ? (
         <div role="status">
           <p>{notice}</p>
