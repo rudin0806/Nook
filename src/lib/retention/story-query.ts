@@ -9,6 +9,7 @@ import {
   storyQuerySchema,
   storyNodeSchema,
   storyClarificationSchema,
+  storyMessageSchema,
 } from "../../schemas/saved-story.ts";
 
 // The caller must provide its cookie-authenticated client, never a service-role client.
@@ -45,10 +46,26 @@ export async function readSavedStory(
   const segments = segmentRows.slice(0, 10);
   let nodes: z.infer<typeof storyNodeSchema>[] = [];
   let clarifications: z.infer<typeof storyClarificationSchema>[] = [];
+  let messages: z.infer<typeof storyMessageSchema>[] = [];
   if (segments.length) {
+    // 나눈 말 그대로가 상세 화면의 본문이다. 요약만 돌려주던 동안에는 "이런 대화를
+    // 나눴었지"를 확인할 길이 어디에도 없었다. RLS를 그대로 통과하는 쿠키
+    // 클라이언트로 읽고, 이 페이지의 구간에 속한 것만 가져온다.
+    const messageResult = await client
+      .from("messages")
+      .select("id,role,content,kind,sequence_no,segment_id,created_at")
+      .eq("session_id", id)
+      .in(
+        "segment_id",
+        segments.map((s) => s.id),
+      )
+      .order("sequence_no", { ascending: true })
+      .limit(200);
+    if (messageResult.error) throw new Error("STORY_QUERY_FAILED");
+    messages = storyMessageSchema.array().max(200).parse(messageResult.data);
     const result = await client
       .from("question_nodes")
-      .select("id,segment_id,ordinal,final_text,approved_at")
+      .select("id,segment_id,ordinal,ai_proposed_text,final_text,approved_at")
       .eq("session_id", id)
       .in(
         "segment_id",
@@ -57,7 +74,45 @@ export async function readSavedStory(
       .order("ordinal", { ascending: true })
       .limit(41);
     if (result.error) throw new Error("STORY_QUERY_FAILED");
-    nodes = storyNodeSchema.array().max(40).parse(result.data);
+    // 제안 원문으로 노드가 생긴 발화를 맞추되, 그 원문 자체는 응답에 담지 않는다.
+    // 구간의 첫 노드는 그 구간의 첫 발화에서, 이후 노드는 그 문장을 제안한 발화에서
+    // 생긴다 — 대화 화면(`conversationView`)과 같은 규칙이다.
+    const rows = z
+      .array(
+        z.object({
+          id: z.uuid(),
+          segment_id: z.uuid(),
+          ordinal: z.number().int().positive(),
+          ai_proposed_text: z.string().nullable(),
+          final_text: z.string().min(1),
+          approved_at: z.iso.datetime({ offset: true }),
+        }),
+      )
+      .max(40)
+      .parse(result.data);
+    nodes = storyNodeSchema
+      .array()
+      .max(40)
+      .parse(
+        rows.map(({ ai_proposed_text, ...node }) => {
+          const inSegment = messages.filter(
+            (message) => message.segment_id === node.segment_id,
+          );
+          const birth =
+            node.ordinal === 1
+              ? inSegment[0]
+              : inSegment
+                  .filter(
+                    (message) =>
+                      message.kind === "SHIFT_PROPOSAL" &&
+                      message.content === ai_proposed_text &&
+                      Date.parse(message.created_at) <=
+                        Date.parse(node.approved_at),
+                  )
+                  .at(-1);
+          return { ...node, birth_message_id: birth?.id ?? null };
+        }),
+      );
     if (nodes.length) {
       const result = await client
         .from("clarifications")
@@ -106,6 +161,7 @@ export async function readSavedStory(
       nodes: nodes.filter((n) => n.segment_id === s.id),
     })),
     clarifications,
+    messages,
     offset,
     hasMore: segmentRows.length > 10,
   });

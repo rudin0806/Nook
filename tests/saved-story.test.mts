@@ -72,7 +72,21 @@ function fixture(
                   },
                 ];
           if (url.pathname.endsWith("messages"))
-            value = { content: "아직 질문으로 정리하지 못한 생각" };
+            // 같은 경로를 두 질의가 쓴다. 발화 목록은 여러 줄을, 첫 생각은 한 줄을
+            // 돌려주므로 select로 가른다.
+            value = url.searchParams.get("select")?.includes("role")
+              ? [
+                  {
+                    id: "55555555-5555-4555-8555-555555555551",
+                    role: "USER",
+                    content: "계속 만나도 될까",
+                    kind: "RAW_THOUGHT",
+                    sequence_no: 1,
+                    segment_id: gid,
+                    created_at: now,
+                  },
+                ]
+              : { content: "아직 질문으로 정리하지 못한 생각" };
           if (url.pathname.endsWith("clarifications"))
             value = [
               {
@@ -99,7 +113,22 @@ test("queries are session-scoped, bounded, ordered, and expose approved text onl
   const story = await readSavedStory(client, sid, {});
   assert.ok(story);
   assert.equal(story.segments[0].nodes[0].final_text, "계속 만날까?");
+  // 제안 원문은 사용자가 확정한 문장이 아니므로 화면으로 나가지 않는다. 노드가 생긴
+  // 자리는 서버가 맞춰 id로만 내려보낸다.
   assert.equal("ai_proposed_text" in story.segments[0].nodes[0], false);
+  assert.equal(
+    story.segments[0].nodes[0].birth_message_id,
+    "55555555-5555-4555-8555-555555555551",
+  );
+  assert.equal(story.messages.length, 1);
+  assert.equal(story.messages[0].content, "계속 만나도 될까");
+  const thread = urls.find(
+    (u) =>
+      u.pathname.endsWith("messages") &&
+      u.searchParams.get("select")?.includes("role"),
+  )!;
+  assert.equal(thread.searchParams.get("limit"), "200");
+  assert.equal(thread.searchParams.get("order"), "sequence_no.asc");
   assert.equal("private_field" in story.clarifications[0], false);
   for (const url of urls.slice(1, -1))
     assert.equal(url.searchParams.get("session_id"), `eq.${sid}`);
@@ -145,7 +174,10 @@ test("saving before first approval exposes original input separately without inv
   assert.ok(story);
   assert.equal(story.initialThought, "아직 질문으로 정리하지 못한 생각");
   assert.equal(story.segments[0].nodes.length, 0);
-  const raw = urls.find((u) => u.pathname.endsWith("messages"))!;
+  // 같은 경로를 두 질의가 쓰므로 첫 생각을 읽는 쪽을 골라낸다.
+  const raw = urls.find(
+    (u) => u.pathname.endsWith("messages") && u.searchParams.has("kind"),
+  )!;
   assert.equal(raw.searchParams.get("session_id"), `eq.${sid}`);
   assert.equal(raw.searchParams.get("kind"), "eq.RAW_THOUGHT");
   assert.equal(raw.searchParams.get("role"), "eq.USER");

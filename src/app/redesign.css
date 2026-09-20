@@ -2831,3 +2831,66 @@ body {
 .conversation-stream .conversation-composer {
   margin-top: 30px;
 }
+
+/* ── 질문 확정과 대화를 같은 틀로 ───────────────────────────────────────── */
+
+/* 확정 화면이 대화 화면과 전혀 다르게 생겨서, 확정을 누르는 순간 화면이 통째로
+   바뀌었다. 같은 두 단을 쓰면 무엇을 하고 있었는지가 이어진다. 제목 줄이 없으므로
+   두 단을 첫 행에 둔다. */
+.proposal-layout,
+.story-layout {
+  margin-top: 14px;
+}
+.proposal-layout > .conversation-stream,
+.story-layout > .conversation-stream {
+  grid-row: 1;
+}
+.proposal-layout > .conversation-side,
+.story-layout > .conversation-side {
+  grid-row: 1;
+  top: 24px;
+}
+.proposal-evidence {
+  margin: 0 0 12px;
+  color: var(--nook-muted);
+}
+/* 아직 확정되지 않은 칸. 누를 것이 아니라 곧 여기 놓인다는 자리 표시다. */
+.node-navigation button[data-pending="true"] {
+  border-style: dashed;
+  opacity: 1;
+  cursor: default;
+}
+.node-navigation button[data-pending="true"] > span:first-child {
+  background: var(--nook-fill);
+  color: var(--nook-muted);
+}
+
+/* 보관한 이야기는 읽기만 한다. 대화 화면의 틀을 그대로 쓰되 쓰는 자리가 없다. */
+.story-restart {
+  margin: 0;
+  font-size: 14px;
+}
+.story-restart a {
+  color: var(--nook-primary);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+/* ── 확정 화면의 두 단 ──────────────────────────────────────────────────── */
+
+/* 제안 질문은 한 문장이다. 홈의 쓰기 칸을 채우려고 준 420px가 `.question-field`의
+   84px를 이겨서(같은 구체성이면 뒤에 오는 쪽이 이긴다) 한 줄짜리 질문이 빈 들판
+   가운데 앉아 있었다. 제안 칸에는 그 높이를 주지 않는다. */
+.home-writing .question-field textarea.writing-textarea {
+  min-height: 84px;
+}
+
+/* 옆 단은 펼침 상태에서 0fr 트랙으로 접히지만 안의 패널은 300px를 유지한다. 지금까지는
+   사람이 직접 펼쳤을 때만 이 상태가 되어 눈에 띄지 않았는데, 제안이 오면 자동으로
+   펼쳐지므로 가로 스크롤이 생겼다(실측 228px). 접히는 트랙을 잘라 둔다. */
+.home-bento {
+  overflow-x: clip;
+}
+.home-bento[data-expanded] > .home-aside {
+  overflow: hidden;
+}

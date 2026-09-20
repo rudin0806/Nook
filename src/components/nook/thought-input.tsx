@@ -56,6 +56,13 @@ export function ThoughtInput({
   useEffect(() => {
     if (view.kind === "approved") router.push(`/talk/${view.nodeId}`);
   }, [view, router]);
+  /** 제안이 오면 옆 단이 물러난다. 여기서부터는 대화를 여는 일이 화면의 유일한
+   *  일이고, 확정하면 같은 틀 그대로 대화 화면이 이어진다 — 확정과 대화 사이에서
+   *  화면이 통째로 바뀌지 않는 편이 무엇을 하고 있는지 잃지 않는다. */
+  useEffect(() => {
+    if (view.kind === "proposal" || view.kind === "focus") setExpanded(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view.kind]);
   const waitLabel =
     flow.waitSeconds >= 3600
       ? `약 ${Math.ceil(flow.waitSeconds / 3600)}시간 뒤`
@@ -198,35 +205,57 @@ export function ThoughtInput({
         </div>
       )}
       {view.kind === "proposal" && (
-        <form
-          className="start-response"
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (finalText.trim() && !locked)
-              flow.submit("approve", { receipt: view.receipt, finalText });
-          }}
-        >
-          {view.evidence && <p>{view.evidence}</p>}
-          <TextField.Root className="writing-field question-field">
-            <TextField.Textarea
-              aria-label="첫 질문 수정"
-              className="writing-textarea"
-              value={finalText}
-              onChange={(e) => setEditedQuestion(e.target.value)}
-              maxLength={1000}
-              readOnly={locked}
-              autoComplete="off"
-            />
-          </TextField.Root>
-          <p>고치고 싶으면 그대로 고쳐도 돼요.</p>
-          <ActionButton
-            type="submit"
-            variant="neutralSolid"
-            disabled={locked || !finalText.trim()}
+        /* 대화 화면과 같은 두 단이다. 왼쪽에서 질문을 고르고, 오른쪽 지도에 그 질문이
+           첫 칸으로 미리 서 있다. 확정을 누르면 같은 자리에서 대화가 이어진다. */
+        <div className="conversation-layout proposal-layout">
+          <form
+            className="start-response conversation-stream"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (finalText.trim() && !locked)
+                flow.submit("approve", { receipt: view.receipt, finalText });
+            }}
           >
-            {flow.busy ? "확인하는 중…" : "이 질문으로 확정하기"}
-          </ActionButton>
-        </form>
+            {view.evidence && (
+              <p className="proposal-evidence">{view.evidence}</p>
+            )}
+            <TextField.Root className="writing-field question-field">
+              <TextField.Textarea
+                aria-label="첫 질문 수정"
+                className="writing-textarea"
+                value={finalText}
+                onChange={(e) => setEditedQuestion(e.target.value)}
+                maxLength={1000}
+                readOnly={locked}
+                autoComplete="off"
+              />
+            </TextField.Root>
+            <p>고치고 싶으면 그대로 고쳐도 돼요.</p>
+            <ActionButton
+              type="submit"
+              variant="neutralSolid"
+              disabled={locked || !finalText.trim()}
+            >
+              {flow.busy ? "확인하는 중…" : "이 질문으로 확정하기"}
+            </ActionButton>
+          </form>
+          <aside className="conversation-side" aria-label="지나온 질문">
+            <nav className="node-navigation">
+              <div className="node-navigation-heading">
+                <strong>지나온 질문</strong>
+                <small>확정하면 여기 첫 칸으로 남아요.</small>
+              </div>
+              <ol>
+                <li>
+                  <button type="button" data-pending="true" disabled>
+                    <span>1</span>
+                    <span>{finalText || view.question}</span>
+                  </button>
+                </li>
+              </ol>
+            </nav>
+          </aside>
+        </div>
       )}
       {view.kind === "info" && (
         <div className="start-response">
