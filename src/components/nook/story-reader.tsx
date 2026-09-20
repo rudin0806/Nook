@@ -13,6 +13,16 @@ import type { SavedStory } from "@/schemas/saved-story";
  * 읽기 전용 버전이라 새 화면이 아니고, 그래서 대화하던 기억과 여는 기억이 같은
  * 모양으로 남는다.
  */
+/** 마친 날은 날짜까지만 쓴다. 몇 시에 끝냈는지는 다시 열어 보는 사람에게 필요 없다. */
+function formatStoryDate(value: string) {
+  return new Intl.DateTimeFormat("ko-KR", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  }).format(new Date(value));
+}
+
 export function StoryReader({
   story,
   restartable = true,
@@ -48,9 +58,16 @@ export function StoryReader({
     : null;
   const current = nodes.find((c) => c.node.id === activeNodeId) ?? nodes[0];
   if (!current) return <p>이 페이지에 남겨진 중심 질문이 없어요.</p>;
-  const shown = story.clarifications.filter(
-    (item) => item.node_id === current.node.id,
-  );
+  // 노드를 고르지 않았으면 이야기 전체의 결과를 보여 준다. 마친 이야기를 다시
+  // 여는 사람이 먼저 확인하려는 것은 "이 대화로 무엇이 남았나"이지 특정 노드의
+  // 한 조각이 아니다. 노드를 고르면 그 자리의 것만 좁혀 보여 준다.
+  const shown = activeNodeId
+    ? story.clarifications.filter((item) => item.node_id === activeNodeId)
+    : story.clarifications;
+  const arrived = nodes.at(-1)?.node ?? current.node;
+  const spoken = story.messages.filter(
+    (message) => message.kind !== "SYSTEM_NOTICE",
+  ).length;
 
   return (
     <div className="conversation-layout story-layout">
@@ -98,6 +115,31 @@ export function StoryReader({
       </div>
 
       <aside className="conversation-side">
+        {/* 마친 이야기는 읽는 목적이 다르다. 이어갈 자리를 찾는 것이 아니라 무엇이
+            남았는지 확인하러 온다. 그래서 길잡이보다 결과를 먼저 둔다. */}
+        <section className="story-result" aria-label="이 이야기의 결과">
+          <p className="story-result-badge">마친 이야기</p>
+          <h2>{arrived.final_text}</h2>
+          <p className="story-result-lede">
+            {nodes.length > 1
+              ? `질문 ${nodes.length}개를 지나 여기까지 왔어요.`
+              : "이 질문 하나로 마쳤어요."}
+          </p>
+          <dl className="story-result-facts">
+            <div>
+              <dt>주고받은 말</dt>
+              <dd>{spoken}번</dd>
+            </div>
+            <div>
+              <dt>분명해진 것</dt>
+              <dd>{story.clarifications.length}개</dd>
+            </div>
+            <div>
+              <dt>마친 날</dt>
+              <dd>{formatStoryDate(story.session.completed_at)}</dd>
+            </div>
+          </dl>
+        </section>
         <nav className="node-navigation" aria-label="지나온 질문 이동">
           <div className="node-navigation-heading">
             <strong>지나온 질문</strong>
@@ -126,6 +168,11 @@ export function StoryReader({
         {shown.length > 0 && (
           <section className="clarity-panel" aria-label="분명해진 것">
             <h2>분명해진 것</h2>
+            <small>
+              {activeNodeId
+                ? "고른 질문에서 분명해진 것만 보고 있어요."
+                : "이 이야기 전체에서 분명해진 것이에요."}
+            </small>
             <ul>
               {shown.map((item) => (
                 <li key={item.id}>{item.text}</li>

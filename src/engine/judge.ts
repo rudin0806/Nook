@@ -1,4 +1,5 @@
 import { computeHedge } from "./hedge.ts";
+import { keepClarifications } from "./clarification.ts";
 import { JUDGE_SYSTEM, buildJudgeUser } from "../prompts/prompt-judge.ts";
 import {
   judgeInputSchema,
@@ -14,7 +15,7 @@ import {
 } from "../lib/openai/models.ts";
 import { z } from "zod";
 
-export const JUDGE_PROMPT_VERSION = "judge-v4.6-2026-09-20";
+export const JUDGE_PROMPT_VERSION = "judge-v4.7-2026-09-20";
 export const JUDGE_DEFAULT_MAX_OUTPUT_TOKENS = 2_048;
 export const JUDGE_MAX_USER_PROMPT_CHARS = 20_000;
 
@@ -132,7 +133,12 @@ export function prepareJudge(
       !pileIds.has(output.promote_pile_item)
     )
       fail("JUDGE_PILE_ITEM_UNAVAILABLE");
-    return output;
+    // 기준을 통과하지 못한 항목은 버리고 턴은 그대로 간다(RULES 6.2). 판정 하나가
+    // 유료 호출이라 항목 하나 때문에 턴 전체를 실패시키지 않는다.
+    const { kept } = keepClarifications(output.clarifications);
+    return kept.length === output.clarifications.length
+      ? output
+      : { ...output, clarifications: kept };
   };
 
   const validateResponseText = (text: string): JudgeOutput => {
