@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { exampleStory, transcriptPending } from "../src/lib/example/story.ts";
+import {
+  exampleStories,
+  exampleStory,
+  transcriptPending,
+} from "../src/lib/example/story.ts";
 import { inspectReflectionQuestion } from "../src/engine/reflect.ts";
 import { inspectClarification } from "../src/engine/clarification.ts";
 import { replyLength } from "../src/engine/stall.ts";
@@ -86,4 +90,61 @@ test("노드가 하나씩 좁혀진다", () => {
   );
   for (const node of nodes)
     assert.ok(node.final_text.endsWith("?"), node.final_text);
+});
+
+/** 두 번째 책도 같은 검사기를 통과해야 한다. 미리보기 책장에서 두 권 다 열린다. */
+test("미리보기의 모든 이야기가 같은 규칙을 지킨다", () => {
+  const ids = Object.keys(exampleStories);
+  assert.ok(
+    ids.length >= 2,
+    "책장에 책이 둘인데 이야기가 하나면 하나는 열리지 않는다",
+  );
+  for (const [id, story] of Object.entries(exampleStories)) {
+    assert.equal(story.session.id, id, "키와 세션 아이디가 어긋난다");
+    const asked = story.messages.filter(
+      (m) => m.role === "ASSISTANT" && m.kind === "REFLECTION",
+    );
+    for (const { content } of asked) {
+      assert.deepEqual(inspectReflectionQuestion(content), [], content);
+      assert.ok(
+        replyLength(content) <= 35,
+        `${replyLength(content)}자: ${content}`,
+      );
+    }
+    for (const { text } of story.clarifications)
+      assert.deepEqual(inspectClarification(text), [], text);
+    const said = story.messages.filter(
+      (m) => m.role === "USER" && m.kind === "USER_REPLY",
+    );
+    for (const { content } of said)
+      assert.equal(
+        isNonAnswer([{ role: "user", text: content }]),
+        false,
+        content,
+      );
+    assert.ok(story.clarifications.length < said.length + 1, id);
+    assert.equal(story.session.turn_count, said.length + 1, id);
+    assert.equal(
+      story.session.node_count,
+      story.segments.flatMap((segment) => segment.nodes).length,
+      id,
+    );
+    const last = story.messages.at(-1);
+    assert.ok(
+      last && new Date(story.session.completed_at) >= new Date(last.created_at),
+      id,
+    );
+  }
+});
+
+test("두 이야기가 아이디를 나눠 쓴다", () => {
+  // 한 틀에서 찍어 내므로 seed가 어긋나면 노드·발화 아이디가 겹친다.
+  const all = Object.values(exampleStories).flatMap((story) => [
+    story.session.id,
+    ...story.segments.map((segment) => segment.id),
+    ...story.segments.flatMap((segment) => segment.nodes.map((n) => n.id)),
+    ...story.clarifications.map((item) => item.id),
+    ...story.messages.map((message) => message.id),
+  ]);
+  assert.equal(new Set(all).size, all.length, "아이디가 겹친다");
 });

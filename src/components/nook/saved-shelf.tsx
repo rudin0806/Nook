@@ -200,10 +200,10 @@ export function SavedShelf({
   );
 
   function open(event: React.MouseEvent, id: string) {
-    if (preview) {
-      event.preventDefault();
-      return;
-    }
+    // 미리보기에서도 다음 칸으로 넘어간다. 잠가 두었더니 책장이 그림처럼 보였고,
+    // 쓰면 무엇이 남는지 보여 주는 일이 책등에서 끝나 버렸다. 열리는 곳은 표본
+    // 이야기이므로 데이터베이스에는 닿지 않는다.
+    if (preview) return;
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0)
       return;
     if (prefersReducedMotion()) return;
@@ -240,7 +240,7 @@ export function SavedShelf({
                   return (
                     <li className="book-cell" key={item.id}>
                       <Link
-                        href={`/drawer/${item.id}`}
+                        href={`/drawer/${item.id}${preview ? "?preview=1" : ""}`}
                         className="book"
                         data-tone={(index % 8) + 1}
                         data-size={item.size ?? 3}
@@ -294,7 +294,7 @@ export function SavedShelf({
           {items.map((item, index) => (
             <li key={item.id}>
               <Link
-                href={`/drawer/${item.id}`}
+                href={`/drawer/${item.id}${preview ? "?preview=1" : ""}`}
                 className="cover-card"
                 data-tone={(index % 8) + 1}
                 data-opening={opening === item.id || undefined}

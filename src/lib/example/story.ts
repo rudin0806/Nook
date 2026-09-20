@@ -22,51 +22,71 @@ import {
 export const transcriptPending = false;
 
 /** Fixed ids and timestamps. A page that regenerated them on each render would
- * produce a different DOM on the server and the client. */
-const SESSION_ID = "11111111-1111-4111-8111-111111111111";
-const SEGMENT_ID = "22222222-2222-4222-8222-222222222222";
+ * produce a different DOM on the server and the client.
+ *
+ * 미리보기 책장에 책이 둘이라 이야기도 둘이다. `seed` 한 자리로 아이디를 갈라 두
+ * 이야기가 섞이지 않게 한다 — 한 이야기만 두고 두 책이 같은 것을 열면 책등의
+ * 제목과 안의 내용이 어긋난다.
+ */
 const STARTED_AT = "2026-09-10T11:20:00+09:00";
 
-function node(n: number, text: string, minute: number) {
+function storyParts(seed: number) {
+  const s = String(seed);
+  const sessionId = `11111111-1111-4111-8111-11111111111${s}`;
+  const segmentId = `22222222-2222-4222-8222-22222222222${s}`;
+  const nodeId = (n: number) =>
+    `3333333${s}-3333-4333-8333-3333333333${String(n).padStart(2, "0")}`;
+  let sequence = 0;
+  const message = (
+    role: "USER" | "ASSISTANT",
+    kind: string,
+    content: string,
+    minute: number,
+  ) => {
+    sequence += 1;
+    return {
+      id: `5555555${s}-5555-4555-8555-5555555555${String(sequence).padStart(2, "0")}`,
+      role,
+      kind,
+      content,
+      sequence_no: sequence,
+      segment_id: segmentId,
+      created_at: `2026-09-10T11:${String(minute).padStart(2, "0")}:00+09:00`,
+    };
+  };
   return {
-    id: `33333333-3333-4333-8333-3333333333${String(n).padStart(2, "0")}`,
-    segment_id: SEGMENT_ID,
-    ordinal: n,
-    final_text: text,
-    approved_at: `2026-09-10T11:${String(minute).padStart(2, "0")}:00+09:00`,
+    sessionId,
+    segmentId,
+    message,
+    node: (n: number, text: string, minute: number) => ({
+      id: nodeId(n),
+      segment_id: segmentId,
+      ordinal: n,
+      final_text: text,
+      approved_at: `2026-09-10T11:${String(minute).padStart(2, "0")}:00+09:00`,
+    }),
+    clarification: (n: number, nodeNumber: number, text: string) => ({
+      id: `4444444${s}-4444-4444-8444-4444444444${String(n).padStart(2, "0")}`,
+      node_id: nodeId(nodeNumber),
+      text,
+    }),
+    U: (content: string, minute: number) =>
+      message("USER", "USER_REPLY", content, minute),
+    A: (content: string, minute: number) =>
+      message("ASSISTANT", "REFLECTION", content, minute),
   };
 }
 
-function clarification(n: number, nodeNumber: number, text: string) {
-  return {
-    id: `44444444-4444-4444-8444-4444444444${String(n).padStart(2, "0")}`,
-    node_id: `33333333-3333-4333-8333-3333333333${String(nodeNumber).padStart(2, "0")}`,
-    text,
-  };
-}
-
-let sequence = 0;
-function message(
-  role: "USER" | "ASSISTANT",
-  kind: string,
-  content: string,
-  minute: number,
-) {
-  sequence += 1;
-  return {
-    id: `55555555-5555-4555-8555-5555555555${String(sequence).padStart(2, "0")}`,
-    role,
-    kind,
-    content,
-    sequence_no: sequence,
-    segment_id: SEGMENT_ID,
-    created_at: `2026-09-10T11:${String(minute).padStart(2, "0")}:00+09:00`,
-  };
-}
-const U = (content: string, minute: number) =>
-  message("USER", "USER_REPLY", content, minute);
-const A = (content: string, minute: number) =>
-  message("ASSISTANT", "REFLECTION", content, minute);
+const first = storyParts(1);
+const {
+  sessionId: SESSION_ID,
+  segmentId: SEGMENT_ID,
+  node,
+  clarification,
+  message,
+  U,
+  A,
+} = first;
 
 /** Parsed at module load, so a fixture that stops matching the contract fails
  * the build instead of the page. */
@@ -157,3 +177,84 @@ export const exampleStory: SavedStory = savedStorySchema.parse({
   offset: 0,
   hasMore: false,
 });
+
+/** 미리보기 책장의 두 번째 책. 첫 이야기가 물건을 살지 고르는 결정이라면 이쪽은
+ * 남을지 떠날지를 고르는 결정이라, 두 권이 같은 종류로 보이지 않는다.
+ *
+ * 노드는 둘이다. `더 배울 게 있는지`를 묻다가, 배움이 시간으로 갈리는 것이 드러나
+ * `내가 시간을 어디에 쓰고 있는가`로 옮겨 간다.
+ */
+const second = storyParts(2);
+
+export const exampleStorySecond: SavedStory = savedStorySchema.parse({
+  session: {
+    id: second.sessionId,
+    origin_branch_id: null,
+    started_at: "2026-09-12T21:04:00+09:00",
+    completed_at: "2026-09-12T21:34:00+09:00",
+    retention_decided_at: "2026-09-12T21:34:00+09:00",
+    shelf_position: 2,
+    shelf_revision: "1".repeat(32),
+    turn_count: 6,
+    node_count: 2,
+  },
+  initialThought: "회사를 계속 다녀야 할지 요즘 자꾸 생각해.",
+  segments: [
+    {
+      id: second.segmentId,
+      ordinal: 1,
+      nodes: [
+        second.node(1, "나는 여기서 더 배울 게 있는지가 걸리는 걸까?", 8),
+        second.node(2, "나는 지금 시간을 어디에 쓰고 있을까?", 22),
+      ],
+    },
+  ],
+  clarifications: [
+    second.clarification(1, 1, "회사가 싫어서 나가고 싶은 것은 아님"),
+    second.clarification(2, 1, "배우는 자리는 새 기능을 맡을 때였음"),
+    second.clarification(3, 2, "지난 반년 동안 맡은 일은 전부 고치는 일이었음"),
+    second.clarification(4, 2, "새 기능을 맡으려면 먼저 손들어야 하는 자리임"),
+  ],
+  messages: [
+    second.message(
+      "USER",
+      "RAW_THOUGHT",
+      "회사를 계속 다녀야 할지 요즘 자꾸 생각해.",
+      4,
+    ),
+    // 노드 1 — 나는 여기서 더 배울 게 있는지가 걸리는 걸까?
+    second.A("회사를 떠올릴 때 지금 가장 걸리는 게 뭐예요?", 8),
+    second.U("회사가 싫진 않아. 근데 배우는 게 없는 것 같아", 10),
+    second.A("배우고 있다고 느꼈던 건 언제였어요?", 12),
+    second.U("작년에 새 기능 맡았을 때", 14),
+    second.A("그때랑 지금이 뭐가 달라요?", 16),
+    second.U("그땐 새로 만들었고 요즘은 고치는 일만 해", 18),
+    // 배움이 시간 쓰임으로 갈린다는 것이 드러난 자리.
+    second.message(
+      "ASSISTANT",
+      "SHIFT_PROPOSAL",
+      "시간을 어디에 쓰고 있는지부터 보는 건 어때요?",
+      20,
+    ),
+    // 노드 2 — 나는 지금 시간을 어디에 쓰고 있을까?
+    second.A("지난 반년 동안 맡은 일을 떠올리면 뭐가 남아요?", 22),
+    second.U("거의 다 고치는 일이었어", 24),
+    second.A("새로 만드는 일은 어떻게 정해져요?", 26),
+    second.U("먼저 하겠다고 손들어야 해. 난 안 들었고", 28),
+    second.message(
+      "ASSISTANT",
+      "CLOSURE",
+      "다음에 새 기능이 열릴 때 손을 들어 보고 다시 보면 되겠어요.",
+      30,
+    ),
+  ],
+  offset: 0,
+  hasMore: false,
+});
+
+/** 미리보기에서 책을 열 때 쓴다. 아이디가 맞지 않으면 아무것도 돌려주지 않는다 —
+ *  없는 이야기를 아무거나 골라 보여 주면 책등과 내용이 어긋난다. */
+export const exampleStories: Record<string, SavedStory> = {
+  [exampleStory.session.id]: exampleStory,
+  [exampleStorySecond.session.id]: exampleStorySecond,
+};
