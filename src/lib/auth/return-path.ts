@@ -8,10 +8,20 @@ export function authReturnPath(value: unknown): string {
     ? value
     : "/drawer";
 }
-export function loginPath(returnTo: string, error?: string): string {
+function authPath(base: string, returnTo: string, error?: string): string {
   const params = new URLSearchParams();
   if (error) params.set("error", error);
   const safe = authReturnPath(returnTo);
   if (safe !== "/drawer") params.set("returnTo", safe);
-  return `/login${params.size ? `?${params}` : ""}${error ? "#" : ""}`;
+  return `${base}${params.size ? `?${params}` : ""}${error ? "#" : ""}`;
+}
+
+export function loginPath(returnTo: string, error?: string): string {
+  return authPath("/login", returnTo, error);
+}
+
+/** 동의를 받는 쪽은 가입 화면이다. 동의가 모자라 되돌아온 사람을 로그인으로
+ *  보내면 체크박스가 없는 화면에 세워 두게 된다. */
+export function signupPath(returnTo: string, error?: string): string {
+  return authPath("/signup", returnTo, error);
 }

@@ -1,6 +1,7 @@
 import {
   authReturnPath,
   loginPath,
+  signupPath,
   RETURN_COOKIE,
 } from "@/lib/auth/return-path";
 import { startLogin } from "@/lib/auth/start";
@@ -74,10 +75,19 @@ export async function POST(request: Request) {
         code: "INVALID_PROVIDER",
         message: "로그인 방법을 다시 선택해 주세요.",
       });
-    // 개인정보 보호법 제22조: the agreements are taken before the account exists,
-    // so a client that skips the boxes must not reach the provider either.
-    if (form.get("agreed") !== "on")
-      return authRedirect(origin, loginPath(returnTo, "consent"));
+    // 로그인과 가입이 다른 화면이 되면서 이 문도 둘로 갈린다.
+    //
+    // 가입은 그대로다 — 개인정보 보호법 제22조에 따라 동의는 계정이 생기기 전에
+    // 받으므로, 체크를 건너뛴 클라이언트는 제공자에게도 닿지 못한다.
+    //
+    // 로그인은 이미 동의한 사람이 쓰는 문이라 체크박스를 다시 묻지 않는다. 대신
+    // **동의를 기록하지도 않는다.** 동의 기록이 없는 채로 들어오면
+    // `consentOutcome(null)`이 `reconsent`라서 홈·대화·서랍의 게이트가 그 사람을
+    // `/consent`로 보낸다. 계정을 지우지 않으므로, 가입 때 기록이 실패해 기록만
+    // 없는 기존 회원의 기록을 날릴 위험이 없다.
+    const signup = form.get("intent") !== "login";
+    if (signup && form.get("agreed") !== "on")
+      return authRedirect(origin, signupPath(returnTo, "consent"));
     const supabase = await createSupabaseRouteClient();
     const result = await startLogin(supabase.auth, provider, origin);
     if (result.kind === "existing") return authRedirect(origin, returnTo);
@@ -96,7 +106,7 @@ export async function POST(request: Request) {
       JSON.stringify({
         expectedUserId: result.expectedUserId,
         returnTo,
-        agreed: true,
+        agreed: signup,
         expiresAt: Date.now() + FLOW_SECONDS * 1000,
       }),
       {

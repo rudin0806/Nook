@@ -1223,6 +1223,49 @@ body button {
   color: var(--nook-muted);
   font-size: 14px;
 }
+/* 제공자 버튼은 이제 둘이라 간격을 목록이 쥔다. 버튼마다 붙어 있던 위 여백을
+   그대로 두면 둘 사이가 32px로 벌어진다. */
+.provider-buttons {
+  display: grid;
+  gap: 10px;
+  margin-top: 32px;
+}
+.provider-buttons .google-button,
+.provider-buttons .kakao-button {
+  margin-top: 0;
+}
+.kakao-button {
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 16px 20px;
+  min-height: 56px;
+  /* 카카오가 정한 색이라 테마를 따르지 않는다. 글자색도 함께 고정해야 조명을 끈
+     화면에서 노랑 위에 밝은 글자가 올라가지 않는다. */
+  background: #fee500;
+  color: #191600;
+  border: 0;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.kakao-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.account-switch {
+  margin-top: 22px;
+  font-size: 14px;
+  color: var(--nook-muted);
+  text-align: center;
+}
+.account-switch a {
+  color: var(--nook-ink);
+  font-weight: 600;
+}
 .google-button,
 .account-primary {
   display: flex;

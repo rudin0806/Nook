@@ -5,13 +5,17 @@ import { PageHeading } from "./page-heading";
 import { NicknameForm } from "./nickname-form";
 import { AccountDeletion } from "./account-deletion";
 import { ConsentGate } from "./consent-gate";
+import { SignInGate } from "./sign-in-gate";
 import { readNickname } from "@/schemas/profile";
 export function AccountPanel({
   message,
   returnTo = "/drawer",
+  intent = "login",
 }: {
   message: string | null;
   returnTo?: string;
+  /** 로그아웃 상태에서 어느 문을 보여 줄지. 로그인한 사람에게는 상관이 없다. */
+  intent?: "login" | "signup";
 }) {
   const [nickname, setNickname] = useState<string | null>(null);
   const [account, setAccount] = useState<{
@@ -64,12 +68,18 @@ export function AccountPanel({
       <PageHeading
         kicker="내 정보"
         title={
-          state === "signed_in" ? "다시 만나 반가워요" : "내 생각을, 내 자리에"
+          state === "signed_in"
+            ? "다시 만나 반가워요"
+            : intent === "signup"
+              ? "내 생각을, 내 자리에"
+              : "다시 오셨네요"
         }
         subtitle={
           state === "signed_in"
             ? "남겨둔 질문들이 여기 있어요"
-            : "보관한 생각을 다시 펼쳐보는 계정"
+            : intent === "signup"
+              ? "보관한 생각을 다시 펼쳐보는 계정"
+              : "남겨둔 생각이 그대로 기다리고 있어요"
         }
       />
       {message && (
@@ -95,7 +105,11 @@ export function AccountPanel({
           </ActionButton>
         </div>
       ) : state === "signed_out" ? (
-        <ConsentGate returnTo={returnTo} />
+        intent === "signup" ? (
+          <ConsentGate returnTo={returnTo} />
+        ) : (
+          <SignInGate returnTo={returnTo} />
+        )
       ) : (
         <>
           {/* 어느 계정으로 들어와 있는지가 이 화면에서 가장 먼저 답해야 할 질문이다.

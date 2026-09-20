@@ -3,6 +3,8 @@ import Link from "next/link";
 import { AccountPanel } from "@/components/nook/account-panel";
 import { Wordmark } from "@/components/nook/wordmark";
 
+/** 로그인 화면과 같은 표를 쓴다. 문구가 갈라지면 같은 실패가 화면마다 다른 말로
+ *  설명된다. */
 const messages: Record<string, string> = {
   cancelled: "로그인을 취소했어요. 원할 때 다시 연결해 주세요.",
   provider:
@@ -26,7 +28,7 @@ const messages: Record<string, string> = {
     "탈퇴한 계정이에요. 같은 방법으로는 탈퇴일로부터 30일이 지난 뒤에 다시 가입할 수 있어요.",
   consent: "필수 항목에 모두 동의해야 계정을 만들 수 있어요.",
 };
-export default async function LoginPage({
+export default async function SignupPage({
   searchParams,
 }: {
   searchParams: Promise<{
@@ -63,7 +65,7 @@ export default async function LoginPage({
             않아요.
           </p>
         )}
-        <AccountPanel message={message} returnTo={returnTo} intent="login" />
+        <AccountPanel message={message} returnTo={returnTo} intent="signup" />
       </main>
       <footer className="account-footer">
         a little room for your thoughts.
