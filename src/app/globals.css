@@ -875,41 +875,49 @@ body button {
 
 /* Tones shared by spines and covers ---------------------------------------- */
 .book[data-tone="1"],
+.shelf-book[data-tone="1"],
 .cover-card[data-tone="1"] {
   --book-bg: var(--tone-1-bg);
   --book-fg: var(--tone-1-fg);
 }
 .book[data-tone="2"],
+.shelf-book[data-tone="2"],
 .cover-card[data-tone="2"] {
   --book-bg: var(--tone-2-bg);
   --book-fg: var(--tone-2-fg);
 }
 .book[data-tone="3"],
+.shelf-book[data-tone="3"],
 .cover-card[data-tone="3"] {
   --book-bg: var(--tone-3-bg);
   --book-fg: var(--tone-3-fg);
 }
 .book[data-tone="4"],
+.shelf-book[data-tone="4"],
 .cover-card[data-tone="4"] {
   --book-bg: var(--tone-4-bg);
   --book-fg: var(--tone-4-fg);
 }
 .book[data-tone="5"],
+.shelf-book[data-tone="5"],
 .cover-card[data-tone="5"] {
   --book-bg: var(--tone-5-bg);
   --book-fg: var(--tone-5-fg);
 }
 .book[data-tone="6"],
+.shelf-book[data-tone="6"],
 .cover-card[data-tone="6"] {
   --book-bg: var(--tone-6-bg);
   --book-fg: var(--tone-6-fg);
 }
 .book[data-tone="7"],
+.shelf-book[data-tone="7"],
 .cover-card[data-tone="7"] {
   --book-bg: var(--tone-7-bg);
   --book-fg: var(--tone-7-fg);
 }
 .book[data-tone="8"],
+.shelf-book[data-tone="8"],
 .cover-card[data-tone="8"] {
   --book-bg: var(--tone-8-bg);
   --book-fg: var(--tone-8-fg);
@@ -1505,13 +1513,17 @@ body button {
    under the card, so there is no stack to draw. Turning to another question is
    what needs to read, and it reads as travel in the direction asked for.
    redesign.css already carries the plain enter animation for a first paint. */
-.story-question-card {
+.story-question-card,
+/* 홈의 이어갈 대화도 같은 방식으로 넘어간다 — 쓸어 넘긴 방향으로 지나간다. */
+.browse-card {
   position: relative;
 }
-.card-navigation[data-turn="next"] .story-question-card {
+.card-navigation[data-turn="next"] .story-question-card,
+.card-navigation[data-turn="next"] .browse-card {
   animation: question-turn-next 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
-.card-navigation[data-turn="previous"] .story-question-card {
+.card-navigation[data-turn="previous"] .story-question-card,
+.card-navigation[data-turn="previous"] .browse-card {
   animation: question-turn-previous 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 @keyframes question-turn-next {
@@ -1535,7 +1547,8 @@ body button {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .card-navigation[data-turn] .story-question-card {
+  .card-navigation[data-turn] .story-question-card,
+  .card-navigation[data-turn] .browse-card {
     animation: none;
   }
 }

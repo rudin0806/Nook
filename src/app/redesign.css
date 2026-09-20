@@ -582,6 +582,8 @@ body {
   border-bottom: 2px solid var(--nook-line-strong);
   overflow-x: auto;
 }
+/* 홈의 책등도 서랍의 책과 같은 여덟 가지 색을 쓴다. 회색 하나로 세워 두면 몇
+   권인지는 보여도 어느 것이 어느 것인지 알 수 없었다. */
 .shelf-book {
   display: flex;
   flex-shrink: 0;
@@ -590,8 +592,8 @@ body {
   width: 46px;
   height: 78px;
   border-radius: 4px 5px 2px 2px;
-  background: var(--nook-raised);
-  color: var(--nook-ink);
+  background: var(--book-bg, var(--nook-raised));
+  color: var(--book-fg, var(--nook-ink));
   text-decoration: none;
   transition: transform 0.18s;
 }

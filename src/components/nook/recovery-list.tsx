@@ -8,8 +8,10 @@ import { NookIcon } from "./nook-icon";
 import { formatSeoulDeadline } from "@/lib/format/datetime";
 import { previewRecovery, PREVIEW_EXPIRES_AT } from "@/lib/example/preview";
 export function RecoveryList({ preview = false }: { preview?: boolean }) {
-  const dialog = useRef<HTMLDialogElement>(null);
   const [selected, setSelected] = useState(0);
+  // 어느 쪽으로 넘겼는지 기억해야 카드가 그 방향으로 지나간다. CardNavigation이
+  // `data-turn`으로 읽는다.
+  const [turn, setTurn] = useState<"next" | "previous" | null>(null);
   const [loaded, setLoaded] = useState<RecoveryItem[]>([]),
     [more, setMore] = useState(false),
     [notice, setNotice] = useState("");
@@ -106,26 +108,87 @@ export function RecoveryList({ preview = false }: { preview?: boolean }) {
           </div>
         </div>
       ) : null}
-      <div className="scattered-cards">
-        {visible.slice(0, 4).map((item, index) => (
-          <button
-            className="thought-card"
-            key={item.id}
-            onClick={() => {
-              setSelected(index);
-              dialog.current?.showModal();
-            }}
-          >
-            <span className="card-mark">
-              {String(index + 1).padStart(2, "0")}
-            </span>
-            <strong>{item.question}</strong>
-            <span className="card-caption">
-              {item.nodeId ? "펼쳐보기 ›" : "첫 질문 정하기 ›"}
-            </span>
-          </button>
-        ))}
-      </div>
+      {/* 홈에서 바로 넘긴다. 카드를 눌러야 열리는 모달을 따로 두면 같은 것을
+          보는 길이 둘이 되고, 쌓인 카드를 훑는 데 한 번 더 눌러야 했다.
+          좌우로 쓸거나 화살표를 누르면 넘어가고, 방향대로 카드가 지나간다. */}
+      {current ? (
+        <CardNavigation
+          label="이어갈 대화 카드"
+          turn={turn}
+          previous={
+            activeIndex > 0
+              ? () => {
+                  setTurn("previous");
+                  setSelected(activeIndex - 1);
+                }
+              : undefined
+          }
+          next={
+            activeIndex < visible.length - 1
+              ? () => {
+                  setTurn("next");
+                  setSelected(activeIndex + 1);
+                }
+              : undefined
+          }
+        >
+          <div className="card-stack">
+            <article className="browse-card" key={current.id}>
+              <span className="card-mark">
+                {String(activeIndex + 1).padStart(2, "0")}
+              </span>
+              <h3>{current.question}</h3>
+              <p>
+                {formatSeoulDeadline(current.expiresAt)}까지 이어갈 수 있어요.
+              </p>
+              <Link
+                href={
+                  preview
+                    ? `/talk/${current.nodeId}?preview=1`
+                    : `/resume/${current.id}`
+                }
+              >
+                {current.nodeId ? "이 대화 이어가기 ›" : "여기서 이어 적기 ›"}
+              </Link>
+            </article>
+          </div>
+          {visible.length > 1 ? (
+            <div className="card-controls">
+              <button
+                type="button"
+                aria-label="이전 카드"
+                disabled={activeIndex <= 0}
+                onClick={() => {
+                  setTurn("previous");
+                  setSelected(Math.max(0, activeIndex - 1));
+                }}
+              >
+                ←
+              </button>
+              <span aria-live="polite">
+                {activeIndex + 1} / {visible.length}
+              </span>
+              <button
+                type="button"
+                aria-label="다음 카드"
+                disabled={activeIndex >= visible.length - 1}
+                onClick={() => {
+                  setTurn("next");
+                  setSelected(Math.min(visible.length - 1, activeIndex + 1));
+                }}
+              >
+                →
+              </button>
+            </div>
+          ) : null}
+          {/* 모달에 있던 안내다. 모달을 걷어내면서 사라질 뻔했는데, 지금은
+              사용자가 직접 치울 수도 있어 더 필요해졌다. */}
+          <p className="card-policy">
+            만료되면 계정에 연결된 대화는 휴지통으로 이동하고, 익명 대화는
+            삭제돼요.
+          </p>
+        </CardNavigation>
+      ) : null}
       {more ? (
         <ActionButton
           variant="ghost"
@@ -137,17 +200,6 @@ export function RecoveryList({ preview = false }: { preview?: boolean }) {
         >
           이전 대화 더 불러오기
         </ActionButton>
-      ) : null}
-      {visible.length > 4 ? (
-        <button
-          className="recovery-browse"
-          onClick={() => {
-            setSelected(4);
-            dialog.current?.showModal();
-          }}
-        >
-          모든 대화 살펴보기 →
-        </button>
       ) : null}
       {notice ? (
         <div role="status">
@@ -162,90 +214,6 @@ export function RecoveryList({ preview = false }: { preview?: boolean }) {
           </button>
         </div>
       ) : null}
-      <dialog
-        ref={dialog}
-        className="card-browser"
-        aria-labelledby="card-browser-title"
-      >
-        <div className="panel-heading">
-          <h2 id="card-browser-title">이어갈 대화</h2>
-          <button
-            autoFocus
-            aria-label="닫기"
-            onClick={() => dialog.current?.close()}
-          >
-            닫기 ×
-          </button>
-        </div>
-        {current ? (
-          <>
-            <CardNavigation
-              label="이어갈 대화 카드"
-              previous={
-                activeIndex > 0 ? () => setSelected(activeIndex - 1) : undefined
-              }
-              next={
-                activeIndex < visible.length - 1
-                  ? () => setSelected(activeIndex + 1)
-                  : undefined
-              }
-            >
-              <div className="card-stack">
-                <article className="browse-card" key={current.id}>
-                  <span className="panel-eyebrow">
-                    {current.nodeId
-                      ? "아직 남기지 않은 생각"
-                      : "첫 질문을 정하기 전에 적은 생각"}
-                  </span>
-                  <h3>{current.question}</h3>
-                  <p>
-                    {formatSeoulDeadline(current.expiresAt)}까지 이어갈 수
-                    있어요.
-                  </p>
-                  <Link
-                    href={
-                      preview
-                        ? `/talk/${current.nodeId}?preview=1`
-                        : `/resume/${current.id}`
-                    }
-                  >
-                    {current.nodeId
-                      ? "이 대화 이어가기 ›"
-                      : "여기서 이어 적기 ›"}
-                  </Link>
-                </article>
-              </div>
-              <div className="card-controls">
-                <button
-                  aria-label="이전 카드"
-                  disabled={activeIndex <= 0}
-                  onClick={() => setSelected(Math.max(0, activeIndex - 1))}
-                >
-                  ←
-                </button>
-                <span aria-live="polite">
-                  {Math.min(selected + 1, visible.length)} / {visible.length}
-                </span>
-                <button
-                  aria-label="다음 카드"
-                  disabled={activeIndex >= visible.length - 1}
-                  onClick={() =>
-                    setSelected(Math.min(visible.length - 1, activeIndex + 1))
-                  }
-                >
-                  →
-                </button>
-              </div>
-            </CardNavigation>
-            <p className="card-policy">
-              만료되면 계정에 연결된 대화는 휴지통으로 이동하고, 익명 대화는
-              삭제돼요.
-            </p>
-          </>
-        ) : (
-          <p>이어갈 수 있는 대화가 없어요.</p>
-        )}
-      </dialog>
     </section>
   );
 }

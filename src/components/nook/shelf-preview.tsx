@@ -82,6 +82,9 @@ export function ShelfPreview({ preview = false }: { preview?: boolean }) {
             key={book.id}
             href={preview ? "/drawer?preview=1" : `/drawer/${book.id}`}
             className="shelf-book"
+            // 서랍의 책과 같은 여덟 색을 돌려 쓴다. 자리로 색이 정해지므로
+            // 책장 순서를 바꾸면 색도 함께 따라온다.
+            data-tone={(index % 8) + 1}
             data-height={
               book.nodes <= 1 ? "small" : book.nodes <= 3 ? "medium" : "large"
             }
