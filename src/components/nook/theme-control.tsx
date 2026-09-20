@@ -23,7 +23,7 @@ function snapshot() {
     (saved !== "light" && matchMedia("(prefers-color-scheme: dark)").matches);
   return dark;
 }
-export function ThemeControl() {
+export function ThemeControl({ compact = false }: { compact?: boolean }) {
   const dark = useSyncExternalStore(subscribe, snapshot, () => false);
   function toggle() {
     const next = dark ? "light" : "dark";
@@ -34,6 +34,27 @@ export function ThemeControl() {
     document.documentElement.dataset.seedColorMode = `${next}-only`;
     window.dispatchEvent(new Event("nook-theme"));
   }
+  const label = dark ? "조명 켜기 · 라이트 모드" : "조명 끄기 · 다크 모드";
+  // 탭바에 서는 꼴. 도시락 칸 하나를 차지하던 판이 쓰기와 더미 사이에 끼어 있어서
+  // 읽을 것과 만질 것이 같은 격자에 섞였다. 조명은 화면 전체의 설정이므로 화면
+  // 전체를 이고 있는 줄로 올라간다.
+  if (compact)
+    return (
+      <button
+        className="lamp-switch"
+        data-lit={!dark}
+        role="switch"
+        aria-checked={!dark}
+        aria-label={label}
+        title={label}
+        onClick={toggle}
+      >
+        <NookIcon name="lamp" tone="orange" compact />
+        <span className="lamp-switch-track" aria-hidden="true">
+          <span />
+        </span>
+      </button>
+    );
   return (
     <section
       className="lamp-panel"
@@ -53,7 +74,7 @@ export function ThemeControl() {
         className="lamp-toggle"
         role="switch"
         aria-checked={!dark}
-        aria-label={dark ? "조명 켜기 · 라이트 모드" : "조명 끄기 · 다크 모드"}
+        aria-label={label}
         onClick={toggle}
       >
         <span aria-hidden="true" />

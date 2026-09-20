@@ -315,6 +315,17 @@ body {
 .app-dock .nook-icon {
   display: none;
 }
+/* 목적지는 글자로 읽히니 이 줄에서 아이콘이 자리를 내준다. 조명에는 글자가 없어서
+   같이 숨기면 무엇을 켜고 끄는 스위치인지 알 수 없다. 등은 남긴다. */
+/* 이 줄에서 색은 '지금 어디에 있는가'를 뜻한다. 조명은 목적지가 아니므로 등에는
+   제 색을 입히지 않는다. 켜짐과 꺼짐은 옆의 스위치가 말한다. */
+.app-dock .lamp-switch .nook-icon {
+  display: inline-flex;
+  color: var(--nook-muted);
+}
+.app-dock .lamp-switch:hover .nook-icon {
+  color: var(--nook-ink);
+}
 
 .desk-main,
 .preview-summary {
@@ -1431,14 +1442,16 @@ body {
 
 /* "넓게 쓰기" is a mode switch, not a link out, so it reads as a small control
    rather than a sentence with an arrow stuck to it. */
-.paper-top .seed-action-button {
+.paper-top .seed-action-button,
+.writing-surface > .panel-heading .seed-action-button {
   padding: 5px 11px;
   border: 1px solid var(--nook-card-line);
   border-radius: 999px;
   font-size: 12px;
   color: var(--nook-muted);
 }
-.paper-top .seed-action-button:hover {
+.paper-top .seed-action-button:hover,
+.writing-surface > .panel-heading .seed-action-button:hover {
   color: var(--nook-ink);
 }
 
@@ -2772,6 +2785,22 @@ body {
   gap: 8px;
   margin: 4px 0 0;
   text-align: left;
+}
+/* 바로 위 '내 계정'은 잠긴 면이라 회색으로 둔다. 닉네임은 고치라고 있는 칸인데
+   같은 회색이어서 둘 다 읽기만 하는 값처럼 보였다. 흰 바닥과 또렷한 선으로
+   만질 수 있는 칸이라고 먼저 말한다. */
+.account-panel .nickname-form input {
+  border-color: var(--nook-line-strong);
+  background: var(--nook-surface-solid);
+}
+.account-panel .nickname-form input:focus-visible {
+  outline: 2px solid var(--nook-primary);
+  outline-offset: 1px;
+  border-color: var(--nook-primary);
+}
+.account-panel .nickname-form input:disabled {
+  background: var(--nook-fill);
+  color: var(--nook-muted);
 }
 .account-panel .nickname-form input::placeholder {
   color: var(--nook-subtle);

@@ -445,50 +445,49 @@ export function DrawerContents({
         <p>휴지통으로 옮긴 이야기는 7일 동안 복원할 수 있어요.</p>
       )}
       {collection === "recovery" && (
-        <>
-          <p>홈에서 보던 그 목록이에요. 24시간 안에 이어갈 수 있어요.</p>
-          {state.kind === "ready" && !!state.items.length && (
-            <div className="shelf-edit-toolbar">
-              {picking ? (
-                <>
-                  <p>
-                    치울 대화를 고르세요. 휴지통에서 7일 동안 되돌릴 수 있어요.
-                  </p>
-                  <div className="preview-actions">
-                    <ActionButton
-                      variant="neutralSolid"
-                      disabled={busy || !picked.size}
-                      onClick={() => void discardPicked()}
-                    >
-                      {busy
-                        ? "옮기는 중…"
-                        : picked.size
-                          ? `${picked.size}개 휴지통으로`
-                          : "고른 것 없음"}
-                    </ActionButton>
-                    <ActionButton
-                      variant="neutralWeak"
-                      disabled={busy}
-                      onClick={endPicking}
-                    >
-                      그만두기
-                    </ActionButton>
-                  </div>
-                </>
-              ) : (
-                <div className="preview-actions">
-                  <ActionButton
-                    variant="neutralWeak"
-                    disabled={busy}
-                    onClick={() => setPicking(true)}
-                  >
-                    삭제하기
-                  </ActionButton>
-                </div>
-              )}
-            </div>
-          )}
-        </>
+        /* 설명과 편집 버튼이 한 줄에 선다. 버튼만 따로 아래 줄에 두었더니 새로고침
+           에서 멀어져 어디에 걸린 동작인지 알기 어려웠다. */
+        <div className="shelf-edit-toolbar" data-picking={picking || undefined}>
+          <p>
+            {picking
+              ? "치울 대화를 고르세요. 휴지통에서 7일 동안 되돌릴 수 있어요."
+              : "홈에서 보던 그 목록이에요. 24시간 안에 이어갈 수 있어요."}
+          </p>
+          {state.kind === "ready" &&
+            !!state.items.length &&
+            (picking ? (
+              <div className="preview-actions">
+                <ActionButton
+                  variant="neutralSolid"
+                  disabled={busy || !picked.size}
+                  onClick={() => void discardPicked()}
+                >
+                  {busy
+                    ? "옮기는 중…"
+                    : picked.size
+                      ? `${picked.size}개 휴지통으로`
+                      : "고른 것 없음"}
+                </ActionButton>
+                <ActionButton
+                  variant="neutralWeak"
+                  disabled={busy}
+                  onClick={endPicking}
+                >
+                  그만두기
+                </ActionButton>
+              </div>
+            ) : (
+              <div className="preview-actions">
+                <ActionButton
+                  variant="neutralWeak"
+                  disabled={busy}
+                  onClick={() => setPicking(true)}
+                >
+                  삭제하기
+                </ActionButton>
+              </div>
+            ))}
+        </div>
       )}
       {collection === "sessions" &&
         state.kind === "ready" &&
@@ -583,6 +582,7 @@ export function DrawerContents({
                     className="preview-summary-card"
                     draggable={editingOrder && !busy}
                     data-order-editing={editingOrder || undefined}
+                    data-picking={picking || undefined}
                     data-picked={(picking && picked.has(item.id)) || undefined}
                     data-dragging={draggedId === item.id || undefined}
                     onDragStart={(event) => {

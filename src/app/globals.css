@@ -427,11 +427,16 @@ body button {
   margin: 20px 0 -4px;
 }
 .shelf-edit-toolbar > p {
+  /* 설명이 제 길이를 다 차지하면 좁은 화면에서 버튼이 다음 줄로 밀려난다.
+     설명은 줄여 접고, 버튼이 같은 줄에 남는다. */
+  flex: 1 1 12ch;
+  min-width: 0;
   color: var(--nook-muted);
   margin: 0;
   font-size: 14px;
 }
 .shelf-edit-toolbar .preview-actions {
+  flex-shrink: 0;
   margin: 0;
 }
 /* 이어갈 대화를 골라 치우는 줄. 순서 편집과 같은 자리를 쓰되, 고르는 것은 카드
@@ -460,9 +465,11 @@ body button {
   clip-path: inset(50%);
   white-space: nowrap;
 }
-.drawer-list > li:has(.pick-control) {
+/* `:has()`에 기댔더니 들여쓰기가 먹지 않아 체크박스가 제목 첫 글자를 덮었다.
+   고르는 중이라는 사실을 카드가 직접 들고 있게 하고 그 값으로 자리를 만든다. */
+.drawer-list > li[data-picking] {
   position: relative;
-  padding-left: 48px;
+  padding-left: 52px;
 }
 .drawer-list > li[data-picked] {
   border-color: var(--nook-primary);
@@ -1449,15 +1456,31 @@ body button {
   --scale: 0.95;
   z-index: 1;
 }
+/* 끄는 동안 맨 위 장이 손을 따라온다. 손을 뗄 때까지 화면이 가만히 있으면
+   넘기는 중인지 알 수 없어서 넘어가지 않는 것으로 보였다. 따라오는 값은
+   CardNavigation이 `--drag-x`·`--drag-turn`으로 내보낸다. */
+.card-stack .card-stack-card[data-depth="0"] {
+  cursor: grab;
+}
+.card-navigation[data-dragging] .card-stack-card[data-depth="0"] {
+  --shift: var(--drag-x, 0px);
+  --tilt: calc(var(--drag-turn, 0) * 1deg);
+  cursor: grabbing;
+  transition: none;
+}
 /* Moving on: the top card leaves in the direction of travel and the one
-   behind rises into its place. Timing matches SLIDE_MS in card-stack.tsx. */
-.card-stack[data-leaving="next"] .card-stack-card[data-depth="0"] {
+   behind rises into its place. Timing matches SLIDE_MS in card-stack.tsx.
+   옆으로 날아가 사라지는 대신 더미 뒤로 숙 들어간다 — 다 읽은 장은 버려지는
+   것이 아니라 뒤로 돌아가는 것이다. */
+.card-stack[data-leaving] .card-stack-card[data-depth="0"] {
+  z-index: 0;
   opacity: 0;
-  transform: translate(-46%, -14px) rotate(-7deg) scale(0.94);
+}
+.card-stack[data-leaving="next"] .card-stack-card[data-depth="0"] {
+  transform: translate(-24%, 20px) rotate(-6deg) scale(0.88);
 }
 .card-stack[data-leaving="previous"] .card-stack-card[data-depth="0"] {
-  opacity: 0;
-  transform: translate(46%, -14px) rotate(7deg) scale(0.94);
+  transform: translate(24%, 20px) rotate(6deg) scale(0.88);
 }
 .card-stack[data-leaving] .card-stack-card[data-depth="1"] {
   --shift: 0px;
@@ -1560,6 +1583,13 @@ body button {
 /* 홈의 이어갈 대화도 같은 방식으로 넘어간다 — 쓸어 넘긴 방향으로 지나간다. */
 .browse-card {
   position: relative;
+}
+/* 더미와 같이, 여기서도 끄는 동안 카드가 손을 따라온다. */
+.card-navigation[data-dragging] .story-question-card,
+.card-navigation[data-dragging] .browse-card {
+  animation: none;
+  transform: translateX(var(--drag-x, 0px))
+    rotate(calc(var(--drag-turn, 0) * 0.5deg));
 }
 .card-navigation[data-turn="next"] .story-question-card,
 .card-navigation[data-turn="next"] .browse-card {
@@ -1921,11 +1951,20 @@ body button {
   .preview-actions {
     gap: 7px;
   }
+  /* 좁은 화면에서 이 줄을 통째로 세로로 쌓았더니 버튼이 설명 아래로 떨어져
+     새로고침에서 멀어졌다. 버튼이 하나일 때는 설명 옆에 그대로 둔다. */
   .shelf-edit-toolbar {
+    gap: 12px;
+  }
+  .shelf-edit-toolbar[data-picking] {
     align-items: stretch;
     flex-direction: column;
   }
-  .shelf-edit-toolbar .preview-actions {
+  /* 세로로 쌓이면 같은 `flex-grow`가 높이를 늘려 설명과 버튼 사이가 벌어진다. */
+  .shelf-edit-toolbar[data-picking] > p {
+    flex: 0 0 auto;
+  }
+  .shelf-edit-toolbar[data-picking] .preview-actions {
     display: grid;
     grid-template-columns: 1fr 1fr;
   }
@@ -2042,4 +2081,47 @@ body button {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+/* 탭바 오른쪽 끝의 조명 스위치. 탭이 아니므로 탭과 같은 모양으로 서지 않는다. */
+.app-dock .lamp-switch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  padding: 6px 10px 6px 6px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+}
+.app-dock .lamp-switch:hover {
+  background: var(--nook-fill);
+}
+.app-dock .lamp-switch:focus-visible {
+  outline: 2px solid var(--nook-primary);
+  outline-offset: 2px;
+}
+.lamp-switch-track {
+  display: block;
+  width: 36px;
+  height: 20px;
+  padding: 2px;
+  border-radius: 999px;
+  background: var(--nook-line-strong);
+  transition: background 0.18s;
+}
+.lamp-switch[data-lit] .lamp-switch-track {
+  background: var(--nook-primary);
+}
+.lamp-switch-track > span {
+  display: block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--nook-surface-solid);
+  transition: transform 0.18s;
+}
+.lamp-switch[data-lit] .lamp-switch-track > span {
+  transform: translateX(16px);
 }

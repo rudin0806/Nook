@@ -100,8 +100,31 @@ export function ThoughtInput({
         if (e.target instanceof HTMLTextAreaElement) setExpanded(true);
       }}
     >
-      <div className="paper-top">
-        <span>지금, 내 머릿속</span>
+      {/* 옆 칸의 `이어갈 대화`와 같은 머리말 꼴이다. 전에는 `지금, 내 머릿속`이
+          줄 하나를 따로 차지하고 제목이 그 아래로 내려가, 같은 화면의 두 패널이
+          서로 다른 구조로 서 있었다. */}
+      <div className="panel-heading">
+        <div className="panel-title-with-icon">
+          <NookIcon name="write" tone="blue" tile />
+          <div>
+            <h2 ref={heading} tabIndex={-1}>
+              {view.kind === "input"
+                ? "생각 적기"
+                : view.kind === "proposal"
+                  ? "이 질문으로 시작할까요?"
+                  : view.kind === "focus"
+                    ? "무엇부터 볼까요?"
+                    : view.kind === "approved"
+                      ? "대화를 여는 중이에요"
+                      : "잠시 살펴봐요."}
+            </h2>
+            {view.kind === "input" && (
+              <span className="panel-eyebrow">
+                떠오르는 생각을 자유롭게 적어보세요
+              </span>
+            )}
+          </div>
+        </div>
         <ActionButton
           variant="ghost"
           size="small"
@@ -110,20 +133,6 @@ export function ThoughtInput({
         >
           {expanded ? "접어두기" : "넓게 쓰기"}
         </ActionButton>
-      </div>
-      <div className="panel-title-with-icon">
-        <NookIcon name="write" tone="blue" tile />
-        <h2 ref={heading} tabIndex={-1}>
-          {view.kind === "input"
-            ? "생각 적기"
-            : view.kind === "proposal"
-              ? "이 질문으로 시작할까요?"
-              : view.kind === "focus"
-                ? "무엇부터 볼까요?"
-                : view.kind === "approved"
-                  ? "대화를 여는 중이에요"
-                  : "잠시 살펴봐요."}
-        </h2>
       </div>
       {view.kind === "input" && (
         <form

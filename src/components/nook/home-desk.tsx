@@ -2,7 +2,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ThoughtInput } from "./thought-input";
 import { RecoveryList } from "./recovery-list";
-import { ThemeControl } from "./theme-control";
 import { ShelfPreview } from "./shelf-preview";
 
 /** The desk has one job at a time. Writing is the job, so when the person is
@@ -54,7 +53,6 @@ export function HomeDesk({
         />
       </div>
       <aside className="home-aside" inert={expanded}>
-        <ThemeControl />
         <ShelfPreview preview={preview} />
         <RecoveryList preview={preview} />
       </aside>
