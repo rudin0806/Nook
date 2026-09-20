@@ -111,6 +111,10 @@ export function DrawerContents({
   const [busy, setBusy] = useState(false);
   const [editingOrder, setEditingOrder] = useState(false);
   const [draggedId, setDraggedId] = useState<string | null>(null);
+  // 이어갈 대화를 골라 치우는 모드. 고른 것이 무엇인지 화면에 남아야 해서
+  // 목록과 따로 센다.
+  const [picking, setPicking] = useState(false);
+  const [picked, setPicked] = useState<ReadonlySet<string>>(new Set());
   const [notice, setNotice] = useState<ToastNotice | null>(null);
   // 같은 문장이 다시 떠도 머무는 시간이 처음부터 흐르도록 회차를 센다.
   const noticeCount = useRef(0);
@@ -214,6 +218,7 @@ export function DrawerContents({
     if (value === collection || mutationLock.current) return;
     setEditingOrder(false);
     setDraggedId(null);
+    endPicking();
     setNotice(null);
     setState({ kind: "loading" });
     setOffset(0);
@@ -251,6 +256,69 @@ export function DrawerContents({
         say(
           "처리 결과를 확인하지 못했어요. 다시 누르기 전에 목록을 새로고침해 주세요.",
         );
+    } finally {
+      mutationLock.current = false;
+      setBusy(false);
+    }
+  }
+
+  function endPicking() {
+    setPicking(false);
+    setPicked(new Set());
+  }
+
+  function togglePicked(id: string) {
+    setPicked((current) => {
+      const next = new Set(current);
+      if (!next.delete(id)) next.add(id);
+      return next;
+    });
+  }
+
+  /** 고른 이어갈 대화를 휴지통으로 보낸다. 24시간 뒤 만료가 하던 일을 당기는
+   *  것이라 7일 동안 휴지통에서 되돌릴 수 있다.
+   *
+   *  하나씩 보내고 중간에 실패해도 멈추지 않는다. 다섯 개를 고른 사람에게 첫
+   *  실패로 전부 되돌리면, 무엇이 치워졌고 무엇이 남았는지 알 수 없게 된다. */
+  async function discardPicked() {
+    if (mutationLock.current || !picked.size) return;
+    const targets = [...picked];
+    const question =
+      targets.length === 1
+        ? "이 대화를 휴지통으로 옮길까요? 7일 동안 되돌릴 수 있어요."
+        : `${targets.length}개를 휴지통으로 옮길까요? 7일 동안 되돌릴 수 있어요.`;
+    if (!window.confirm(question)) return;
+    mutationLock.current = true;
+    setBusy(true);
+    setNotice(null);
+    let done = 0;
+    let failure: RetentionActionError | null = null;
+    try {
+      for (const id of targets) {
+        try {
+          await performRetentionAction("discard", id);
+          done += 1;
+        } catch (error) {
+          if (error instanceof RetentionActionError && !failure)
+            failure = error;
+          else if (!failure) failure = new RetentionActionError(false, "");
+        }
+      }
+      if (!done)
+        say(
+          failure?.message ??
+            "치우지 못했어요. 목록을 새로고침한 뒤 다시 시도해 주세요.",
+          failure?.needsLogin,
+        );
+      else if (done < targets.length)
+        say(
+          `${done}개를 휴지통으로 옮겼어요. ${targets.length - done}개는 상태가 바뀌어 남아 있어요.`,
+        );
+      else say(`${done}개를 휴지통으로 옮겼어요.`);
+      endPicking();
+      setState({ kind: "loading" });
+      setOffset(0);
+      setAttempt((n) => n + 1);
     } finally {
       mutationLock.current = false;
       setBusy(false);
@@ -377,7 +445,50 @@ export function DrawerContents({
         <p>휴지통으로 옮긴 이야기는 7일 동안 복원할 수 있어요.</p>
       )}
       {collection === "recovery" && (
-        <p>홈에서 보던 그 목록이에요. 24시간 안에 이어갈 수 있어요.</p>
+        <>
+          <p>홈에서 보던 그 목록이에요. 24시간 안에 이어갈 수 있어요.</p>
+          {state.kind === "ready" && !!state.items.length && (
+            <div className="shelf-edit-toolbar">
+              {picking ? (
+                <>
+                  <p>
+                    치울 대화를 고르세요. 휴지통에서 7일 동안 되돌릴 수 있어요.
+                  </p>
+                  <div className="preview-actions">
+                    <ActionButton
+                      variant="neutralSolid"
+                      disabled={busy || !picked.size}
+                      onClick={() => void discardPicked()}
+                    >
+                      {busy
+                        ? "옮기는 중…"
+                        : picked.size
+                          ? `${picked.size}개 휴지통으로`
+                          : "고른 것 없음"}
+                    </ActionButton>
+                    <ActionButton
+                      variant="neutralWeak"
+                      disabled={busy}
+                      onClick={endPicking}
+                    >
+                      그만두기
+                    </ActionButton>
+                  </div>
+                </>
+              ) : (
+                <div className="preview-actions">
+                  <ActionButton
+                    variant="neutralWeak"
+                    disabled={busy}
+                    onClick={() => setPicking(true)}
+                  >
+                    삭제하기
+                  </ActionButton>
+                </div>
+              )}
+            </div>
+          )}
+        </>
       )}
       {collection === "sessions" &&
         state.kind === "ready" &&
@@ -472,6 +583,7 @@ export function DrawerContents({
                     className="preview-summary-card"
                     draggable={editingOrder && !busy}
                     data-order-editing={editingOrder || undefined}
+                    data-picked={(picking && picked.has(item.id)) || undefined}
                     data-dragging={draggedId === item.id || undefined}
                     onDragStart={(event) => {
                       if (!editingOrder) return;
@@ -494,6 +606,17 @@ export function DrawerContents({
                       setDraggedId(null);
                     }}
                   >
+                    {picking && (
+                      <label className="pick-control">
+                        <input
+                          type="checkbox"
+                          checked={picked.has(item.id)}
+                          disabled={busy}
+                          onChange={() => togglePicked(item.id)}
+                        />
+                        <span>{item.text} 고르기</span>
+                      </label>
+                    )}
                     {editingOrder && (
                       <div className="shelf-order-controls">
                         <span className="shelf-drag-handle" aria-hidden="true">
@@ -524,6 +647,7 @@ export function DrawerContents({
                       busy={busy}
                       disabled={editingOrder}
                       formatDate={(value) => formatRecordDate(value)}
+                      picking={picking}
                       onAct={() => void act(item)}
                     />
                   </li>

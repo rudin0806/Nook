@@ -434,6 +434,40 @@ body button {
 .shelf-edit-toolbar .preview-actions {
   margin: 0;
 }
+/* 이어갈 대화를 골라 치우는 줄. 순서 편집과 같은 자리를 쓰되, 고르는 것은 카드
+   전체라서 라벨이 카드를 덮는다 — 체크박스만 누를 수 있으면 표적이 너무 작다. */
+.pick-control {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-start;
+  padding: 16px;
+  cursor: pointer;
+  z-index: 1;
+}
+.pick-control input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--nook-primary);
+  cursor: pointer;
+}
+/* 고른다는 사실은 체크박스가 말한다. 글자는 화면 낭독기에만 필요하다. */
+.pick-control span {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.drawer-list > li:has(.pick-control) {
+  position: relative;
+  padding-left: 48px;
+}
+.drawer-list > li[data-picked] {
+  border-color: var(--nook-primary);
+  background: color-mix(in srgb, var(--nook-primary) 7%, transparent);
+}
 .shelf-order-controls {
   display: flex;
   align-items: center;

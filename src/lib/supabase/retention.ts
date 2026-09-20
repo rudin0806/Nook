@@ -131,6 +131,24 @@ export async function moveSessionToTrash(
   return { sessionId, state: "trashed" as const };
 }
 
+/** 이어갈 대화를 지금 휴지통으로 보낸다. 24시간 뒤 만료가 하던 전환을 당기는
+ *  것이라 상태는 그것과 같고, 계정이 없는 사용자에게는 만료와 마찬가지로 지운다. */
+export async function discardActiveSession(
+  supabase: SupabaseClient,
+  sessionId: string,
+) {
+  const { data, error } = await supabase.rpc("discard_active_session", {
+    target_session_id: sessionId,
+  });
+  if (error) throw new RetentionDatabaseError(error.message);
+  return z
+    .object({
+      sessionId: z.uuid(),
+      state: z.enum(["trashed", "deleted"]),
+    })
+    .parse(data);
+}
+
 export async function restoreSession(
   supabase: SupabaseClient,
   sessionId: string,

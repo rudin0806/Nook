@@ -22,6 +22,7 @@ export function RetentionCard({
   collection,
   busy,
   disabled = false,
+  picking = false,
   formatDate,
   onAct,
 }: {
@@ -29,6 +30,9 @@ export function RetentionCard({
   collection: RetentionCollection;
   busy: boolean;
   disabled?: boolean;
+  /** 고르는 중에는 카드를 열지 않는다. 치우려고 누른 것이 대화를 여는 것으로
+   *  끝나면 고르던 것을 잃는다. */
+  picking?: boolean;
   formatDate: (value: string) => string;
   onAct: () => void;
 }) {
@@ -64,13 +68,14 @@ export function RetentionCard({
         )}
         {/* The same destination and the same two labels the home panel uses,
             so one list is not a different thing from the other. */}
-        {collection === "recovery" && (
+        {collection === "recovery" && !picking && (
           <Link className="retention-card-open" href={`/resume/${item.id}`}>
             {item.nodeId ? "이 대화 이어가기 ›" : "여기서 이어 적기 ›"}
           </Link>
         )}
-        {/* Nothing here is decided yet, so this list offers no way to throw one
-            away — that choice belongs to the conversation's own exit. */}
+        {/* 이어갈 대화는 카드마다 버튼을 두지 않는다. 고르는 모드에서 여러 개를
+            한 번에 치우고, 아직 아무것도 정해지지 않은 목록에 버리는 버튼이 늘
+            떠 있지 않게 한다. */}
         {collection !== "recovery" && (
           <ActionButton
             variant="neutralWeak"

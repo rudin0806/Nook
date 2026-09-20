@@ -63,3 +63,47 @@ test("wrong row acknowledgement and malformed identifiers are rejected", async (
   );
   assert.equal(calls, 0);
 });
+
+test("이어갈 대화를 치우는 요청은 휴지통과 삭제 둘 다 받아들인다", async () => {
+  // 계정이 있으면 휴지통으로, 없으면 만료와 같게 지워진다. 어느 쪽이든 성공이다.
+  for (const state of ["trashed", "deleted"] as const) {
+    let called = 0;
+    const send: typeof fetch = async (url, options) => {
+      called += 1;
+      assert.equal(url, `/api/sessions/${id}/discard`);
+      assert.equal(options?.method, "POST");
+      assert.equal(options?.credentials, "same-origin");
+      assert.equal(options?.cache, "no-store");
+      return Response.json({ data: { sessionId: id, state } });
+    };
+    await performRetentionAction("discard", id, send);
+    assert.equal(called, 1);
+  }
+});
+
+test("치우기 응답이 다른 상태를 말하면 성공으로 읽지 않는다", async () => {
+  // `saved`는 이 경로가 만들 수 없는 상태다. 조용히 통과시키면 화면이 치운 척한다.
+  await assert.rejects(
+    performRetentionAction("discard", id, async () =>
+      Response.json({ data: { sessionId: id, state: "saved" } }),
+    ),
+  );
+});
+
+test("치우기도 실패를 다시 시도하지 않는다", async () => {
+  for (const status of [401, 404, 409, 500]) {
+    let calls = 0;
+    await assert.rejects(
+      performRetentionAction("discard", id, async () => {
+        calls++;
+        return new Response(null, { status });
+      }),
+      (error: unknown) => {
+        assert.ok(error instanceof RetentionActionError);
+        assert.equal(error.needsLogin, status === 401);
+        return true;
+      },
+    );
+    assert.equal(calls, 1);
+  }
+});

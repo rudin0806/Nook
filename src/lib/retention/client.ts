@@ -1,6 +1,7 @@
 import { z } from "zod";
 
-export type RetentionAction = "trash" | "restore" | "delete-question";
+export type RetentionAction =
+  "trash" | "restore" | "discard" | "delete-question";
 export class RetentionActionError extends Error {
   readonly needsLogin: boolean;
   constructor(needsLogin: boolean, message: string) {
@@ -76,13 +77,17 @@ export async function performRetentionAction(
           : "요청을 완료하지 못했어요. 목록을 다시 확인한 뒤 시도해 주세요.";
     throw new RetentionActionError(response.status === 401, message);
   }
+  // `discard`는 계정이 있으면 휴지통으로, 없으면 만료와 같게 지워진다.
+  const expectedState =
+    action === "trash"
+      ? z.literal("trashed")
+      : action === "discard"
+        ? z.enum(["trashed", "deleted"])
+        : z.literal("saved");
   const schema = isQuestion
     ? z.object({ data: z.object({ branchQuestionId: z.literal(id) }) })
     : z.object({
-        data: z.object({
-          sessionId: z.literal(id),
-          state: z.literal(action === "trash" ? "trashed" : "saved"),
-        }),
+        data: z.object({ sessionId: z.literal(id), state: expectedState }),
       });
   schema.parse(await response.json());
 }
