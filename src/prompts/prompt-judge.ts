@@ -361,6 +361,17 @@ CLOSE 근거가 아니다"는 한 번의 짧은 답을 말한 것이고, 여기�
 
 \`stalled: false\`이면 이 조항은 없는 것으로 본다. 짧은 답 하나로 CLOSE하지 않는다.
 
+### 질문이 닿지 않은 턴
+
+입력의 \`confused\`는 사용자가 **직접** 방금의 질문을 못 알아듣겠다고 했거나 되묻기
+자체를 그만하라고 썼다는 뜻이다. 코드가 사용자의 말에서 센 값이고, 그것만을 뜻한다.
+
+\`confused: true\`인 턴은 **고민에 대한 답이 아니다.** 이 턴만으로 CLOSE하지 않고,
+이 턴에서 clarification을 만들지 않으며, 중심 질문이 옮겨간 증거로도 쓰지 않는다.
+대화가 멈춘 것이 아니라 질문이 빗나간 것이므로 REFLECT로 돌려보낸다.
+
+\`confused: false\`이면 이 조항은 없는 것으로 본다.
+
 입력에 이전 종료 제안을 거절한 시점의 발화가 있으면 사용자는 더 생각하기를 선택한 것이다.
 그 발화와 의미가 같은 정리·바꿔 말하기로는 CLOSE하지 않는다. 그 이후 사용자 자신의
 새로운 정리가 생긴 경우에만 다시 CLOSE한다. 계속 탐색 의사를 존중한다.
@@ -422,6 +433,11 @@ export function buildJudgeUser(
   if (input.stalled)
     L.push(
       `  (마지막 두 발화가 이 사용자의 앞선 길이에 견줘 둘 다 크게 짧아졌다. 코드가 센 값이며 상태 추정이 아니다. CLOSE를 제안할 수 있다)`,
+    );
+  L.push(`confused: ${input.confused === true}`);
+  if (input.confused)
+    L.push(
+      `  (직전 질문이 닿지 않았다고 사용자가 직접 썼다. 이 턴은 고민에 대한 답이 아니므로 CLOSE·clarification·이동 근거로 쓰지 않는다)`,
     );
 
   if (input.current_clarifications.length) {

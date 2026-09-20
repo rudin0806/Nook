@@ -30,6 +30,9 @@ export const STALL_MIN_HISTORY = 2;
 export const STALL_RATIO = 0.5;
 /** 그 비율을 통과해도 이 길이를 넘으면 짧은 답이 아니다 */
 export const STALL_ABSOLUTE = 20;
+/** 비율을 재려면 기준선에 잴 것이 있어야 한다. 한두 단어보다 짧은 기준선에서는
+ *  0.5배가 한 글자 차이라 잡음이 된다. */
+export const STALL_MIN_BASELINE = 8;
 
 /** 길이는 눈에 보이는 글자로 센다. 공백과 종결 부호는 내용이 아니다. */
 export function replyLength(text: string): number {
@@ -61,7 +64,11 @@ export function isStalled(turns: readonly StallTurn[]): boolean {
   if (lengths.length < STALL_RUN + STALL_MIN_HISTORY) return false;
   const recent = lengths.slice(-STALL_RUN);
   const baseline = median(lengths.slice(0, -STALL_RUN));
-  if (baseline <= STALL_ABSOLUTE) return false;
+  // 여기서 `baseline <= STALL_ABSOLUTE`(20자)를 막고 있었다. 원래 짧게 쓰는 사람을
+  // 보호하려던 조건인데, 그 보호는 아래 비율 비교가 이미 하고 있었고(자기 중앙값과
+  // 견준다) 이 줄은 **짧게 쓰는 사람에게 기능 자체를 없애고 있었다.** 운영에서 관찰된
+  // 대화의 중앙값이 13자라 감지기가 시작도 하지 못했다. 잡음만 막을 만큼만 남긴다.
+  if (baseline < STALL_MIN_BASELINE) return false;
   return recent.every(
     (length) => length <= baseline * STALL_RATIO && length < STALL_ABSOLUTE,
   );

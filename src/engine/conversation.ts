@@ -9,6 +9,7 @@ import {
 } from "../schemas/conversation.ts";
 import { judgeInputSchema } from "../schemas/judge.ts";
 import { isStalled } from "./stall.ts";
+import { isConfused } from "./confusion.ts";
 
 export function conversationContext(raw: unknown) {
   const snapshot = conversationSnapshotSchema.parse(raw);
@@ -31,6 +32,8 @@ export function conversationContext(raw: unknown) {
     carryover: snapshot.state.carryover.filter((c) => !windowIds.has(c.turn)),
     // 창이 아니라 세션 전체를 본다. 기준선이 될 앞선 발화가 창 밖에 있을 수 있다.
     stalled: isStalled(turns),
+    // 마지막 발화 하나만 본다. 이 신호는 바로 그 턴의 질문에 대한 반응이다.
+    confused: isConfused(turns),
     turns: window,
   });
   const turnIds = Object.fromEntries(
@@ -139,6 +142,7 @@ export async function planConversationTurn(
       last_question:
         [...turns].reverse().find((t) => t.role === "assistant")?.text ?? null,
       stalled: input.stalled ?? false,
+      confused: input.confused ?? false,
       turns: input.turns,
       carryover: input.carryover.map((c) => ({ turn: c.turn, text: c.text })),
     },

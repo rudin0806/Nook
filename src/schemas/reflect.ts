@@ -16,6 +16,8 @@ export const reflectContextSchema = z.strictObject({
   /** 코드가 센 값. 사용자의 상태가 아니라 답의 길이만 본다(RULES 8.1).
    *  기본값은 신호 없음이므로, 넘기지 않으면 지금까지와 같이 동작한다. */
   stalled: z.boolean().default(false),
+  /** 코드가 센 값(RULES 8.2). 방금의 질문이 닿지 않았다고 사용자가 직접 쓴 경우. */
+  confused: z.boolean().default(false),
   current_clarifications: z.array(
     z.strictObject({ id: z.string(), text: z.string().min(1) }),
   ),

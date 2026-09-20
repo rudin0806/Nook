@@ -15,23 +15,56 @@ import { executeJson } from "../src/engine/json-model.ts";
 import { executeReflection } from "../src/engine/reflect-runtime.ts";
 import { inspectReflectionQuestion } from "../src/engine/reflect.ts";
 import { isStalled } from "../src/engine/stall.ts";
+import { isConfused } from "../src/engine/confusion.ts";
 
-const MAIN_QUESTION = "도마뱀을 키울까?";
-/** 보고된 사용자 발화. AI 발화는 재연이 직접 만든다. */
-const USER_TURNS = [
-  "나 도마뱀 키우고 싶은데 고민돼 근데 끝까지 책임질 수 있을지 무서워",
-  "처음엔 흥미로워서 잘 키울 수 있지만, 나중에는 질릴 수 있잖아",
-  "주기적인 돌봄들",
-  "그런건 알아서 뭐하게",
-];
-/** 재연 당시 실제로 나왔던 질문. 비교용으로만 쓰고 입력에 넣지 않는다. */
-const OBSERVED = [
-  "어떤 상황을 떠올릴 때 그런 생각이 들어요?",
-  "끝까지 할 수 있을지 모르겠는 일은 뭐예요?",
-  "구체적으로 어떤 일이에요?",
-];
+/** 보고된 대화들. 사용자 발화만 고정하고 AI 발화는 재연이 직접 만든다.
+ *  `observed`는 그때 실제로 나왔던 질문이고 비교용으로만 쓴다 — 입력에 넣지 않는다. */
+const CASES = {
+  lizard: {
+    question: "도마뱀을 키울까?",
+    users: [
+      "나 도마뱀 키우고 싶은데 고민돼 근데 끝까지 책임질 수 있을지 무서워",
+      "처음엔 흥미로워서 잘 키울 수 있지만, 나중에는 질릴 수 있잖아",
+      "주기적인 돌봄들",
+      "그런건 알아서 뭐하게",
+    ],
+    observed: [
+      "어떤 상황을 떠올릴 때 그런 생각이 들어요?",
+      "끝까지 할 수 있을지 모르겠는 일은 뭐예요?",
+      "구체적으로 어떤 일이에요?",
+    ],
+  },
+  // 2026-09-20 보고. 사용자 말을 통째로 주어 자리에 끼워 넣어 한국어가 깨졌고,
+  // "무슨말인지 모르겠어"에 같은 틀의 질문이 한 번 더 갔다.
+  company: {
+    question: "나는 회사를 잘 다닐 수 있을까?",
+    users: [
+      "내가 회사를 잘 다닐 수 있을까?",
+      "내가 성장할 수 있을지 모르겟어",
+      "지금 회사는 사수도 없고 배우는 게 없거든",
+      "사수가 생겨야겠지?",
+      "무슨말인지 모르겠어",
+      "회사에서 업무에 대한 지식을 배우고 싶어",
+    ],
+    observed: [
+      "회사를 잘 다닐 수 있을지 생각할 때, 지금 가장 걸리는 장면은 뭐예요?",
+      "성장할 수 있을지 모르겠다는 생각이 들 때, 회사에서 어떤 점이 가장 걸려요?",
+      "사수도 없고 배우는 게 없는 지금 회사에서, 회사를 잘 다니려면 무엇이 달라져야 해요?",
+      "사수가 생겨야겠지 싶다는 지금 회사에서, 사수가 생기기 전까지 회사를 잘 다닌다고 볼 수 있는 모습은 어떤 건가요?",
+      "사수가 생겨야겠지 싶다면, 사수가 생기면 회사에서 무엇을 배우고 싶어요?",
+      "업무에 대한 지식을 배우고 싶다는 점이, 회사를 잘 다닐 수 있을지와는 어떻게 이어져요?",
+    ],
+  },
+} as const;
+const caseName = (process.argv.find((a) => a.startsWith("--case="))?.slice(7) ??
+  "company") as keyof typeof CASES;
+const chosen = CASES[caseName];
+if (!chosen) throw new Error(`알 수 없는 사례: ${caseName}`);
+const MAIN_QUESTION = chosen.question;
+const USER_TURNS = chosen.users;
+const OBSERVED = chosen.observed;
 
-const CALL_LIMIT = 10;
+const CALL_LIMIT = 16;
 const judgeOptions = {
   model: process.env.NOOK_JUDGE_MODEL ?? "gpt-5.6-sol",
   reasoningEffort: process.env.NOOK_JUDGE_REASONING_EFFORT ?? "low",
@@ -98,10 +131,11 @@ let pastProbeCount: 0 | 1 = 0;
 for (const [index, text] of USER_TURNS.entries()) {
   turns.push({ id: `U${++userNo}`, role: "user", text });
   const stalled = isStalled(turns);
+  const confused = isConfused(turns);
 
   console.log(`\n${"─".repeat(72)}`);
   console.log(`턴 ${index + 1}  U${userNo}: ${text}`);
-  console.log(`  코드 신호  stalled=${stalled}`);
+  console.log(`  코드 신호  stalled=${stalled} confused=${confused}`);
 
   const judgeInput = {
     main_question: MAIN_QUESTION,
@@ -110,6 +144,7 @@ for (const [index, text] of USER_TURNS.entries()) {
     current_clarifications: [],
     carryover: [],
     stalled,
+    confused,
     turns,
   };
   stage = "JUDGE";
@@ -141,6 +176,7 @@ for (const [index, text] of USER_TURNS.entries()) {
       last_question:
         [...turns].reverse().find((t) => t.role === "assistant")?.text ?? null,
       stalled,
+      confused,
       current_clarifications: [],
       turns,
       carryover: [],
