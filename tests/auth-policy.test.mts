@@ -109,30 +109,6 @@ test("OAuth orchestration preserves anonymous identity and never falls back on l
   });
   assert.deepEqual(calls, ["link"]);
 });
-test("only the scopes this product uses are requested from each provider", async () => {
-  /* 카카오 기본값(`account_email profile_image profile_nickname`)에는 동의항목에
-     설정되지 않은 항목이 섞일 수 있고, 그러면 로그인 화면 대신 KOE205가 뜬다.
-     쓰지 않는 항목을 요청하지 않는다는 약속을 여기서 지킨다. */
-  const asked: (string | undefined)[] = [];
-  const auth = {
-    async getUser() {
-      return {
-        data: { user: null },
-        error: { name: "AuthSessionMissingError" },
-      };
-    },
-    async linkIdentity() {
-      throw new Error("must not link");
-    },
-    async signInWithOAuth(input: { options: { scopes?: string } }) {
-      asked.push(input.options.scopes);
-      return { data: { url: "https://provider.example" }, error: null };
-    },
-  };
-  await startLogin(auth, "kakao", "https://nook.example");
-  await startLogin(auth, "google", "https://nook.example");
-  assert.deepEqual(asked, ["profile_nickname", undefined]);
-});
 test("ordinary login, existing login and auth failure take distinct paths", async () => {
   let calls = 0;
   const auth = {

@@ -149,27 +149,31 @@ body {
   border-radius: 8px;
 }
 
-/* 마크는 받은 파일 그대로다. 높이만 정한다 — 앞선 판(막대와 글자를 따로 쌓은 것)은
-   덩어리가 59px이었고, 그보다 1.25배 작은 47.2px로 맞춘다. 38px 기준 1.242em. */
+/* 받은 앱 심볼과 텍스트 로고를 나란히 쓴다. 심볼 파일 안의 여백·그림자까지 원본
+   일부이므로 자르지 않고, 헤더 높이 안에서만 크기를 정한다. */
 .app-wordmark {
   display: inline-flex;
+  align-items: center;
+  gap: 9px;
   line-height: 0;
 }
-.app-wordmark .logo-mark {
+.app-wordmark .brand-symbol,
+.app-wordmark .brand-wordmark {
   display: block;
+  object-fit: contain;
+}
+.app-wordmark .brand-symbol {
+  width: 42px;
+  height: 42px;
+}
+.app-wordmark .brand-wordmark {
   width: auto;
-  height: 1.242em;
+  height: 21px;
 }
-/* 조명이 켜져 있으면 원본, 꺼져 있으면 잉크만 바꾼 짝을 쓴다. 세 브랜드 색은
-   양쪽이 같고 바뀌는 것은 글자색뿐이다. */
-.app-wordmark .logo-mark-dark {
-  display: none;
-}
-:root[data-theme="dark"] .app-wordmark .logo-mark-light {
-  display: none;
-}
-:root[data-theme="dark"] .app-wordmark .logo-mark-dark {
-  display: block;
+/* 텍스트 원본의 잉크는 다크 화면에서만 밝게 바꾼다. 심볼의 세 브랜드 색과 흰
+   타일은 손대지 않는다. */
+:root[data-theme="dark"] .app-wordmark .brand-wordmark {
+  filter: brightness(0) invert(1);
 }
 .app-header,
 .preview-header {
@@ -705,6 +709,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  min-width: 0;
 }
 
 /* The empty slot is a stack of tilted cards, so the panel still reads as cards. */
@@ -998,6 +1003,16 @@ body {
     background: var(--nook-surface);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
+  }
+  .app-wordmark {
+    gap: 7px;
+  }
+  .app-wordmark .brand-symbol {
+    width: 38px;
+    height: 38px;
+  }
+  .app-wordmark .brand-wordmark {
+    height: 18px;
   }
   .app-dock .nook-icon {
     display: inline-flex;
@@ -1736,6 +1751,18 @@ body {
    exactly that column: the stream itself still lands at ~832px. */
 .preview-summary.conversation-workspace {
   max-width: 1160px;
+}
+.preview-summary.resume-workspace {
+  max-width: 1160px;
+}
+.resume-workspace > .writing-surface {
+  min-height: 0;
+}
+.resume-workspace .proposal-layout {
+  margin-top: 24px;
+}
+.resume-workspace .question-field textarea.writing-textarea {
+  min-height: 108px;
 }
 .conversation-workspace > section > h1 {
   max-width: none;

@@ -142,7 +142,7 @@ npm run validate
 
 ### 소셜 로그인 연결
 
-`/login`에는 Google 연결 버튼이 공개돼 있다. Kakao는 내부 어댑터만 있으며 버튼 공개·공급자 검증은 후속다. 배포별 `NOOK_SITE_URL`, Supabase 공급자·Manual Linking·redirect 설정과 실제 검증 순서는 [인증 연결 안내](docs/reviews/2026-09-14-auth-flow.md)를 참고한다. 익명 사용자 생성·CAPTCHA 검증 요구·identity linking 기반 코드는 있다. 닉네임 편집과 로그인 후 원래 보관 선택 복귀·선택 유지가 구현됐다. 실제 익명 시작 전체 왕복과 공급자 검증 범위는 STATUS를 확인한다. Turnstile UI에는 `NEXT_PUBLIC_TURNSTILE_SITE_KEY`와 Supabase Auth의 대응 CAPTCHA 설정이 필요하다.
+`/login`과 `/signup`에는 Google·Kakao 버튼이 공개돼 있다. 배포별 `NOOK_SITE_URL`, Supabase 공급자·Manual Linking·redirect 설정과 실제 검증 순서는 [인증 연결 안내](docs/reviews/2026-09-14-auth-flow.md)를 참고한다. Kakao는 앱 코드의 `scopes` 값만으로 Supabase Auth의 기본 요청 범위를 줄일 수 없으므로 Kakao 동의항목과 Supabase의 이메일 없는 사용자 허용 설정을 함께 맞춰야 한다. 익명 사용자 생성·CAPTCHA 검증 요구·identity linking 기반 코드는 있다. 닉네임 편집과 로그인 후 원래 보관 선택 복귀·선택 유지가 구현됐다. 실제 익명 시작 전체 왕복과 공급자 검증 범위는 STATUS를 확인한다. Turnstile UI에는 `NEXT_PUBLIC_TURNSTILE_SITE_KEY`와 Supabase Auth의 대응 CAPTCHA 설정이 필요하다.
 
 ### 첫 입력과 질문 승인 API
 

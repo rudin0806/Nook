@@ -5,6 +5,8 @@ import { useRef, useState, type CSSProperties, type ReactNode } from "react";
 const THRESHOLD = 60;
 /** 끄는 동안 카드가 기우는 정도 — 60px에 약 4도. */
 const TURN_PER_PX = 1 / 15;
+/** 카드가 손을 따라가더라도 자기 칸을 통째로 벗어나지는 않는다. */
+const MAX_DRAG = 96;
 
 /** 화살표 키·손가락으로 쓸기·마우스로 끌기가 모두 같은 동작을 부른다.
  *
@@ -70,6 +72,15 @@ export function CardNavigation({
     return dx;
   }
 
+  /** 넓은 데스크톱에서 포인터를 화면 끝까지 끌면 카드도 수백 px 따라가면서
+   *  홈의 도시락 칸을 뚫고 나갔다. 넘김에 필요한 거리는 60px뿐이므로 시각적
+   *  이동은 카드 폭의 1/3과 96px 중 작은 값까지만 허용한다. */
+  function boundedDrag(dx: number, width: number) {
+    const limit = Math.max(THRESHOLD + 8, Math.min(MAX_DRAG, width / 3));
+    const resisted = resist(dx);
+    return Math.max(-limit, Math.min(limit, resisted));
+  }
+
   return (
     <div
       className="card-navigation"
@@ -95,7 +106,13 @@ export function CardNavigation({
       }}
       onPointerMove={(event) => {
         if (start.current?.pointer !== event.pointerId) return;
-        setDrag(resist(event.clientX - start.current.x));
+        const dx = event.clientX - start.current.x;
+        const dy = event.clientY - start.current.y;
+        if (Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy)) {
+          event.preventDefault();
+          window.getSelection()?.removeAllRanges();
+        }
+        setDrag(boundedDrag(dx, event.currentTarget.clientWidth));
       }}
       onPointerUp={(event) => {
         if (start.current?.pointer !== event.pointerId) return;
@@ -133,7 +150,12 @@ export function CardNavigation({
       onTouchMove={(event) => {
         const touch = event.touches[0];
         if (!start.current || !touch) return;
-        setDrag(resist(touch.clientX - start.current.x));
+        setDrag(
+          boundedDrag(
+            touch.clientX - start.current.x,
+            event.currentTarget.clientWidth,
+          ),
+        );
       }}
       onTouchCancel={release}
       onTouchEnd={(event) => {

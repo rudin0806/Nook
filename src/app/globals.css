@@ -1402,14 +1402,20 @@ body button {
    Depth is set by data-depth; the stack does not grow past three because a
    deeper pile looks no different and would put every record in the tree. */
 .card-stack {
+  min-width: 0;
+  max-width: 100%;
   margin: 18px 0 0;
+  overflow: clip;
+  overflow-clip-margin: 4px;
 }
 .card-stack-cards {
   position: relative;
   display: grid;
   /* A card, not a banner: the stack keeps a readable measure and the peeking
      cards need room above and beside it. */
+  width: 100%;
   max-width: 460px;
+  min-width: 0;
   min-height: 176px;
   margin: 0 auto;
   padding: 30px 12px 10px;
@@ -1421,6 +1427,8 @@ body button {
   --tilt: 0deg;
   --scale: 1;
   display: flex;
+  min-width: 0;
+  max-width: 100%;
   flex-direction: column;
   gap: 8px;
   grid-area: 1 / 1;
@@ -1467,6 +1475,9 @@ body button {
   --tilt: calc(var(--drag-turn, 0) * 1deg);
   cursor: grabbing;
   transition: none;
+}
+.card-navigation[data-dragging] {
+  user-select: none;
 }
 /* Moving on: the top card leaves in the direction of travel and the one
    behind rises into its place. Timing matches SLIDE_MS in card-stack.tsx.

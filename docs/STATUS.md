@@ -1,4 +1,4 @@
-# Nook 현재 상태 — 2026-09-19
+# Nook 현재 상태 — 2026-09-20
 
 **지금 무엇이 어떤 상태인지**만 적는다. 왜 그렇게 고쳤는지는 커밋 메시지에 있으므로
 여기서 되풀이하지 않는다. 날짜별 상세 기록은 맨 아래 변경 이력의 SHA로 찾는다.
@@ -10,9 +10,9 @@
 - 저장소 `rudin0806/Nook`, 브랜치 **main만 사용**. main push → Vercel 자동 배포.
 - **CI가 main에서 돈다**(2026-09-19 복구). 그 전까지 여섯 워크플로가 전부 지워진 브랜치
   `codex/rules-v3-retention-hardening`에 걸려 있어 09-15 이후 한 번도 돌지 않았다. 지금은
-  `offline-validation.yml`만 자동(무료: fixture·Judge 계약, 단위 테스트 179개,
+  `offline-validation.yml`만 자동(무료: fixture·Judge 계약, 단위 테스트 205개,
   typecheck·lint·build, PostgreSQL 동시성·권한·보존)이고 유료 평가 다섯은 수동 전용이다.
-- 운영: https://nook-nine-eta.vercel.app/ · 기능 기준 커밋 `8337986`
+- 운영: https://nook-nine-eta.vercel.app/ · main의 `githubCommitSha`가 배포 기준이다.
 - **함수 리전 `icn1`(서울)**. `vercel.json`이 고정한다. Supabase가 `ap-northeast-2`라
   DB 왕복과 한국 사용자의 브라우저 왕복이 같은 리전에서 끝난다. Hobby 플랜은 리전
   하나만 허용한다. OpenAI 호출은 그만큼 멀어지는 거래가 있고, 실제 효과는 미측정이다.
@@ -33,7 +33,7 @@
 | 생각 더미              | 세 탭(내 서랍 · 이어갈 대화 · 휴지통). 이어갈 대화는 골라서 치울 수 있다   |
 | 책장 정렬              | 한 권 이동·20권 페이징·fingerprint 충돌 검사 완료                          |
 | 상세 탐색              | 구간·질문 목차, 카드 넘김, 버튼/좌우키/스와이프, reduced-motion            |
-| 계정                   | Google OAuth·linkIdentity·닉네임·보관 복귀. **Kakao는 UI 미노출**          |
+| 계정                   | Google·Kakao UI, linkIdentity·닉네임·보관 복귀. Kakao 운영 설정 점검 중    |
 | 동의·재동의·탈퇴       | 항목별 체크박스, 버전 기록, 재동의 게이트, 즉시 삭제 + 30일 재가입 제한    |
 | 비로그인 범위          | 첫 질문(노드 1)까지. 두 번째 질문에서 계정 요구                            |
 | 미리보기               | 본문 맨 위 띠에서 켜고 끈다(`?preview=1`). 세 화면이 모두 표본을 보여 준다 |
@@ -117,8 +117,8 @@
   전부 추론 토큰에 있어서 프롬프트 길이가 아니라 등급과 effort를 건드렸다.
 - **모델 슬롯 6개가 독립**이다(`NOOK_{SAFETY,START,NODE_ZERO,JUDGE,REFRAME,REFLECT}_*`).
   Judge와 Reflect는 위에 적은 값이다. 나머지 4개의 실제 값은 Vercel 환경변수에만 있다.
-- **브랜드**: 마크는 `Nook`, SUIT 800, 잉크 단색, 온점·꾸밈 없음.
-  `components/nook/wordmark.tsx` 한 곳에서만 만든다.
+- **브랜드**: 받은 앱 심볼 `public/nook-symbol.png`와 텍스트 로고
+  `public/nook-wordmark.png`를 `components/nook/wordmark.tsx` 한 곳에서 조합한다.
 - **내 정보 패널의 순서는 고정이다**: 내 계정(잠긴 값) → 닉네임 → 닉네임 저장 →
   로그아웃 → 계정 삭제. 되돌아가는 길은 패널 위 링크 하나뿐이고 패널 안에 다시 두지
   않는다. `/api/auth/status`가 자기 `email`과 `provider`를 돌려준다 — 자기 계정을
@@ -146,7 +146,7 @@
 
 ## 검증
 
-- 단위 테스트 **181/181**, PGlite migration suite **36 PASS**, `npm run validate` exit 0.
+- 단위 테스트 **205/205**, PGlite migration suite **36 PASS**, `npm run validate` exit 0.
 - **`must_return_to_center`가 실제로 걸리는 것은 아직 못 봤다.** drift·gecko·holdout_chain 재현에서 모델이 한 번도 DETAIL을 내지 않아 `detail_streak`이 내내 0이었다. 확인된 것은 "라벨 규칙이 생기니 애초에 새지 않는다"까지이고, "샜을 때 코드가 되돌린다"는 경로는 단위 테스트로만 막혀 있다.
 - **이어갈 대화 치우기의 화면 동작은 끝까지 눌러 보지 못했다.** 프리뷰는 샘플 컴포넌트를 쓰고 실제 목록은 로그인이 필요해 헤드리스로 상호작용을 재현할 수 없었다. RPC 권한·API 계약·실패 경로는 테스트로 막았고, 고르고 누르는 흐름은 운영에서 한 번 확인이 필요하다.
 - **세부 되묻기 연쇄는 아직 실제 모델로 검증하지 않았다.** `detail_streak` 배선은 단위
@@ -207,7 +207,12 @@
 5. **표본 대화 전사.** `src/lib/example/preview.ts`와 `story.ts`의 문장이 아직 지어낸
    것이다. 구조를 맞추려고 넣은 자리표이므로 운영에서 실제 대화를 남기면 Supabase에서
    읽어와 교체한다. `/example`은 `transcriptPending`도 함께 내린다.
-6. **Kakao 로그인.** 타입에는 있고 UI에 없다. Supabase Auth 설정이 선행된다.
+6. **Kakao 로그인 운영 설정.** 버튼과 서버 흐름은 구현됐지만 운영 왕복은 KOE205다.
+   Supabase Auth가 카카오 기본 범위를 서버에서 합치므로 앱의 `scopes`만 바꿔서는
+   `account_email profile_image`가 빠지지 않는다. Kakao Developers에서
+   `profile_nickname`·`profile_image` 동의항목을 설정하고, 이메일을 쓰지 않는 현재
+   정책에 맞춰 Supabase Kakao 공급자의 **Allow users without an email**을 켠 뒤 실제
+   로그인과 익명 identity linking을 다시 확인한다.
 7. **종료 설문.** 가설 검증용이며 모델 학습과는 무관하다.
 8. ~~프롬프트 문체~~ **해결**(2026-09-19, `node-zero-v2.2`). 원인은 RULES §10이 아니라
    Node Zero 프롬프트에 규칙이 없던 것이다. Prompt C(reframe)는 "사용자가 스스로에게

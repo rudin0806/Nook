@@ -2,7 +2,9 @@ import "../../preview/preview.css";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
+import { AppNavigation } from "@/components/nook/app-navigation";
 import { ResumePanel } from "@/components/nook/resume-panel";
+import { Wordmark } from "@/components/nook/wordmark";
 export const dynamic = "force-dynamic";
 export default async function ResumePage({
   params,
@@ -15,8 +17,14 @@ export default async function ResumePage({
   if (!id.success) notFound();
   return (
     <div className="nook-preview">
-      <main id="main-content" className="preview-summary">
-        <Link href="/">홈으로</Link>
+      <header className="preview-header">
+        <Wordmark />
+        <Link className="header-account" href="/login">
+          내 정보
+        </Link>
+      </header>
+      <AppNavigation current="write" />
+      <main id="main-content" className="preview-summary resume-workspace">
         <ResumePanel
           retention={(await searchParams).retention === "1"}
           key={id.data}

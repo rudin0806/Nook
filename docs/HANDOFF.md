@@ -36,11 +36,11 @@
 
 | 대상       | 단일 출처                                                                   |
 | ---------- | --------------------------------------------------------------------------- |
-| 워드마크   | `components/nook/wordmark.tsx` — `Nook`, SUIT 800, 잉크 단색, 온점·꾸밈 없음 |
+| 워드마크   | `components/nook/wordmark.tsx` — 받은 `nook-symbol.png` + `nook-wordmark.png` |
 | 페이지 제목 | `components/nook/page-heading.tsx` — kicker/title/subtitle, 34·27px          |
 | 아이콘     | `components/nook/nook-icon.tsx` — 패널 제목은 `tile`, 탭바는 `compact`       |
 | 정책 문서  | `components/nook/legal-page.tsx` + `legal-section.tsx`(아코디언)             |
-| 보관 카드  | `components/nook/retention-card.tsx` — 카드 넘김(`card-stack.tsx`)은 폐기했다 |
+| 보관 카드  | 목록은 `retention-card.tsx`, 홈 이어갈 대화는 `card-stack.tsx` 카드 넘김      |
 | 마감 시각  | `lib/format/datetime.ts` — 시각은 `formatSeoulDeadline`(`ko-KR` 기본값은 초까지 찍힘), 남은 날은 `formatDaysLeft` |
 | 알림       | `components/nook/toast.tsx` — 방금 일어난 일은 토스트로 띄우고 화면에 남기지 않는다 |
 | 미리보기 띠 | `components/nook/preview-band.tsx` — 본문 맨 위, 제목 바로 위 한 곳 |
@@ -81,7 +81,7 @@
   props로 고른다.
 - 보는 것은 되고 하는 것은 안 된다. 쓰는 자리는 **`disabled`로 잠근다** — `readOnly`는
   눌러도 아무 일이 없다는 것을 보이지 않아 쓸 수 있는 칸으로 읽힌다. 보관·마치기는
-  그리지 않고, 표본 책은 열리지 않는다(`SavedShelf`의 `preview`).
+  그리지 않는다. 표본 책은 표본 상세 화면까지 열리지만 DB와 모델을 호출하지 않는다.
 - 생각 더미도 홈과 **같은 표본**을 보여 준다(2026-09-20 변경). 두 화면이 다른 이야기를
   하면 안 되므로 `lib/example/preview.ts`의 `previewBooks` 한 곳을 읽는다.
 - 안내 문구에 `(예시)`를 덧붙이지 않는다. 위쪽 띠가 이미 말했다.

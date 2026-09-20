@@ -1,19 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 
-/** The one place the mark is built. It was previously written out at six call
- * sites, three of which still carried a lowercase "nook" and a coloured full
- * stop, which is how the dot kept coming back. Do not inline it again.
- *
- * 마크는 받은 파일 그대로다. 앞서 색과 기하를 재서 다시 그렸더니 원본과 미묘하게
- * 달랐다 — 재현보다 원본이 낫다.
- *
- * 파일의 잉크는 `#212027` 고정이라 조명을 끄면 배경에 묻힌다. 그래서 잉크 픽셀만
- * `--nook-ink`(다크)로 갈아 끼운 짝을 함께 두고 테마에 따라 바꾼다. 세 브랜드 색은
- * 양쪽 다 그대로다.
- */
-const WIDTH = 108;
-const HEIGHT = 64;
+/** 사용자가 건넨 앱 심볼과 텍스트 로고를 조합하는 유일한 자리.
+ * 다른 화면에서 다시 그리거나 글자로 대신 쓰지 않는다. */
 
 export function Wordmark({ className }: { className?: string }) {
   return (
@@ -24,19 +13,19 @@ export function Wordmark({ className }: { className?: string }) {
     >
       {/* 링크가 이름을 갖고 있으므로 그림은 장식으로 둔다. */}
       <Image
-        className="logo-mark logo-mark-light"
-        src="/nook-logo.png"
+        className="brand-symbol"
+        src="/nook-symbol.png"
         alt=""
-        width={WIDTH}
-        height={HEIGHT}
+        width={102}
+        height={102}
         priority
       />
       <Image
-        className="logo-mark logo-mark-dark"
-        src="/nook-logo-dark.png"
+        className="brand-wordmark"
+        src="/nook-wordmark.png"
         alt=""
-        width={WIDTH}
-        height={HEIGHT}
+        width={56}
+        height={21}
         priority
       />
     </Link>
