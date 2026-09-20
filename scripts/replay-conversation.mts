@@ -177,6 +177,10 @@ for (const [index, text] of USER_TURNS.entries()) {
     `  코드 신호  stalled=${stalled} confused=${confused} detail_streak=${detailStreak}`,
   );
 
+  // conversationContext와 같은 창을 쓴다. judgeInputSchema의 turns는 8개까지이고
+  // 엔진은 `turns.slice(-8)`로 자른다. 창 밖 발화는 운영에서 carryover로 넘어가지만
+  // 그 값은 모델이 만들어 DB에 남는 것이라 여기서는 비워 둔다.
+  const window = turns.slice(-8);
   const judgeInput = {
     main_question: MAIN_QUESTION,
     main_path: [MAIN_QUESTION],
@@ -185,7 +189,7 @@ for (const [index, text] of USER_TURNS.entries()) {
     carryover: [],
     stalled,
     confused,
-    turns,
+    turns: window,
   };
   stage = "JUDGE";
   const prepared = prepareJudge(judgeInput, turns, judgeOptions);
@@ -219,7 +223,7 @@ for (const [index, text] of USER_TURNS.entries()) {
       confused,
       detail_streak: detailStreak,
       current_clarifications: [],
-      turns,
+      turns: window,
       carryover: [],
     },
     reflectOptions,
