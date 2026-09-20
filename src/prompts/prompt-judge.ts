@@ -384,6 +384,21 @@ CLOSE 근거가 아니다"는 한 번의 짧은 답을 말한 것이고, 여기�
 
 \`confused: false\`이면 이 조항은 없는 것으로 본다.
 
+### 뜻을 실은 글자가 없는 턴
+
+입력의 \`non_answer\`는 그 턴에 한글 음절도 라틴 글자도 숫자도 하나 없다는 뜻이다.
+\`ㅋㅋㅋ\`, \`ㅠㅠ\`, \`ㅇㅇ\`, \`...\`, 이모지 같은 것들이다. 코드가 글자의 종류만 센
+값이고, 사용자의 의도를 판단한 것이 아니다.
+
+\`non_answer: true\`인 턴도 **고민에 대한 답이 아니다.** \`confused\`와 똑같이
+다룬다 — 이 턴만으로 CLOSE하지 않고, 이 턴에서 clarification을 만들지 않으며,
+중심 질문이 옮겨간 증거로도 쓰지 않는다. REFLECT로 돌려보낸다.
+
+**앞선 턴들은 그대로 살아 있다.** 이 한 턴에 재료가 없다는 것뿐이므로, 이미 쌓인
+clarification을 지우거나 앞선 판정을 되돌리지 않는다.
+
+\`non_answer: false\`이면 이 조항은 없는 것으로 본다.
+
 입력에 이전 종료 제안을 거절한 시점의 발화가 있으면 사용자는 더 생각하기를 선택한 것이다.
 그 발화와 의미가 같은 정리·바꿔 말하기로는 CLOSE하지 않는다. 그 이후 사용자 자신의
 새로운 정리가 생긴 경우에만 다시 CLOSE한다. 계속 탐색 의사를 존중한다.
@@ -450,6 +465,11 @@ export function buildJudgeUser(
   if (input.confused)
     L.push(
       `  (직전 질문이 닿지 않았다고 사용자가 직접 썼다. 이 턴은 고민에 대한 답이 아니므로 CLOSE·clarification·이동 근거로 쓰지 않는다)`,
+    );
+  L.push(`non_answer: ${input.non_answer === true}`);
+  if (input.non_answer)
+    L.push(
+      `  (이 턴에 뜻을 실은 글자가 하나도 없다. 코드가 글자의 종류만 센 값이다. 고민에 대한 답이 아니므로 CLOSE·clarification·이동 근거로 쓰지 않는다)`,
     );
 
   if (input.current_clarifications.length) {

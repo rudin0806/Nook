@@ -10,6 +10,7 @@ import {
 import { judgeInputSchema } from "../schemas/judge.ts";
 import { isStalled } from "./stall.ts";
 import { isConfused } from "./confusion.ts";
+import { isNonAnswer } from "./non-answer.ts";
 
 export function conversationContext(raw: unknown) {
   const snapshot = conversationSnapshotSchema.parse(raw);
@@ -34,6 +35,8 @@ export function conversationContext(raw: unknown) {
     stalled: isStalled(turns),
     // 마지막 발화 하나만 본다. 이 신호는 바로 그 턴의 질문에 대한 반응이다.
     confused: isConfused(turns),
+    // 같은 자리에서, 글자의 종류만 본다.
+    non_answer: isNonAnswer(turns),
     turns: window,
   });
   const turnIds = Object.fromEntries(
@@ -143,6 +146,7 @@ export async function planConversationTurn(
         [...turns].reverse().find((t) => t.role === "assistant")?.text ?? null,
       stalled: input.stalled ?? false,
       confused: input.confused ?? false,
+      non_answer: input.non_answer ?? false,
       detail_streak: snapshot.state.detail_streak,
       turns: input.turns,
       carryover: input.carryover.map((c) => ({ turn: c.turn, text: c.text })),

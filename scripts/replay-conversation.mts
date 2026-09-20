@@ -16,6 +16,7 @@ import { executeReflection } from "../src/engine/reflect-runtime.ts";
 import { inspectReflectionQuestion } from "../src/engine/reflect.ts";
 import { isStalled } from "../src/engine/stall.ts";
 import { isConfused } from "../src/engine/confusion.ts";
+import { isNonAnswer } from "../src/engine/non-answer.ts";
 
 /** 보고된 대화들. 사용자 발화만 고정하고 AI 발화는 재연이 직접 만든다.
  *  `observed`는 그때 실제로 나왔던 질문이고 비교용으로만 쓴다 — 입력에 넣지 않는다. */
@@ -204,11 +205,12 @@ for (const [index, text] of USER_TURNS.entries()) {
   turns.push({ id: `U${++userNo}`, role: "user", text });
   const stalled = isStalled(turns);
   const confused = isConfused(turns);
+  const nonAnswer = isNonAnswer(turns);
 
   console.log(`\n${"─".repeat(72)}`);
   console.log(`턴 ${index + 1}  U${userNo}: ${text}`);
   console.log(
-    `  코드 신호  stalled=${stalled} confused=${confused} detail_streak=${detailStreak}`,
+    `  코드 신호  stalled=${stalled} confused=${confused} non_answer=${nonAnswer} detail_streak=${detailStreak}`,
   );
 
   // conversationContext와 같은 창을 쓴다. judgeInputSchema의 turns는 8개까지이고
@@ -223,6 +225,7 @@ for (const [index, text] of USER_TURNS.entries()) {
     carryover: [],
     stalled,
     confused,
+    non_answer: nonAnswer,
     turns: window,
   };
   stage = "JUDGE";
@@ -255,6 +258,7 @@ for (const [index, text] of USER_TURNS.entries()) {
         [...turns].reverse().find((t) => t.role === "assistant")?.text ?? null,
       stalled,
       confused,
+      non_answer: nonAnswer,
       detail_streak: detailStreak,
       current_clarifications: [],
       turns: window,

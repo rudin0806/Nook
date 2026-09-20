@@ -7,7 +7,7 @@ import { REFLECT_SYSTEM, buildReflectUser } from "../prompts/prompt-reflect.ts";
 import { replyLength } from "./stall.ts";
 
 /** 세부로 연달아 내려갈 수 있는 횟수. 이 값에 닿으면 다음은 중심 질문으로 돌아온다.
- *  RULES 8.3과 Prompt D 4.6이 같은 수를 본다. */
+ *  RULES 5.4.6과 Prompt D 4.6이 같은 수를 본다. */
 export const REFLECT_DETAIL_LIMIT = 2;
 
 // Pure adapter only. The caller must first pass Safety, explicit-control and

@@ -56,9 +56,11 @@ export const judgeInputSchema = z
       .max(2),
     /** 코드가 센 값(RULES 8.1). 사용자의 상태가 아니라 답의 길이만 본다. */
     stalled: z.boolean().optional(),
-    /** 코드가 센 값(RULES 8.2). 사용자가 방금의 질문을 못 알아듣겠다고 하거나
+    /** 코드가 센 값(RULES 5.0.1). 사용자가 방금의 질문을 못 알아듣겠다고 하거나
      *  되묻기 자체를 거절한다고 **직접 쓴** 경우. 추정이 아니다. */
     confused: z.boolean().optional(),
+    /** 코드가 센 값(RULES 5.0.2). 글자의 종류만 본다 — 음절도 숫자도 없는 턴. */
+    non_answer: z.boolean().optional(),
     turns: z.array(judgeTurnSchema).min(1).max(8),
   })
   .superRefine((input, ctx) => {

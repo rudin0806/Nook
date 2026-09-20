@@ -14,7 +14,7 @@ import {
 } from "../lib/openai/models.ts";
 import { z } from "zod";
 
-export const JUDGE_PROMPT_VERSION = "judge-v4.5-2026-09-20";
+export const JUDGE_PROMPT_VERSION = "judge-v4.6-2026-09-20";
 export const JUDGE_DEFAULT_MAX_OUTPUT_TOKENS = 2_048;
 export const JUDGE_MAX_USER_PROMPT_CHARS = 20_000;
 

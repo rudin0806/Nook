@@ -64,7 +64,7 @@ export const conversationStateSchema = z.object({
     })
     .nullable(),
   last_question_type: questionTypeSchema.nullable(),
-  /** 연달아 나간 DETAIL 질문의 수. 모델이 붙인 scope 라벨을 DB가 센다(RULES 8.3). */
+  /** 연달아 나간 DETAIL 질문의 수. 모델이 붙인 scope 라벨을 DB가 센다(RULES 5.4.6). */
   detail_streak: z.number().int().min(0).max(9).default(0),
   carryover: judgeInputSchema.shape.carryover,
 });
