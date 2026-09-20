@@ -154,6 +154,28 @@ body {
 .app-wordmark .logo-n {
   color: var(--nook-ink);
 }
+/* The mark stacks: three bars, a gap, then the word. Measured from the
+   artwork — bars 25 tall over a 32 tall word, with a 7 gap between. */
+.app-wordmark {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.08em;
+  line-height: 1;
+}
+/* Sized against the artwork's own proportions — the bars are 74% of the word's
+   width and sit a seventh of the word's height above it. Both were measured
+   from a real render, not eyeballed. */
+.app-wordmark .logo-bars {
+  display: block;
+  width: 1.96em;
+  height: 0.6125em;
+  overflow: visible;
+}
+.app-wordmark .logo-word {
+  display: inline-flex;
+  align-items: baseline;
+}
 /* SUIT carries a weight axis but no width axis, so the wide half of the mark
    is scaled horizontally rather than swapped for another family. */
 .app-wordmark .logo-wide {
