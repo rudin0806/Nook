@@ -2816,3 +2816,18 @@ body {
 [data-sample] dialog {
   background: var(--nook-surface-solid);
 }
+
+/* ── 대화와 내가 쓰는 자리 사이 ─────────────────────────────────────────── */
+
+/* 생각 중 표시는 누크의 턴이 놓일 자리를 미리 잡아 두는 것이므로 다른 턴과 같은
+   리듬으로 앉아야 한다. margin이 0이라 바로 위 발화에 붙어 있었고(실측 0px), 그래서
+   답이 오는 자리가 아니라 방금 그 발화의 꼬리처럼 읽혔다. */
+.conversation-stream .thinking {
+  margin: 10px 0 0;
+}
+
+/* 주고받은 기록과 내가 쓰는 자리는 다른 종류다. 22px은 턴 사이 간격(10px)과 너무
+   가까워서 입력칸이 스레드의 마지막 말풍선처럼 붙어 보였다. */
+.conversation-stream .conversation-composer {
+  margin-top: 30px;
+}
