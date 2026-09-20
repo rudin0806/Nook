@@ -10,7 +10,7 @@
 - 저장소 `rudin0806/Nook`, 브랜치 **main만 사용**. main push → Vercel 자동 배포.
 - **CI가 main에서 돈다**(2026-09-19 복구). 그 전까지 여섯 워크플로가 전부 지워진 브랜치
   `codex/rules-v3-retention-hardening`에 걸려 있어 09-15 이후 한 번도 돌지 않았다. 지금은
-  `offline-validation.yml`만 자동(무료: fixture·Judge 계약, 단위 테스트 172개,
+  `offline-validation.yml`만 자동(무료: fixture·Judge 계약, 단위 테스트 179개,
   typecheck·lint·build, PostgreSQL 동시성·권한·보존)이고 유료 평가 다섯은 수동 전용이다.
 - 운영: https://nook-nine-eta.vercel.app/ · 기능 기준 커밋 `669934e`
 - **함수 리전 `icn1`(서울)**. `vercel.json`이 고정한다. Supabase가 `ap-northeast-2`라
@@ -122,8 +122,12 @@
 
 ## 검증
 
-- 단위 테스트 **174/174**, PGlite migration suite **36 PASS**, `npm run validate` exit 0.
-- 유료 모델 호출 **0회**. `npm run eval -- --dry`, `eval:judge:validate`만 실행.
+- 단위 테스트 **179/179**, PGlite migration suite **36 PASS**, `npm run validate` exit 0.
+- **START·Safety 평가 통과**(2026-09-20, GitHub Actions 수동 실행, 15+17 fixture,
+  실제 모델). `start-v2.1`의 자기 능력 경계와 `info_guidance` 문체 변경이 기존 라벨을
+  깨지 않았다.
+- 이 작업 환경에서는 `api.openai.com`이 다시 **403**이다. 유료 평가는 GitHub Actions의
+  수동 워크플로로 돌린다(`workflow_dispatch`). `judge-eval`은 한 번에 **32건 상한**이다.
 - UI 실측(Chromium, 로컬 프로덕션 빌드, 데스크톱 1280·1440 / 모바일 390):
   가로 오버플로 0, 0×0 아이콘 0개, h1 전부 `desk-greeting` 34/27px,
   온점으로 끝나는 부제 0개. 다크 모드 muted 대비 4.60:1.
