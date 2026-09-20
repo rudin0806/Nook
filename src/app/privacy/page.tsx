@@ -85,7 +85,11 @@ export default function PrivacyPage() {
       <LegalSection title="1. 처리하는 개인정보의 항목">
         <h3>계정</h3>
         <ul>
-          <li>소셜 로그인 시: Google 계정의 고유 식별자, 이메일 주소</li>
+          <li>
+            소셜 로그인 시: 해당 계정(Google 또는 카카오)의 고유 식별자와, 그
+            제공자가 전달한 경우에 한해 이메일 주소. 카카오는 이메일을 주지 않을
+            수 있으며, 그때는 이메일 없이 계정이 만들어집니다.
+          </li>
           <li>계정 없이 시작한 경우: 임시 방문자 식별자(이름·이메일 없음)</li>
           <li>닉네임: 직접 입력한 경우에만, 1~20자</li>
         </ul>
@@ -223,6 +227,12 @@ export default function PrivacyPage() {
                 <td>소셜 로그인</td>
                 <td>계정 식별자, 이메일 주소</td>
                 <td>미국</td>
+              </tr>
+              <tr>
+                <td>카카오</td>
+                <td>소셜 로그인</td>
+                <td>계정 식별자, 프로필 정보, 동의한 경우 이메일 주소</td>
+                <td>대한민국</td>
               </tr>
               <tr>
                 <td>Intuition Machines (hCaptcha)</td>
