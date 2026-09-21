@@ -61,6 +61,9 @@ export const judgeInputSchema = z
     confused: z.boolean().optional(),
     /** 코드가 센 값(RULES 5.0.2). 글자의 종류만 본다 — 음절도 숫자도 없는 턴. */
     non_answer: z.boolean().optional(),
+    /** 코드가 센 값. 마지막 사용자 발화가 직전 AI 프레임을 명시적으로
+     *  바로잡는 표지를 포함하는지만 본다. */
+    corrected_previous_frame: z.boolean().default(false),
     turns: z.array(judgeTurnSchema).min(1).max(8),
   })
   .superRefine((input, ctx) => {

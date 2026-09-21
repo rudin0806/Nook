@@ -58,6 +58,22 @@ action은 다음 순서로 확정한다.
 LOW는 "Shift 증거가 없음"이지 자동으로 REFLECT라는 뜻이 아니다. 새 정보도 없고 같은 내용만
 반복됐다면 LOW/REFLECT로 멈추지 말고 반드시 CLOSE 조건을 확인한다.
 
+### 명시적 정정 신호
+
+입력의 \`corrected_previous_frame: true\`는 코드가 마지막 사용자 발화에서 직전 AI 질문의
+전제나 표현을 명시적으로 바로잡는 표지를 확인했다는 뜻이다. 정정은 짧아도 **가치가 높은
+사용자 재료**다. 다만 이 신호만으로 action을 고정하지 말고 위 순서와 기존 기준을 그대로
+적용한다.
+
+- 정정 뒤 사용자가 세운 B가 Q1~Q4와 confidence 기준을 통과한 새 중심이면 SHIFT다.
+- SHIFT가 아니고 B가 현재 질문의 핵심 구분이나 달라진 생각을 사용자 말로 정리했다면 CLOSE다.
+- 둘 다 아니고 아직 더 물어야 하면 REFLECT다.
+
+사용자가 거부한 전제 A는 폐기한다. A를 참인 전제나 아직 열려 있는 후보로 action 근거,
+clarification, branch에 다시 쓰지 않는다. 기존 clarification이 A를 참으로 적고 있다면
+invalidate_clarifications에 넣는다. 단, 사용자가 "A는 아니다"라고 배제했다는 사실 자체는
+clarification이 될 수 있다.
+
 ---
 
 ## 1. SHIFT 판정
@@ -505,6 +521,11 @@ export function buildJudgeUser(
   if (input.non_answer)
     L.push(
       `  (이 턴에 뜻을 실은 글자가 하나도 없다. 코드가 글자의 종류만 센 값이다. 고민에 대한 답이 아니므로 CLOSE·clarification·이동 근거로 쓰지 않는다)`,
+    );
+  L.push(`corrected_previous_frame: ${input.corrected_previous_frame}`);
+  if (input.corrected_previous_frame)
+    L.push(
+      `  (마지막 사용자 발화가 직전 AI 프레임을 명시적으로 바로잡았다. 정정 뒤의 말을 가치가 높은 사용자 재료로 읽되 action을 자동으로 고정하지 말고, 사용자가 거부한 전제는 다시 쓰지 않는다)`,
     );
 
   if (input.current_clarifications.length) {

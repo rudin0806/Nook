@@ -1,0 +1,69 @@
+name: Reflection prompt A/B evaluation
+
+on:
+  push:
+    branches:
+      - codex/reflection-eval-20260921
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: reflection-prompt-ab-evaluation
+  cancel-in-progress: false
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out candidate
+        uses: actions/checkout@v4
+        with:
+          path: candidate
+          persist-credentials: false
+      - name: Check out production baseline
+        uses: actions/checkout@v4
+        with:
+          ref: 8e3d535983586a0b6b0258a0a8be49aa4d3a963e
+          path: baseline
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install locked dependencies
+        run: |
+          npm ci --prefix candidate
+          npm ci --prefix baseline
+      - name: Validate candidate before paid calls
+        working-directory: candidate
+        run: |
+          npm run eval:reflection:validate
+          node --experimental-strip-types --test tests/*.test.mts
+          npm run validate
+          node --experimental-strip-types scripts/eval-reflection-ab.mts \
+            --candidate-root="$PWD" \
+            --baseline-root="$GITHUB_WORKSPACE/baseline" \
+            --dry
+      - name: Run 28-call synthetic A/B
+        working-directory: candidate
+        env:
+          OPENAI_API_KEY: ${{ secrets.AI_API_KEY }}
+        run: >-
+          node --experimental-strip-types scripts/eval-reflection-ab.mts
+          --candidate-root="$PWD"
+          --baseline-root="$GITHUB_WORKSPACE/baseline"
+      - name: Report cost and hard-gate result
+        if: always()
+        working-directory: candidate
+        run: |
+          if [ -f artifacts/evaluations/reflection-ab.json ]; then
+            node -e 'const r=require("./artifacts/evaluations/reflection-ab.json"); console.log(JSON.stringify({complete:r.complete,candidateHardPass:r.candidateHardPass,usage:r.usage},null,2))'
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reflection-ab
+          path: candidate/artifacts/evaluations/reflection-ab*.json
+          if-no-files-found: ignore

@@ -22,6 +22,8 @@ export function conversationContext(raw: unknown) {
   }));
   const window = turns.slice(-8);
   const windowIds = new Set(window.map((t) => t.id));
+  // 세션 턴에서 한 번만 센 뒤 Judge와 Reflection이 같은 코드 신호를 쓴다.
+  const correctedPreviousFrame = hasExplicitCorrection(turns);
   const input = judgeInputSchema.parse({
     dismissed_closure: snapshot.state.dismissed_closure,
     main_question: snapshot.current.final_text,
@@ -38,6 +40,7 @@ export function conversationContext(raw: unknown) {
     confused: isConfused(turns),
     // 같은 자리에서, 글자의 종류만 본다.
     non_answer: isNonAnswer(turns),
+    corrected_previous_frame: correctedPreviousFrame,
     turns: window,
   });
   const turnIds = Object.fromEntries(
@@ -148,7 +151,7 @@ export async function planConversationTurn(
       stalled: input.stalled ?? false,
       confused: input.confused ?? false,
       non_answer: input.non_answer ?? false,
-      corrected_previous_frame: hasExplicitCorrection(turns),
+      corrected_previous_frame: input.corrected_previous_frame,
       detail_streak: snapshot.state.detail_streak,
       turns: input.turns,
       carryover: input.carryover.map((c) => ({ turn: c.turn, text: c.text })),
