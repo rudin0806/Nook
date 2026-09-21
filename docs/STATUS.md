@@ -236,16 +236,39 @@ seed-action-button--variant_…`) — 손으로 지으면 배경도 높이도 �
    것이다. 구조를 맞추려고 넣은 자리표이므로 운영에서 실제 대화를 남기면 Supabase에서
    읽어와 교체한다. `/example`은 `transcriptPending`도 함께 내린다.
 6. **Kakao 로그인 운영 설정.** 버튼과 서버 흐름은 구현됐지만 운영 왕복은 KOE205다.
-   2026-09-21에 로그로 확인한 것: `/auth/v1/authorize`에 `scopes=profile_nickname`이
-   실려 나가고 Supabase는 302를 돌려주는데, 카카오는 여전히 `account_email`과
-   `profile_image`를 문제 삼는다 → **Supabase가 기본 범위에 더하기만 하고 빼지는
-   않는다.** `auth.identities`는 아직 `google` 1건뿐이고 `kakao`는 0건이다.
-   앱 코드로 풀 수 있는 자리가 아니므로 아래 콘솔 설정으로만 해결된다.
+   **원인은 확정됐다**(2026-09-21, GoTrue 소스 확인:
+   `supabase/auth` `internal/api/provider/kakao.go`).
+
+   ```go
+   oauthScopes := []string{"account_email", "profile_image", "profile_nickname"}
+   if scopes != "" {
+       oauthScopes = append(oauthScopes, strings.Split(scopes, ",")...)
+   }
+   ```
+
+   세 범위가 하드코딩이고 `scopes`는 **append**다 — 뺄 방법이 없다. 이 함수에는
+   `Allow users without an email`을 보는 분기도 없다. 그 설정은 토큰 교환이 끝난 뒤
+   이메일 없는 계정을 만들어도 되는지를 정할 뿐이고 **인가 요청의 범위를 바꾸지
+   않는다.** 그러므로 Supabase의 카카오 공급자를 쓰는 한 **카카오 콘솔에 세 항목이
+   전부 설정돼 있어야 하고**, `account_email`은 비즈니스 앱이어야 설정할 수 있다.
+
+   길은 둘뿐이다. ① 카카오 비즈니스 앱 전환(`앱 설정 › 앱 › 일반`의 비즈니스 정보)
+   뒤 세 항목을 모두 설정한다. ② Supabase 커스텀 OAuth 공급자로 카카오를 직접
+   등록해 범위를 우리가 정한다(`profile_nickname` 하나면 된다).
+
+   시도했다가 **효과가 없던 것**들이므로 다시 하지 않는다: 앱에서 `options.scopes`를
+   좁히기(`beb067b`, `2ef7e1d`에서 되돌림), `Allow users without an email` 켜기,
+   리다이렉트 URI 의심하기(그건 KOE006이다).
+
+   로그 증거: `/auth/v1/authorize`에 `scopes=profile_nickname`이 실려 나가고 Supabase는
+   302를 돌려주는데 카카오는 여전히 `account_email`·`profile_image`를 문제 삼는다.
+   `auth.identities`는 아직 `google` 1건뿐이고 `kakao`는 0건이다.
    Supabase Auth가 카카오 기본 범위를 서버에서 합치므로 앱의 `scopes`만 바꿔서는
    `account_email profile_image`가 빠지지 않는다. Kakao Developers에서
    `profile_nickname`·`profile_image` 동의항목을 설정하고, 이메일을 쓰지 않는 현재
    정책에 맞춰 Supabase Kakao 공급자의 **Allow users without an email**을 켠 뒤 실제
    로그인과 익명 identity linking을 다시 확인한다.
+
 7. **종료 설문.** 가설 검증용이며 모델 학습과는 무관하다.
 8. ~~프롬프트 문체~~ **해결**(2026-09-19, `node-zero-v2.2`). 원인은 RULES §10이 아니라
    Node Zero 프롬프트에 규칙이 없던 것이다. Prompt C(reframe)는 "사용자가 스스로에게
