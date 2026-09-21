@@ -9,6 +9,10 @@ import { RecoveryList } from "./recovery-list";
 import { useStartConversation } from "./use-start-conversation";
 import { AnonymousVerification } from "./anonymous-verification";
 import { NookIcon } from "./nook-icon";
+import {
+  captchaSubmissionBlocked,
+  type CaptchaGateState,
+} from "@/lib/auth/captcha-gate";
 
 export function ThoughtInput({
   enabled = false,
@@ -36,6 +40,8 @@ export function ThoughtInput({
   onExpandedChange?: (next: boolean) => void;
 }) {
   const [captchaToken, setCaptchaToken] = useState("");
+  const [captchaState, setCaptchaState] =
+    useState<CaptchaGateState>("checking");
   const [verificationAttempt, setVerificationAttempt] = useState(0);
   const [exiting, setExiting] = useState(false);
   const [thought, setThought] = useState(initialThought);
@@ -75,6 +81,8 @@ export function ThoughtInput({
     flow.reset();
     setThought("");
     setEditedQuestion(null);
+    setCaptchaToken("");
+    setCaptchaState("checking");
   }
   const sessionId = flow.sessionId;
   if (exiting && sessionId)
@@ -173,6 +181,7 @@ export function ThoughtInput({
             <AnonymousVerification
               key={verificationAttempt}
               onToken={setCaptchaToken}
+              onStateChange={setCaptchaState}
             />
           )}
           <div className="paper-bottom">
@@ -186,7 +195,12 @@ export function ThoughtInput({
             <ActionButton
               type="submit"
               variant="neutralSolid"
-              disabled={!enabled || !thought.trim() || locked}
+              disabled={
+                !enabled ||
+                !thought.trim() ||
+                locked ||
+                captchaSubmissionBlocked(captchaState, captchaToken)
+              }
             >
               {flow.busy ? "살펴보는 중…" : "시작하기 ›"}
             </ActionButton>

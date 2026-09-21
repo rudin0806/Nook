@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Script from "next/script";
+import type { CaptchaGateState } from "@/lib/auth/captcha-gate";
 
 type CaptchaApi = {
   render(
@@ -40,8 +41,10 @@ const scriptSrc =
 /** Client presence alone never grants a session. */
 export function AnonymousVerification({
   onToken,
+  onStateChange,
 }: {
   onToken: (token: string) => void;
+  onStateChange: (state: CaptchaGateState) => void;
 }) {
   const [needed, setNeeded] = useState(false);
   const [ready, setReady] = useState(false);
@@ -49,20 +52,28 @@ export function AnonymousVerification({
   const [solved, setSolved] = useState(false);
   const element = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (!sitekey) return;
     const controller = new AbortController();
+    onStateChange("checking");
     void fetch("/api/auth/status", {
       cache: "no-store",
       signal: controller.signal,
     })
       .then((response) => response.json())
       .then((body) => {
-        if (!controller.signal.aborted)
-          setNeeded(body.userId === null && body.anonymousEnabled === true);
+        if (controller.signal.aborted) return;
+        const required = body.userId === null && body.anonymousEnabled === true;
+        setNeeded(required);
+        onStateChange(
+          required ? (sitekey ? "required" : "unavailable") : "not-required",
+        );
       })
-      .catch(() => {});
+      .catch(() => {
+        if (controller.signal.aborted) return;
+        setError(true);
+        onStateChange("unavailable");
+      });
     return () => controller.abort();
-  }, []);
+  }, [onStateChange]);
   useEffect(() => {
     const api = provider === "hcaptcha" ? window.hcaptcha : window.turnstile;
     if (!needed || !ready || !sitekey || !element.current || !api) return;
@@ -97,7 +108,16 @@ export function AnonymousVerification({
       onToken("");
     };
   }, [needed, ready, onToken]);
-  if (!sitekey || !needed) return null;
+  if (!needed) return null;
+  if (!sitekey)
+    return (
+      <div className="anonymous-verification">
+        <p role="status">
+          사용자 확인 설정을 불러오지 못했어요. 잠시 뒤 다시 시도하거나 계정을
+          연결해 주세요.
+        </p>
+      </div>
+    );
   return (
     <div className="anonymous-verification" data-solved={solved || undefined}>
       <p>{solved ? "확인됐어요" : "계정 없이 시작하기 위한 사용자 확인"}</p>
