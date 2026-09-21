@@ -239,6 +239,19 @@ test("DEFAULT and MEDIUM require a bound user source", () => {
   }
 });
 
+test("DEFAULT CONNECT is always normalized to the center it connects to", () => {
+  const prepared = prepareReflection(lowJudge(), context());
+  assert.deepEqual(
+    prepared.validateOutput(output({ scope: "DETAIL", move: "CONNECT" })),
+    output({ scope: "CENTER", move: "CONNECT" }),
+  );
+  const medium = prepareReflection(mediumJudge(), context());
+  assert.equal(
+    medium.validateOutput(output({ scope: "CENTER", move: "CONNECT" })).scope,
+    "CENTER",
+  );
+});
+
 test("a source may bind to explicit carryover but never to an assistant turn", () => {
   const prepared = prepareReflection(
     { ...mediumJudge(), evidence_turns: ["U0", "U1"] },

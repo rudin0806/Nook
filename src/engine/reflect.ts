@@ -219,7 +219,14 @@ export function prepareReflection(rawJudge: unknown, rawContext: unknown) {
     outputPolicy,
     // Bind validation to the same context used for generation.
     validateOutput(raw: unknown) {
-      const out = reflectOutputSchema.parse(raw);
+      const parsed = reflectOutputSchema.parse(raw);
+      // CONNECT is defined as linking user material to the main question. In
+      // DEFAULT it therefore cannot be a DETAIL step; keep that bookkeeping
+      // invariant in code instead of trusting a free model label.
+      const out =
+        mode === "DEFAULT" && parsed.move === "CONNECT"
+          ? { ...parsed, scope: "CENTER" as const }
+          : parsed;
       if (out.type === "PAST" && !pastAllowed)
         throw new Error("PAST_NOT_ALLOWED");
       if (mustReturnToCenter && out.scope !== "CENTER")
