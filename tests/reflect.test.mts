@@ -82,6 +82,9 @@ test("Prompt D has one compact common contract and one selected mode prompt", ()
     "RETURN_CENTER",
   ] as const)
     assert.ok(!prepared.user.includes(REFLECT_MODE_PROMPTS[mode]));
+  assert.match(REFLECT_SYSTEM, /것 같아요\?/u);
+  assert.match(REFLECT_MODE_PROMPTS.CORRECTION, /새로 만들지 않는다/u);
+  assert.match(REFLECT_MODE_PROMPTS.MEDIUM, /허용 범위·판단 경계/u);
 });
 
 test("reflection mode priority is deterministic", () => {
