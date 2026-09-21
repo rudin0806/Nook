@@ -456,8 +456,8 @@ export function DrawerContents({
         <div className="shelf-edit-toolbar" data-picking={picking || undefined}>
           <p>
             {picking
-              ? "치울 대화를 고르세요. 휴지통에서 7일 동안 되돌릴 수 있어요."
-              : "홈에서 보던 그 목록이에요. 24시간 안에 이어갈 수 있어요."}
+              ? "삭제할 대화를 선택해보세요. 7일 안에 복원할 수 있어요."
+              : "24시간 안에 이어갈 수 있어요."}
           </p>
           {state.kind === "ready" &&
             !!state.items.length &&
@@ -502,8 +502,8 @@ export function DrawerContents({
             {editingOrder ? (
               <>
                 <p>
-                  끌어서 옮기거나 화살표로 순서를 정리해 보세요. 옮길 때마다
-                  바로 저장돼요.
+                  끌거나 화살표를 눌러 순서를 바꿔보세요. 변경 내용은 바로
+                  저장해요.
                 </p>
                 <div className="preview-actions">
                   <ActionButton

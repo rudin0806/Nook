@@ -34,13 +34,9 @@ export default async function HomePage({
         <PageHeading
           kicker={preview ? "미리보기" : "새 대화"}
           title={
-            preview ? "써 보면 이렇게 쌓여요" : "머릿속에 걸리는 게 있나요?"
+            preview ? "사용하면 이렇게 보여요" : "정리되지 않는 생각이 있나요?"
           }
-          subtitle={
-            preview
-              ? "실제 기록이 아니라 예시예요"
-              : "정리되지 않아도 괜찮아요. 생각나는 대로 적어보세요"
-          }
+          subtitle={preview ? "예시 화면이에요" : "떠오르는 생각을 적어보세요"}
         />
         <HomeDesk
           enabled={process.env.NOOK_START_API_ENABLED === "true"}

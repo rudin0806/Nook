@@ -618,9 +618,6 @@ body {
 .shelf-book[data-height="large"] {
   height: 104px;
 }
-.shelf-book:nth-child(3n + 1) {
-  background: color-mix(in srgb, var(--nook-saved) 18%, var(--nook-raised));
-}
 .shelf-book > span {
   writing-mode: vertical-rl;
   max-height: 84%;

@@ -49,7 +49,7 @@ export function ShelfPreview({ preview = false }: { preview?: boolean }) {
           setStatus(
             results.length
               ? ""
-              : "아직 책장이 비어 있어요. 남긴 대화가 한 권씩 쌓여요.",
+              : "아직 책장이 비어 있어요. 대화를 남기면 책으로 표시해요.",
           );
         }
       } catch {
@@ -109,12 +109,12 @@ export function ShelfPreview({ preview = false }: { preview?: boolean }) {
           </div>
           <div>
             <strong>
-              {guest ? "대화를 남길 책장이에요" : "아직 책장이 비어 있어요"}
+              {guest ? "남긴 대화를 모아보세요" : "아직 책장이 비어 있어요"}
             </strong>
             <p role="status">
               {guest
-                ? "로그인하면 남긴 책을 여기서 볼 수 있어요."
-                : "남긴 대화가 한 권씩 시간순으로 쌓여요."}
+                ? "로그인하면 이곳에서 다시 볼 수 있어요."
+                : "대화를 남기면 이곳에 책으로 표시해요."}
             </p>
             {guest ? (
               <Link className="shelf-cta" href="/login">

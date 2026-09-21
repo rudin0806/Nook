@@ -42,10 +42,10 @@ export default async function DrawerPage({
       <main id="main-content" className="preview-summary collection-workspace">
         {preview && <PreviewBand on />}
         <PageHeading
-          kicker="내가 남겨둔 이야기"
+          kicker="내가 남긴 이야기"
           title="생각 더미"
           subtitle={
-            preview ? "써 보면 이렇게 쌓여요" : "지나온 질문을 다시 펼쳐봐요"
+            preview ? "사용하면 이렇게 보여요" : "지난 생각을 확인해보세요"
           }
         />
         {preview ? (

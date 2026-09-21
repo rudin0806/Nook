@@ -84,7 +84,7 @@ export function PreviewDrawer({
       {collection === "recovery" && (
         <>
           <div className="shelf-edit-toolbar">
-            <p>마치지 않은 대화는 24시간 안에 이 자리에서 이어갈 수 있어요.</p>
+            <p>24시간 안에 이어갈 수 있어요.</p>
           </div>
           <ul className="drawer-list" aria-label="이어갈 대화 예시">
             {previewRecovery.map((item) => (
