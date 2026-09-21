@@ -3,6 +3,7 @@ import {
   reflectContextSchema,
   reflectOutputSchema,
   type ReflectMode,
+  type QuestionMove,
 } from "../schemas/reflect.ts";
 import { REFLECT_SYSTEM, buildReflectUser } from "../prompts/prompt-reflect.ts";
 import { replyLength } from "./stall.ts";
@@ -39,6 +40,118 @@ const FORCED_CENTER_MODES = new Set<ReflectMode>([
   "NON_ANSWER",
   "RETURN_CENTER",
 ]);
+
+const DEFAULT_MOVES: QuestionMove[] = [
+  "CONNECT",
+  "CRITERION",
+  "COUNTERWEIGHT",
+  "PRIORITY",
+  "SYNTHESIS",
+];
+
+export type ReflectOutputPolicy = {
+  requiredScope: "CENTER" | "DETAIL" | null;
+  allowedMoves: QuestionMove[];
+  reason:
+    | "RECOVERY"
+    | "MEDIUM_SINGLE"
+    | "MEDIUM_HEDGED"
+    | "MEDIUM_AI_LED"
+    | "DECLINED_CLOSURE"
+    | "REPEATED_FRAME"
+    | "SHORT_ANSWER"
+    | "DEFAULT";
+};
+
+function commonSuffixLength(a: string, b: string) {
+  const left = a.normalize("NFKC").replace(/[\s\p{P}]/gu, "");
+  const right = b.normalize("NFKC").replace(/[\s\p{P}]/gu, "");
+  let count = 0;
+  while (
+    count < left.length &&
+    count < right.length &&
+    left[left.length - 1 - count] === right[right.length - 1 - count]
+  )
+    count++;
+  return count;
+}
+
+export function deriveReflectOutputPolicy(
+  mode: ReflectMode,
+  mediumReason:
+    "SINGLE_SPONTANEOUS" | "ALL_HEDGED" | "AI_LED_WITH_USER_MATERIAL" | null,
+  context: {
+    last_question: string | null;
+    turns: { role: "user" | "assistant"; text: string }[];
+  },
+): ReflectOutputPolicy {
+  if (FORCED_CENTER_MODES.has(mode))
+    return {
+      requiredScope: "CENTER",
+      allowedMoves: ["RECOVERY"],
+      reason: "RECOVERY",
+    };
+  if (mode === "MEDIUM") {
+    if (mediumReason === "ALL_HEDGED")
+      return {
+        requiredScope: "DETAIL",
+        allowedMoves: ["CONNECT", "CRITERION"],
+        reason: "MEDIUM_HEDGED",
+      };
+    if (mediumReason === "AI_LED_WITH_USER_MATERIAL")
+      return {
+        requiredScope: "CENTER",
+        allowedMoves: ["CONNECT", "CRITERION", "COUNTERWEIGHT"],
+        reason: "MEDIUM_AI_LED",
+      };
+    return {
+      requiredScope: "CENTER",
+      allowedMoves: ["CONNECT", "COUNTERWEIGHT"],
+      reason: "MEDIUM_SINGLE",
+    };
+  }
+
+  const userTurns = context.turns.filter((turn) => turn.role === "user");
+  const assistantTurns = context.turns.filter(
+    (turn) => turn.role === "assistant",
+  );
+  const latestUser = userTurns.at(-1)?.text ?? "";
+  if (
+    context.last_question !== null &&
+    /(남기고\s*마칠|마칠까요|끝낼까요|정리할까요)/u.test(
+      context.last_question,
+    ) &&
+    /(아니|더\s*생각|계속|아직)/u.test(latestUser)
+  )
+    return {
+      requiredScope: "CENTER",
+      allowedMoves: ["CRITERION", "COUNTERWEIGHT", "PRIORITY"],
+      reason: "DECLINED_CLOSURE",
+    };
+
+  const recentAssistant = assistantTurns.slice(-2);
+  if (
+    recentAssistant.length === 2 &&
+    commonSuffixLength(recentAssistant[0].text, recentAssistant[1].text) >= 7
+  )
+    return {
+      requiredScope: "CENTER",
+      allowedMoves: ["COUNTERWEIGHT", "PRIORITY", "SYNTHESIS"],
+      reason: "REPEATED_FRAME",
+    };
+
+  if (replyLength(latestUser) <= 12)
+    return {
+      requiredScope: "CENTER",
+      allowedMoves: ["CRITERION", "COUNTERWEIGHT"],
+      reason: "SHORT_ANSWER",
+    };
+  return {
+    requiredScope: null,
+    allowedMoves: DEFAULT_MOVES,
+    reason: "DEFAULT",
+  };
+}
 
 export class ReflectionCenterRequiredError extends Error {
   readonly code = "REFLECT_CENTER_REQUIRED";
@@ -81,10 +194,17 @@ export function prepareReflection(rawJudge: unknown, rawContext: unknown) {
     shift_confidence: judge.shift_confidence as "MEDIUM" | "LOW",
   });
   const mustReturnToCenter = FORCED_CENTER_MODES.has(mode);
+  const outputPolicy = deriveReflectOutputPolicy(
+    mode,
+    judge.medium_reason,
+    context,
+  );
   const input = {
     ...context,
     mode,
     must_return_to_center: mustReturnToCenter,
+    required_scope: outputPolicy.requiredScope,
+    allowed_moves: outputPolicy.allowedMoves,
     shift_confidence: judge.shift_confidence as "MEDIUM" | "LOW",
     evidence_turns: judge.evidence_turns,
     medium_reason: judge.medium_reason,
@@ -96,6 +216,7 @@ export function prepareReflection(rawJudge: unknown, rawContext: unknown) {
     mode,
     mustReturnToCenter,
     lastQuestion: context.last_question,
+    outputPolicy,
     // Bind validation to the same context used for generation.
     validateOutput(raw: unknown) {
       const out = reflectOutputSchema.parse(raw);
@@ -105,6 +226,13 @@ export function prepareReflection(rawJudge: unknown, rawContext: unknown) {
         throw new ReflectionCenterRequiredError();
       if (mustReturnToCenter && out.move !== "RECOVERY")
         throw new Error("REFLECT_RECOVERY_MOVE_REQUIRED");
+      if (
+        outputPolicy.requiredScope !== null &&
+        out.scope !== outputPolicy.requiredScope
+      )
+        throw new Error("REFLECT_SCOPE_REQUIRED");
+      if (!outputPolicy.allowedMoves.includes(out.move))
+        throw new Error("REFLECT_MOVE_NOT_ALLOWED");
 
       if (out.source_turn === null) {
         if (!FORCED_CENTER_MODES.has(mode))

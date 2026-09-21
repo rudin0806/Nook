@@ -6,7 +6,7 @@ import type { MediumReason, ReflectMode } from "../schemas/reflect.ts";
  * 모드 선택과 강제 조건은 코드가 맡는다. 모델은 전달받은 한 모드 안에서
  * 질문 하나와 작은 분류값만 만든다.
  */
-export const REFLECT_PROMPT_VERSION = "reflect-v5.0-2026-09-21";
+export const REFLECT_PROMPT_VERSION = "reflect-v5.1-2026-09-21";
 
 export const REFLECT_SYSTEM = `당신은 사용자가 자기 생각을 선명하게 하도록 한국어 질문 하나를 만든다.
 
@@ -17,6 +17,9 @@ export const REFLECT_SYSTEM = `당신은 사용자가 자기 생각을 선명하
 - 사용자가 실제로 쓴 표현과 확신 수준을 보존한다. 조언·진단·숨은 원인·새 선택지를 만들지 않는다.
 - 질문은 한 문장, 물음표 하나, 공백 제외 35자 안쪽을 목표로 한다. 조건절도 하나까지만 쓴다.
 - 장면·기준·차이처럼 바로 답할 수 있는 것을 묻고, 직전 질문과 다른 다음 칸으로 간다.
+- 사용자가 짧게라도 이미 답한 명사·조건을 "어떤 X"로 다시 쪼개 묻지 않는다. 답을 받은 뒤에는 판단 기준이나 반대 무게로 간다.
+- 최근 두 질문의 문장 틀이 겹치면 같은 틀을 소재만 바꿔 반복하지 않고, 이미 나온 재료의 우선순위·반대 무게·종합으로 간다.
+- 사용자가 종료 제안을 거절한 말은 생각의 내용이 아니다. "뭐가 궁금한가"를 되묻지 말고 앞서 나온 구체적 재료로 돌아간다.
 - 힘든 사건은 사실관계를 조사하지 않고 현재 고민과 닿는 지점을 묻는다.
 - 별도 공감문이나 설명 없이 질문만 question에 넣는다.
 
@@ -60,7 +63,7 @@ export const REFLECT_MODE_PROMPTS: Record<ReflectMode, string> = {
   DEFAULT:
     "최근 사용자 표현 하나를 발판으로 삼아 아직 묻지 않은 다음 장면이나 기준을 묻는다. move는 CONNECT, CRITERION, COUNTERWEIGHT, PRIORITY, SYNTHESIS 중 가장 맞는 하나를 고른다.",
   MEDIUM:
-    "evidence_turns의 표현과 완화 정도를 그대로 살려 중심 질문과 연결한다. 새 방향을 확정하거나 키우지 않고, 답하는 과정에서 그 무게가 드러나게 한다.",
+    "evidence_turns의 표현과 완화 정도를 그대로 살린다. SINGLE_SPONTANEOUS는 중심 결정의 반대 무게와 연결하고, ALL_HEDGED는 완화형 표현을 확정하지 않은 채 그 말의 판단 경계만 한 칸 채우며, AI_LED_WITH_USER_MATERIAL은 AI가 먼저 낸 프레임을 버리고 사용자가 보탠 재료만 중심 결정과 잇는다.",
   CORRECTION:
     "사용자가 닫은 전제를 다시 넣거나 정정 이유를 캐지 않는다. 정정을 받아들인 뒤 중심 질문에서 아직 답하지 않은 한 가지를 묻는다. scope는 CENTER, move는 RECOVERY다.",
   CONFUSED:
@@ -68,7 +71,7 @@ export const REFLECT_MODE_PROMPTS: Record<ReflectMode, string> = {
   NON_ANSWER:
     "마지막 무응답 턴 대신 중심 질문과 앞선 맥락을 사용해 새 장면 하나를 묻는다. 직전 질문과 다른 질문이어야 한다. scope는 CENTER, move는 RECOVERY다.",
   RETURN_CENTER:
-    "세부 탐색을 멈추고 중심 질문의 판단을 움직일 기준·반대 무게·우선순위 중 하나를 묻는다. 이번 질문은 중심 질문의 말로 묻고 scope를 CENTER로 적는다. move는 RECOVERY다.",
+    "세부 탐색을 멈추고 중심 질문의 판단을 움직일 새 기준·반대 무게·우선순위 중 하나를 묻는다. STALLED이면 최근 두 짧은 답과 그 답을 캐물은 표현을 질문에 다시 쓰지 않는다. 이번 질문은 중심 질문의 말로 묻고 scope를 CENTER로 적는다. move는 RECOVERY다.",
 };
 
 export type ReflectInput = {
@@ -89,6 +92,8 @@ export type ReflectInput = {
   corrected_previous_frame: boolean;
   detail_streak: number;
   must_return_to_center: boolean;
+  required_scope: "CENTER" | "DETAIL" | null;
+  allowed_moves: string[];
   turns: { id: string; role: "user" | "assistant"; text: string }[];
 };
 
@@ -101,6 +106,8 @@ export function buildReflectUser(input: ReflectInput): string {
     `must_return_to_center: ${input.must_return_to_center}`,
     `detail_streak: ${input.detail_streak}`,
     `past_allowed: ${input.past_allowed}`,
+    `required_scope: ${input.required_scope ?? "EITHER"}`,
+    `allowed_moves: ${input.allowed_moves.join(", ")}`,
   ];
 
   if (input.mode === "MEDIUM") {

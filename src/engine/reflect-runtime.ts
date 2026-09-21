@@ -97,6 +97,36 @@ export async function executeReflection(
     { context: prepared.user },
     options,
   );
+  request.text.format = {
+    type: "json_schema",
+    name: "reflection_question",
+    strict: true,
+    schema: {
+      type: "object",
+      additionalProperties: false,
+      required: [
+        "scope",
+        "move",
+        "question",
+        "type",
+        "source_turn",
+        "source_quote",
+      ],
+      properties: {
+        scope: {
+          type: "string",
+          enum: prepared.outputPolicy.requiredScope
+            ? [prepared.outputPolicy.requiredScope]
+            : ["CENTER", "DETAIL"],
+        },
+        move: { type: "string", enum: prepared.outputPolicy.allowedMoves },
+        question: { type: "string" },
+        type: { type: "string", enum: ["PRESENT", "PAST", "COMPARE"] },
+        source_turn: { type: ["string", "null"] },
+        source_quote: { type: ["string", "null"] },
+      },
+    },
+  };
   const started = Date.now();
   let usage: { input_tokens?: number; output_tokens?: number } | undefined;
   // Parse the provider envelope and JSON exactly once. Valid JSON that fails the

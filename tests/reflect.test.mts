@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  deriveReflectOutputPolicy,
   inspectReflectionQuestion,
   prepareReflection,
   ReflectionCenterRequiredError,
@@ -142,6 +143,61 @@ test("all three MEDIUM reasons are passed verbatim", () => {
   }
   assert.throws(() =>
     prepareReflection({ ...mediumJudge(), medium_reason: null }, context()),
+  );
+});
+
+test("output policy narrows medium reasons and common recovery traps", () => {
+  const turns = [{ role: "user" as const, text: "조금 걸리는 것 같아" }];
+  assert.deepEqual(
+    deriveReflectOutputPolicy("MEDIUM", "SINGLE_SPONTANEOUS", {
+      last_question: "다른 조건은 어때요?",
+      turns,
+    }),
+    {
+      requiredScope: "CENTER",
+      allowedMoves: ["CONNECT", "COUNTERWEIGHT"],
+      reason: "MEDIUM_SINGLE",
+    },
+  );
+  assert.deepEqual(
+    deriveReflectOutputPolicy("MEDIUM", "ALL_HEDGED", {
+      last_question: "다른 조건은 어때요?",
+      turns,
+    }),
+    {
+      requiredScope: "DETAIL",
+      allowedMoves: ["CONNECT", "CRITERION"],
+      reason: "MEDIUM_HEDGED",
+    },
+  );
+  assert.equal(
+    deriveReflectOutputPolicy("DEFAULT", null, {
+      last_question: "여기까지 남기고 마칠까요?",
+      turns: [{ role: "user", text: "아니, 더 생각해볼래." }],
+    }).reason,
+    "DECLINED_CLOSURE",
+  );
+  assert.equal(
+    deriveReflectOutputPolicy("DEFAULT", null, {
+      last_question: "주말 일정이 부담스러운 건 어떤 순간이에요?",
+      turns: [
+        { role: "assistant", text: "비용이 걸리는 건 어떤 순간이에요?" },
+        { role: "user", text: "새 화분을 살 때." },
+        {
+          role: "assistant",
+          text: "주말 일정이 부담스러운 건 어떤 순간이에요?",
+        },
+        { role: "user", text: "토요일마다 행사가 잡힐 때." },
+      ],
+    }).reason,
+    "REPEATED_FRAME",
+  );
+  assert.equal(
+    deriveReflectOutputPolicy("DEFAULT", null, {
+      last_question: "가장 아쉬운 점은 뭐예요?",
+      turns: [{ role: "user", text: "책을 고를 수 없는 거." }],
+    }).reason,
+    "SHORT_ANSWER",
   );
 });
 
