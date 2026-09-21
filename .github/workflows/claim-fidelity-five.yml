@@ -29,12 +29,12 @@ jobs:
       - name: Report synthetic evaluation results
         if: always()
         run: |
-          if [ -f docs/reviews/data/claim-fidelity-five.json ]; then
-            cat docs/reviews/data/claim-fidelity-five.json
+          if [ -f artifacts/evaluations/claim-fidelity-five.json ]; then
+            cat artifacts/evaluations/claim-fidelity-five.json
           fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: claim-fidelity-five
-          path: docs/reviews/data/claim-fidelity-five.json
+          path: artifacts/evaluations/claim-fidelity-five.json
           if-no-files-found: ignore

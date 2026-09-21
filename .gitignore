@@ -148,3 +148,4 @@ vite.config.ts.timestamp-*
 
 # Local model evaluation reports
 /eval/reports/
+/artifacts/

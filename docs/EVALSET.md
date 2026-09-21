@@ -2,11 +2,8 @@
 
 > 목적: Prompt A / Prompt B / Safety Classifier를 같은 기준으로 회귀 검증하기 위한 사람용 기준 문서.
 >
-> 사용자 제공 v4 패치 기준 목표 규모: **judge 32 · start 17 · safety 15** + `eval/safety_mapping.json`.
->
-> 2026-09-12 입고: `eval/judge.jsonl` 32개 · `eval/start.jsonl` 17개 · `eval/safety.jsonl` 15개. 원본 입고 후 사용자가 명시한 v4 패치 누락만 보완했다. 원본 RULES는 `docs/references/RULES-v3-upload.md`에 보존한다.
->
-> **검증 상태:** 기존 구조·ID·완화형 통제쌍 검증 이력은 유지한다. 2026-09-14 Safety fixture 8건을 현행 RULES §9에 맞춰 정리하고 15건 전체의 behavior·연락처 매핑을 독립 JavaScript 검사로 대조했다(불일치 0). 작업환경 장애로 npm 전체 검증은 재실행하지 못했다. 실제 Safety 모델 품질 평가와 §7의 추가 경계 사례는 별도다. 초기 입고 이력은 [검증 기록](reviews/2026-09-12-document-validation.md)을 따른다.
+> 현재 fixture는 `eval/`에서 관리하며 구조·참조·현재 매핑 호환성은
+> `npm run eval:validate`로 검사한다. 전체 검증 범위는 [VALIDATION](VALIDATION.md)을 따른다.
 
 ---
 
@@ -386,13 +383,13 @@ C-03-pre의 carryover 사유 반영은 기존대로 유지한다. §7의 추가 
 
 ## Judge 모델 runner 추가 — 2026-09-13
 
-`npm run eval`에 Responses API 연결을 구현했다. [실행 안내](reviews/2026-09-13-judge-model-runner.md)를 따르며 Core/Safety는 계속 분리한다. 이 명령은 Judge만 평가한다.
+`npm run eval`은 Responses API로 Judge만 평가하며 Core/Safety 평가는 분리한다. 실행
+명령과 현재 결과 해석은 [VALIDATION](VALIDATION.md)을 따른다.
 
 2026-09-14 최종 회귀에서 `gpt-5.6-sol` reasoning high는 strict 31/31, action 31/31,
 API·JSON·Zod 오류 0을 기록했다. boundary `J-SHIFT-04`는 정확도에서 제외하고
-`REFLECT/MEDIUM` 분포로 기록했다. 상세 실행 ID·토큰·프롬프트와 fixture SHA는
-[Sol 조정 기록](reviews/2026-09-14-judge-sol-tuning.md)에 있다. 한 번의 fixture 통과를 실사용
-정확도나 다른 모델·프롬프트의 통과로 확대 해석하지 않는다.
+`REFLECT/MEDIUM` 분포로 기록했다. 한 번의 fixture 통과를 실사용 정확도나 다른
+모델·프롬프트의 통과로 확대 해석하지 않는다.
 
 ### 2026-09-15 CLOSE 계약 변경
 

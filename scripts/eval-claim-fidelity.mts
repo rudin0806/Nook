@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import { readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import {
   makeJudgeRequest,
   selectFixtures,
@@ -160,8 +160,9 @@ async function main() {
     report.error = "EVALUATION_STOPPED_REVIEW_LAST_CASE";
     process.exitCode = 1;
   } finally {
+    mkdirSync("artifacts/evaluations", { recursive: true });
     writeFileSync(
-      "docs/reviews/data/claim-fidelity-five.json",
+      "artifacts/evaluations/claim-fidelity-five.json",
       JSON.stringify(report, null, 2),
     );
     console.log(
