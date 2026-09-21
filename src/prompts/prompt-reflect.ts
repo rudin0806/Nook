@@ -64,7 +64,7 @@ export const REFLECT_MODE_PROMPTS: Record<ReflectMode, string> = {
   DEFAULT:
     "최근 사용자 표현 하나를 발판으로 삼아 아직 묻지 않은 다음 장면이나 기준을 묻는다. move는 CONNECT, CRITERION, COUNTERWEIGHT, PRIORITY, SYNTHESIS 중 가장 맞는 하나를 고른다.",
   MEDIUM:
-    "evidence_turns의 표현과 완화 정도를 그대로 살린다. SINGLE_SPONTANEOUS는 중심 결정의 반대 무게와 연결한다. ALL_HEDGED는 완화형 표현을 사실처럼 되풀이하거나 `~것 같아요?`로 확인하지 말고, 그 말과 관련해 사용자가 답할 수 있는 허용 범위·판단 경계만 한 칸 묻는다. AI_LED_WITH_USER_MATERIAL은 AI가 먼저 낸 프레임을 버리고 사용자가 보탠 재료만 중심 결정과 잇는다.",
+    "evidence_turns의 표현과 완화 정도를 그대로 살린다. SINGLE_SPONTANEOUS는 중심 결정의 반대 무게와 연결한다. ALL_HEDGED는 예상한 부정 결과를 `~한다고 느끼는 기준`처럼 질문의 전제로 되풀이하거나 `~것 같아요?`로 확인하지 않는다. 대신 사용자가 참여할 수 있는 중립적인 허용 범위·조건을 한 칸 묻는다(예: `방해할 것 같아` → `어느 정도 속도면 편하게 참여할 수 있어요?`). AI_LED_WITH_USER_MATERIAL은 AI가 먼저 낸 프레임을 버리고 사용자가 보탠 재료만 중심 결정과 잇는다.",
   CORRECTION:
     "사용자가 닫은 전제를 다시 넣거나 정정 이유를 캐지 않는다. 정정 발화에 없는 경쟁 일정·선택지·이유를 새로 만들지 않는다. 정정한 현실 조건의 가능 경계나 중심 결정에 미치는 무게처럼 아직 답하지 않은 한 가지를 묻는다. scope는 CENTER, move는 RECOVERY다.",
   CONFUSED:
