@@ -2763,8 +2763,8 @@ body {
 
 /* ── 생각 더미 도구 줄 ──────────────────────────────────────────────── */
 
-/* 보기 전환(책장·표지)이 책장 위에 따로 놓여 있었다. 무엇을 볼지 고르는 일과
-   순서를 정리하는 일은 같은 줄에 있는 편이 찾기 쉽다. 왼쪽이 정리, 오른쪽이 보기다. */
+/* 보기 전환과 순서 편집은 모두 책장을 다루는 도구다. 본문 양끝으로 갈라놓지 않고
+   오른쪽에서 `보기 전환 → 순서 편집` 순서로 붙여 하나의 도구 묶음처럼 읽히게 한다. */
 .shelf-edit-toolbar {
   flex-wrap: wrap;
   margin: 18px 0 0;
@@ -2774,6 +2774,19 @@ body {
 }
 .shelf-edit-toolbar > .preview-actions {
   margin-left: auto;
+}
+.shelf-library-toolbar {
+  flex-wrap: nowrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.shelf-library-toolbar .shelf-view-switch {
+  margin-left: auto;
+  background: color-mix(in srgb, var(--nook-surface-solid) 78%, transparent);
+  box-shadow: 0 6px 18px rgb(17 24 39 / 5%);
+}
+.shelf-library-toolbar > .preview-actions {
+  margin-left: 0;
 }
 
 /* ── 내 정보 · 내 계정 ─────────────────────────────────────────────────── */
@@ -3175,6 +3188,17 @@ body {
   .shelf-edit-toolbar .preview-actions button,
   .shelf-view-switch button {
     min-height: 44px;
+  }
+  .shelf-library-toolbar {
+    flex-wrap: nowrap;
+    gap: 8px;
+  }
+  .shelf-library-toolbar .shelf-view-switch button {
+    padding-inline: 10px;
+  }
+  .shelf-library-toolbar .preview-actions button {
+    padding-inline: 12px;
+    white-space: nowrap;
   }
 
   /* Equal bottom-bar targets are easier to reach and keep the lamp from

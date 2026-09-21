@@ -498,7 +498,7 @@ export function DrawerContents({
       {collection === "sessions" &&
         state.kind === "ready" &&
         !!state.items.length && (
-          <div className="shelf-edit-toolbar">
+          <div className="shelf-edit-toolbar shelf-library-toolbar">
             {editingOrder ? (
               <>
                 <p>
@@ -518,8 +518,6 @@ export function DrawerContents({
             ) : (
               <>
                 <ShelfViewSwitch />
-                {/* 버튼 하나가 `.preview-actions` 밖에 홀로 서 있어서 배경도 높이도
-                  받지 못했다. 글씨만 남은 버튼은 누를 수 있는 것으로 보이지 않는다. */}
                 {state.items.length > 1 && (
                   <div className="preview-actions">
                     <ActionButton
