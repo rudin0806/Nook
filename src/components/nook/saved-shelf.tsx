@@ -154,7 +154,12 @@ export function ShelfViewSwitch() {
         aria-pressed={view === "shelf"}
         onClick={() => writeView("shelf")}
       >
-        <span aria-hidden="true">▯▯▯</span> 책장
+        <svg viewBox="0 0 18 16" aria-hidden="true">
+          <rect x="1.5" y="4" width="4" height="10" rx="1" />
+          <rect x="7" y="2" width="4" height="12" rx="1" />
+          <path d="m13 4 3-.5 1.5 10-3 .5L13 4Z" />
+        </svg>
+        책장
       </button>
       <button
         type="button"
@@ -162,7 +167,11 @@ export function ShelfViewSwitch() {
         aria-pressed={view === "grid"}
         onClick={() => writeView("grid")}
       >
-        <span aria-hidden="true">▤</span> 표지
+        <svg viewBox="0 0 18 16" aria-hidden="true">
+          <rect x="2" y="1.5" width="14" height="13" rx="1.5" />
+          <path d="M5 5h8M5 8h8M5 11h5" />
+        </svg>
+        표지
       </button>
     </div>
   );

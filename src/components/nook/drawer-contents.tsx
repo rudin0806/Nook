@@ -246,6 +246,12 @@ export function DrawerContents({
           ? "내 서랍으로 복원했어요."
           : "휴지통으로 옮겼어요.",
       );
+      // 정렬하던 책을 치우면 현재 순서 목록 자체가 바뀐다. 성공한 뒤 편집 모드를
+      // 닫아, 마지막 책을 치운 화면에 종료 버튼도 없이 편집 상태만 남지 않게 한다.
+      if (action === "trash") {
+        setEditingOrder(false);
+        setDraggedId(null);
+      }
       setState({ kind: "loading" });
       setOffset(0);
       setAttempt((n) => n + 1);
@@ -511,6 +517,7 @@ export function DrawerContents({
               </>
             ) : (
               <>
+                <ShelfViewSwitch />
                 {/* 버튼 하나가 `.preview-actions` 밖에 홀로 서 있어서 배경도 높이도
                   받지 못했다. 글씨만 남은 버튼은 누를 수 있는 것으로 보이지 않는다. */}
                 {state.items.length > 1 && (
@@ -524,7 +531,6 @@ export function DrawerContents({
                     </ActionButton>
                   </div>
                 )}
-                <ShelfViewSwitch />
               </>
             )}
           </div>
@@ -645,7 +651,6 @@ export function DrawerContents({
                       item={item}
                       collection={collection}
                       busy={busy}
-                      disabled={editingOrder}
                       formatDate={(value) => formatRecordDate(value)}
                       picking={picking}
                       onAct={() => void act(item)}

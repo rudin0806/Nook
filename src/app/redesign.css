@@ -2460,6 +2460,12 @@ body {
   min-height: 0;
   padding: 14px 18px;
 }
+/* 선택 라벨은 카드 전체를 눌러도 체크되게 덮지만, 체크박스의 자리는 실제 카드
+   여백으로 확보한다. 위의 목록 shorthand가 예전 `padding-left`를 덮어 제목과
+   체크박스가 겹치던 문제를 여기서 같은 구체도로 바로잡는다. */
+.collection-workspace .drawer-list:not(.saved-books) > li[data-picking] {
+  padding-left: 54px;
+}
 .collection-workspace .drawer-list:not(.saved-books) .retention-card-title {
   grid-column: 1 / 4;
   grid-row: 1;
@@ -2768,7 +2774,10 @@ body {
   margin: 18px 0 0;
 }
 .shelf-edit-toolbar .shelf-view-switch {
-  margin: 0 0 0 auto;
+  margin: 0;
+}
+.shelf-edit-toolbar > .preview-actions {
+  margin-left: auto;
 }
 
 /* ── 내 정보 · 내 계정 ─────────────────────────────────────────────────── */

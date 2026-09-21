@@ -21,7 +21,6 @@ export function RetentionCard({
   item,
   collection,
   busy,
-  disabled = false,
   picking = false,
   formatDate,
   onAct,
@@ -29,7 +28,6 @@ export function RetentionCard({
   item: RetentionCardItem;
   collection: RetentionCollection;
   busy: boolean;
-  disabled?: boolean;
   /** 고르는 중에는 카드를 열지 않는다. 치우려고 누른 것이 대화를 여는 것으로
    *  끝나면 고르던 것을 잃는다. */
   picking?: boolean;
@@ -77,11 +75,7 @@ export function RetentionCard({
             한 번에 치우고, 아직 아무것도 정해지지 않은 목록에 버리는 버튼이 늘
             떠 있지 않게 한다. */}
         {collection !== "recovery" && (
-          <ActionButton
-            variant="neutralWeak"
-            disabled={busy || disabled}
-            onClick={onAct}
-          >
+          <ActionButton variant="neutralWeak" disabled={busy} onClick={onAct}>
             {busy
               ? "처리 중…"
               : collection === "trash"

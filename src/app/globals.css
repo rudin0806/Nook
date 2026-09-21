@@ -542,10 +542,19 @@ body button {
   background: var(--nook-ink);
   color: var(--nook-paper);
 }
-.shelf-view-switch span {
-  margin-right: 4px;
-  font-size: 11px;
-  letter-spacing: -0.1em;
+.shelf-view-switch button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.shelf-view-switch svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 /* Shelf -------------------------------------------------------------------- */

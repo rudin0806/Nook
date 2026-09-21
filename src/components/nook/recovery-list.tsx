@@ -14,7 +14,7 @@ export function RecoveryList({ preview = false }: { preview?: boolean }) {
   // 몇 번째 카드인지는 CardStack이 쥔다. 넘김과 애니메이션이 한 곳에 있어야
   // 방향과 자리가 어긋나지 않는다.
   const [loaded, setLoaded] = useState<RecoveryItem[]>([]),
-    [more, setMore] = useState(false),
+    [total, setTotal] = useState(0),
     [notice, setNotice] = useState("");
   const [loading, setLoading] = useState(true),
     [now, setNow] = useState(() => Date.now());
@@ -56,7 +56,7 @@ export function RecoveryList({ preview = false }: { preview?: boolean }) {
                 ...page.items.filter((n) => !v.some((old) => old.id === n.id)),
               ],
         );
-        setMore(page.hasMore);
+        setTotal(page.total);
       })
       .catch(() => {
         if (alive.current) setNotice("이전 대화를 불러오지 못했어요.");
@@ -81,6 +81,7 @@ export function RecoveryList({ preview = false }: { preview?: boolean }) {
   const visible = preview
     ? items
     : items.filter((i) => Date.parse(i.expiresAt) > now);
+  const visibleTotal = preview ? visible.length : total;
   return (
     <section aria-label="이어갈 대화" className="recovery-panel">
       <div className="panel-heading">
@@ -91,9 +92,9 @@ export function RecoveryList({ preview = false }: { preview?: boolean }) {
             <h2>이어갈 대화</h2>
           </div>
         </div>
-        {visible.length > 0 && (
+        {visibleTotal > 0 && (
           <div className="panel-heading-actions">
-            <span>{`${visible.length}${more ? "+" : ""}개`}</span>
+            <span>{`${visibleTotal}개`}</span>
             {/* 더 있는 것은 여기로 간다. 패널 안에서 끝까지 넘기게 두면 스무 장을
                 손으로 넘겨야 한다. */}
             <Link

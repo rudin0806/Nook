@@ -7,6 +7,7 @@ import {
 import { readStartReceipt } from "../src/engine/start-approval.ts";
 import { startResultView } from "../src/lib/start/client.ts";
 import {
+  recoveryPageSchema,
   storedStartResultSchema,
   restartSourceSchema,
 } from "../src/schemas/recovery.ts";
@@ -97,6 +98,23 @@ test("restart request binds a typed source identifier and rejects URL or ownersh
       thought: "이직할까?",
       source: { kind: "node", id: sessionId, userId },
     }).success,
+    false,
+  );
+});
+test("recovery pages carry an exact non-negative total independent of the visible page", () => {
+  const page = recoveryPageSchema.parse({
+    items: [],
+    hasMore: true,
+    total: 7,
+  });
+  assert.equal(page.total, 7);
+  assert.equal(
+    recoveryPageSchema.safeParse({ items: [], hasMore: false, total: -1 })
+      .success,
+    false,
+  );
+  assert.equal(
+    recoveryPageSchema.safeParse({ items: [], hasMore: false }).success,
     false,
   );
 });

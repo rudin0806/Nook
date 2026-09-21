@@ -34,5 +34,7 @@ export const recoveryItemSchema = z.object({
 export const recoveryPageSchema = z.object({
   items: z.array(recoveryItemSchema).max(50),
   hasMore: z.boolean(),
+  /** 목록 일부만 읽어도 홈에서는 `3+`가 아니라 실제 개수를 말한다. */
+  total: z.number().int().nonnegative(),
 });
 export type RecoveryItem = z.infer<typeof recoveryItemSchema>;
