@@ -24,6 +24,8 @@ export const reflectContextSchema = z.strictObject({
   confused: z.boolean().default(false),
   /** 코드가 센 값(RULES 5.0.2). 이 턴에 뜻을 실은 글자가 하나도 없다. */
   non_answer: z.boolean().default(false),
+  /** 마지막 사용자 발화가 직전 질문의 전제·표현을 명시적으로 바로잡았는가. */
+  corrected_previous_frame: z.boolean().default(false),
   /** 코드가 센 값(RULES 5.4.6). 직전까지 DETAIL이 연달아 몇 번 나갔는가.
    *  모델의 기억이 아니라 저장된 라벨을 센 것이다. */
   detail_streak: z.number().int().min(0).max(9).default(0),

@@ -174,6 +174,30 @@ AI가 가설을 던지고 사용자가 동의하면, 그건 사용자가 스스�
 답이 아니다. 눈앞의 대화가 예시와 닮았을수록 문장을 베끼기 쉬우니, 그럴 때일수록
 사용자가 실제로 쓴 말로 새로 짓는다.
 
+### 4.5.1 사용자가 전제를 바로잡으면 이전 프레임을 폐기한다
+
+사용자가 \`그게 아니라\`, \`A가 아니라 B\`, \`뭐가 있어도 되는 게 아니라\`처럼 방금
+질문의 전제나 표현을 바로잡으면 **그 정정이 직전 질문보다 우선한다.** 짧게 말했어도
+이미 답한 것이며, AI가 세운 A를 사용자가 닫은 것이다.
+
+- A가 괜찮아질 조건·A를 받아들일 조건을 다시 묻지 않는다.
+- 사용자가 새로 분명히 말한 B의 원인을 캐묻지 않는다. \`B를 바라는 건 A의 어떤 부분
+  때문이에요?\`는 B를 다시 A 아래에 넣는 질문이다.
+- 같은 뜻을 다른 문장으로 확인하지 않는다. B는 이번 턴에 이미 분명해졌다.
+- A에서 내려가던 세부 경로를 접고 중심 질문으로 돌아간다. 다음 질문은 **아직 답하지
+  않은 것**을 물어 중심 질문의 답을 움직여야 한다.
+
+운영에서 실제로 어긋난 예:
+
+  AI  남자친구가 여행을 가도 괜찮으려면 뭐가 있어야 해요?
+  U   뭐가 있어도 되는 게 아니라, 나를 더 소중하게 느끼길 바라는 거야.
+  X   나를 더 소중하게 느끼길 바라는 건 여행 얘기의 어떤 부분 때문이에요?
+      ← 정정을 받지 않고 같은 프레임을 말만 바꿨다
+  O   이번 일 뒤에 이 관계에서 다시 생각하게 된 건 뭐예요?
+
+입력의 \`corrected_previous_frame: true\`는 코드가 마지막 사용자 발화의 명시적인 정정
+표지만 센 것이다. 이때는 반드시 이 절을 따르고 scope를 \`CENTER\`로 적는다.
+
 ---
 
 ## 4.6 세부로 내려가는 데는 바닥이 있다
@@ -450,6 +474,8 @@ export type ReflectInput = {
   confused: boolean;
   /** 코드가 센 값(RULES 5.0.2). 뜻을 실은 글자가 하나도 없는 턴. */
   non_answer: boolean;
+  /** 코드가 센 값. 마지막 발화가 직전 질문의 전제·표현을 명시적으로 바로잡은 경우. */
+  corrected_previous_frame: boolean;
   /** 코드가 센 값(RULES 5.4.6). 저장된 scope 라벨로 센 연속 DETAIL 횟수. */
   detail_streak: number;
   /** 코드가 정한 값. true이면 이번 질문의 scope는 CENTER여야 한다. */
@@ -499,6 +525,12 @@ export function buildReflectUser(input: ReflectInput): string {
   L.push(`non_answer: ${input.non_answer}`);
   if (input.non_answer)
     L.push(`이 턴에는 뜻을 실은 글자가 없다. 새 재료가 없으니 4.9를 따른다.`);
+
+  L.push(`corrected_previous_frame: ${input.corrected_previous_frame}`);
+  if (input.corrected_previous_frame)
+    L.push(
+      `사용자가 직전 질문의 전제를 명시적으로 바로잡았다. 닫은 전제를 다시 넣거나 정정한 말의 원인을 되묻지 말고 4.5.1을 따른다.`,
+    );
 
   L.push(`\ndetail_streak: ${input.detail_streak}`);
   L.push(`must_return_to_center: ${input.must_return_to_center}`);

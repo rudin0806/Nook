@@ -22,6 +22,8 @@ export function RetentionCard({
   collection,
   busy,
   picking = false,
+  dateLabel,
+  openHref,
   formatDate,
   onAct,
 }: {
@@ -31,6 +33,10 @@ export function RetentionCard({
   /** 고르는 중에는 카드를 열지 않는다. 치우려고 누른 것이 대화를 여는 것으로
    *  끝나면 고르던 것을 잃는다. */
   picking?: boolean;
+  /** 미리보기처럼 고정된 시각 문구를 쓰는 화면. */
+  dateLabel?: string;
+  /** 실제 세션을 열지 않는 표본 화면의 목적지. */
+  openHref?: string;
   formatDate: (value: string) => string;
   onAct: () => void;
 }) {
@@ -38,9 +44,10 @@ export function RetentionCard({
     <>
       <p className="retention-card-title">{item.text}</p>
       <small>
-        {collection === "recovery"
-          ? `${formatSeoulDeadline(item.date)}까지 이어갈 수 있어요`
-          : `${formatDate(item.date)}에 ${collection === "trash" ? "휴지통으로 이동" : "보관"}`}
+        {dateLabel ??
+          (collection === "recovery"
+            ? `${formatSeoulDeadline(item.date)}까지 이어갈 수 있어요`
+            : `${formatDate(item.date)}에 ${collection === "trash" ? "휴지통으로 이동" : "보관"}`)}
       </small>
       {item.purgeAfter && (
         <p
@@ -67,7 +74,10 @@ export function RetentionCard({
         {/* The same destination and the same two labels the home panel uses,
             so one list is not a different thing from the other. */}
         {collection === "recovery" && !picking && (
-          <Link className="retention-card-open" href={`/resume/${item.id}`}>
+          <Link
+            className="retention-card-open"
+            href={openHref ?? `/resume/${item.id}`}
+          >
             {item.nodeId ? "이 대화 이어가기 ›" : "여기서 이어 적기 ›"}
           </Link>
         )}

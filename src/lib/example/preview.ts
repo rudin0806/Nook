@@ -14,6 +14,8 @@ import {
  */
 const SESSION_ID = "11111111-1111-4111-8111-111111111111";
 const NODE_ID = "33333333-3333-4333-8333-333333333302";
+const SECOND_SESSION_ID = "11111111-1111-4111-8111-111111111112";
+const SECOND_NODE_ID = "44444444-4444-4444-8444-444444444402";
 const id = (n: number) =>
   `55555555-5555-4555-8555-5555555555${String(n).padStart(2, "0")}`;
 
@@ -73,6 +75,54 @@ export const previewConversation: ConversationView =
     contact: null,
   });
 
+const secondPreviewConversation: ConversationView =
+  conversationViewSchema.parse({
+    sessionId: SECOND_SESSION_ID,
+    version: 2,
+    mode: "READY",
+    currentQuestion: "나는 지금 시간을 어디에 쓰고 있을까?",
+    nodes: [
+      {
+        id: SECOND_NODE_ID,
+        question: "나는 지금 시간을 어디에 쓰고 있을까?",
+        messageId: id(21),
+        current: true,
+      },
+    ],
+    pending: null,
+    messages: [
+      {
+        id: id(21),
+        role: "USER",
+        content:
+          "해야 할 일은 많은데 어디서 시작해야 할지 모르겠으면 휴대폰부터 보게 돼.",
+      },
+      {
+        id: id(22),
+        role: "ASSISTANT",
+        content: "휴대폰을 보기 전, 가장 먼저 미루는 일은 뭐예요?",
+      },
+    ],
+    clarifications: [],
+    branches: [],
+    contact: null,
+  });
+
+const previewConversations = new Map([
+  [NODE_ID, previewConversation],
+  [SECOND_NODE_ID, secondPreviewConversation],
+]);
+
+export function previewConversationForNode(
+  nodeId: string,
+): ConversationView | null {
+  return previewConversations.get(nodeId) ?? null;
+}
+
+export function isPreviewNodeId(nodeId: string): boolean {
+  return previewConversations.has(nodeId);
+}
+
 /** 표본이 보관된 날. `Date.now()`를 쓰면 서버와 브라우저가 다른 글자를 그려
  *  하이드레이션이 어긋난다. */
 export const PREVIEW_SAVED_AT = "2026-09-14T21:00:00+09:00";
@@ -88,7 +138,7 @@ export const previewBooks = [
     size: 4,
   },
   {
-    id: "11111111-1111-4111-8111-111111111112",
+    id: SECOND_SESSION_ID,
     title: "나는 여기서 더 배울 게 있는지가 걸리는 걸까?",
     nodes: 2,
     size: 3,
@@ -115,8 +165,8 @@ export const previewRecovery = [
     question: "나는 노트북으로 무엇을 하려고 하는가?",
   },
   {
-    id: "11111111-1111-4111-8111-111111111112",
-    nodeId: "44444444-4444-4444-8444-444444444402",
+    id: SECOND_SESSION_ID,
+    nodeId: SECOND_NODE_ID,
     question: "나는 지금 시간을 어디에 쓰고 있을까?",
   },
 ];

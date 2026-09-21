@@ -6,7 +6,7 @@ import { ConversationPanel } from "@/components/nook/conversation-panel";
 import "../../preview/preview.css";
 import { Wordmark } from "@/components/nook/wordmark";
 import { readConsentState } from "@/lib/legal/gate";
-import { PREVIEW_NODE_ID } from "@/lib/example/preview";
+import { isPreviewNodeId } from "@/lib/example/preview";
 import { PreviewBand } from "@/components/nook/preview-band";
 export default async function TalkPage({
   params,
@@ -20,7 +20,7 @@ export default async function TalkPage({
   // 미리보기는 표본만 연다. 주소에 preview를 붙였다고 남의 대화가 열리지 않도록,
   // 표본으로 정해 둔 노드일 때만 미리보기로 친다.
   const preview =
-    (await searchParams).preview === "1" && id.data === PREVIEW_NODE_ID;
+    (await searchParams).preview === "1" && isPreviewNodeId(id.data);
   if (!preview && (await readConsentState()) === "reconsent")
     redirect(`/consent?returnTo=${encodeURIComponent(`/talk/${id.data}`)}`);
   return (

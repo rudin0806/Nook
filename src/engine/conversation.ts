@@ -11,6 +11,7 @@ import { judgeInputSchema } from "../schemas/judge.ts";
 import { isStalled } from "./stall.ts";
 import { isConfused } from "./confusion.ts";
 import { isNonAnswer } from "./non-answer.ts";
+import { hasExplicitCorrection } from "./correction.ts";
 
 export function conversationContext(raw: unknown) {
   const snapshot = conversationSnapshotSchema.parse(raw);
@@ -147,6 +148,7 @@ export async function planConversationTurn(
       stalled: input.stalled ?? false,
       confused: input.confused ?? false,
       non_answer: input.non_answer ?? false,
+      corrected_previous_frame: hasExplicitCorrection(turns),
       detail_streak: snapshot.state.detail_streak,
       turns: input.turns,
       carryover: input.carryover.map((c) => ({ turn: c.turn, text: c.text })),

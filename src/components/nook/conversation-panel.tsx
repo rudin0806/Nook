@@ -13,7 +13,7 @@ import type {
 } from "@/schemas/conversation";
 import { SessionOrigin } from "./session-origin";
 import { ConversationRetention } from "./conversation-retention";
-import { previewConversation } from "@/lib/example/preview";
+import { previewConversationForNode } from "@/lib/example/preview";
 /** `preview`는 홈에서 켠 미리보기다. 표본을 그대로 그리고, 네트워크에 나가지 않으며,
  *  쓰는 자리를 잠근다. 미리보기 전용 화면을 따로 만들지 않는 이유는 그렇게 하면
  *  진짜 대화 화면과 조용히 갈라지기 때문이다. */
@@ -32,7 +32,7 @@ export function ConversationPanel({
     setExitMode(mode);
   }
   const [view, setView] = useState<ConversationView | null>(
-    preview ? previewConversation : null,
+    preview ? previewConversationForNode(nodeId) : null,
   );
   const [text, setText] = useState("");
   const [edit, setEdit] = useState<string | null>(null);

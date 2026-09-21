@@ -49,7 +49,7 @@ export default async function DrawerPage({
           }
         />
         {preview ? (
-          <PreviewDrawer />
+          <PreviewDrawer initialCollection={initialCollection} />
         ) : (
           <DrawerContents
             initialCollection={initialCollection}

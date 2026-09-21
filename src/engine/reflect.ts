@@ -33,7 +33,9 @@ export function prepareReflection(rawJudge: unknown, rawContext: unknown) {
     context.past_probe_count === 0 && context.last_question_type !== "PAST";
   // 세부로 내려간 질문이 연달아 한계에 닿으면 다음 질문은 중심으로 돌아온다.
   // 모델이 자기 과거 질문을 세게 하지 않는다. 저장된 라벨을 코드가 센다.
-  const mustReturnToCenter = context.detail_streak >= REFLECT_DETAIL_LIMIT;
+  const mustReturnToCenter =
+    context.detail_streak >= REFLECT_DETAIL_LIMIT ||
+    context.corrected_previous_frame;
   const input = {
     ...context,
     must_return_to_center: mustReturnToCenter,
