@@ -62,26 +62,25 @@
   --tea: var(--nook-saved);
   --rose: var(--nook-open);
   --wood: var(--nook-muted);
-  /* Shelf tones. Decorative, so they are kept apart from the accent that marks
-     the active tab and focus. Muted grounds with deep text of the same hue, so
-     the shelf reads as one family; two darker books per set give the row some
-     rhythm. Every pair clears 4.5:1 for its own text. */
-  --tone-1-bg: #dfe0f5;
-  --tone-1-fg: #3a3a72;
-  --tone-2-bg: #e6eee9;
-  --tone-2-fg: #2f4a3c;
-  --tone-3-bg: #4e6d60;
-  --tone-3-fg: #f2f7f4;
-  --tone-4-bg: #f3e7db;
-  --tone-4-fg: #5d4433;
-  --tone-5-bg: #e7e9ee;
-  --tone-5-fg: #33384a;
-  --tone-6-bg: #efe4ea;
-  --tone-6-fg: #573546;
-  --tone-7-bg: #3f4654;
-  --tone-7-fg: #eef1f6;
-  --tone-8-bg: #ece5d6;
-  --tone-8-fg: #4e4433;
+  /* Shelf tones are lighter steps derived from the three product accents.
+     No single dark spine should dominate the row, and every foreground pair
+     keeps at least 4.5:1 contrast for the small index on the home shelf. */
+  --tone-1-bg: #e2e2fb;
+  --tone-1-fg: #32316e;
+  --tone-2-bg: #ddf5ec;
+  --tone-2-fg: #235b48;
+  --tone-3-bg: #ffe5d3;
+  --tone-3-fg: #7a3a12;
+  --tone-4-bg: #c9c9f4;
+  --tone-4-fg: #2f2e68;
+  --tone-5-bg: #c8eee1;
+  --tone-5-fg: #1f5543;
+  --tone-6-bg: #ffd0b1;
+  --tone-6-fg: #73330d;
+  --tone-7-bg: #b4b3ee;
+  --tone-7-fg: #29285f;
+  --tone-8-bg: #f4ddc7;
+  --tone-8-fg: #65412a;
 }
 
 :root[data-theme="dark"] {
@@ -120,22 +119,22 @@
   --tea: var(--nook-saved);
   --rose: var(--nook-open);
   --wood: var(--nook-muted);
-  --tone-1-bg: #3b3b66;
-  --tone-1-fg: #d6d6f2;
-  --tone-2-bg: #2f4439;
-  --tone-2-fg: #cfe5d8;
-  --tone-3-bg: #9db9ab;
-  --tone-3-fg: #16261f;
-  --tone-4-bg: #4b3a2c;
-  --tone-4-fg: #eddac6;
-  --tone-5-bg: #333846;
-  --tone-5-fg: #dde1ea;
-  --tone-6-bg: #4a3340;
-  --tone-6-fg: #eed7e3;
-  --tone-7-bg: #c9d0dc;
-  --tone-7-fg: #1b1f27;
-  --tone-8-bg: #45402f;
-  --tone-8-fg: #e7dfca;
+  --tone-1-bg: #6665a3;
+  --tone-1-fg: #ffffff;
+  --tone-2-bg: #72b59e;
+  --tone-2-fg: #102b22;
+  --tone-3-bg: #9a5e3a;
+  --tone-3-fg: #fff7f0;
+  --tone-4-bg: #8b8ac6;
+  --tone-4-fg: #171739;
+  --tone-5-bg: #93cdba;
+  --tone-5-fg: #132e25;
+  --tone-6-bg: #d38a5b;
+  --tone-6-fg: #281409;
+  --tone-7-bg: #aaa9df;
+  --tone-7-fg: #1c1b48;
+  --tone-8-bg: #b98561;
+  --tone-8-fg: #26170d;
 }
 
 body {
@@ -2632,11 +2631,11 @@ body {
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.04em;
-  color: var(--nook-muted);
+  color: var(--book-fg, var(--nook-ink));
 }
 .shelf-book:hover .shelf-book-number,
 .shelf-book:focus-visible .shelf-book-number {
-  color: var(--nook-ink);
+  color: var(--book-fg, var(--nook-ink));
 }
 
 /* 책등의 제목은 한 열로만 선다. 글자 수로 이미 잘라 두었으므로 넘칠 일은 없고,
@@ -3063,12 +3062,140 @@ body {
    화면을 통째로 먹었다. 여기 있는 것은 전부 좁은 화면에서만 도는 값이고,
    넓은 화면의 생김새는 건드리지 않는다. */
 @media (max-width: 760px) {
+  :root {
+    --nook-gutter: 18px;
+  }
+
+  /* The mobile shell is a working surface rather than a reduced desktop.
+     Shorter chrome leaves the first action visible while every target remains
+     at least 44px high. */
+  .app-header,
+  .preview-header {
+    height: 72px;
+  }
+  .app-wordmark .brand-symbol {
+    width: 36px;
+    height: 36px;
+  }
+  .app-wordmark .brand-wordmark {
+    height: 18px;
+  }
+  .header-account {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    padding: 8px 14px;
+  }
+  .desk-main,
+  .preview-summary {
+    padding-top: 24px;
+  }
+  .desk-heading {
+    margin-top: 0;
+    margin-bottom: 20px;
+  }
+  .desk-greeting {
+    margin-top: 4px;
+    font-size: 29px;
+  }
+  .desk-intro {
+    margin-top: 6px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .home-bento {
+    gap: 12px;
+    margin-top: 18px;
+  }
+  .home-aside {
+    gap: 12px;
+  }
+  .writing-surface,
+  .lamp-panel,
+  .shelf-panel,
+  .recovery-panel {
+    padding: 16px;
+    border-radius: 18px;
+  }
+
   /* 쓰기 칸의 420px는 옆에 선 칸과 높이를 맞추려고 정한 값이다. 한 단으로
      접히면 맞출 칸이 없는데 높이만 남아서, 아직 아무것도 적지 않은 사람에게
      빈 회색 판이 화면의 절반으로 보이고 `시작하기`는 접힌 아래로 밀려났다.
      적기 시작하는 자리와 시작하는 버튼이 한 화면에 함께 있어야 한다. */
   .home-writing .writing-field textarea.writing-textarea {
-    min-height: 150px;
+    min-height: 160px;
+    padding: 16px;
+  }
+  .paper-bottom {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .paper-bottom .seed-action-button {
+    width: 100%;
+    min-height: 44px;
+  }
+  .paper-top .seed-action-button,
+  .writing-surface > .panel-heading .seed-action-button,
+  .quiet-link {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+  }
+
+  /* Three collection tabs and refresh stay on one line. The current wrapping
+     made the first control block two rows tall before any content appeared. */
+  [aria-label="보관 종류"] {
+    flex-wrap: nowrap;
+    gap: 4px;
+  }
+  [aria-label="보관 종류"] .seed-action-button {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 44px;
+    justify-content: center;
+    padding-inline: 8px;
+    white-space: nowrap;
+  }
+  [aria-label="보관 종류"] .collection-refresh {
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+  }
+  .shelf-edit-toolbar {
+    align-items: center;
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .shelf-edit-toolbar > p {
+    flex-basis: 100%;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .shelf-edit-toolbar .preview-actions button,
+  .shelf-view-switch button {
+    min-height: 44px;
+  }
+
+  /* Equal bottom-bar targets are easier to reach and keep the lamp from
+     squeezing either destination label. */
+  .app-dock {
+    align-items: stretch;
+    padding-inline: 8px;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .app-dock a {
+    flex: 1 1 0;
+    justify-content: center;
+    min-height: 64px;
+    padding: 9px 8px;
+  }
+  .app-dock .lamp-switch {
+    min-width: 84px;
+    min-height: 64px;
+    margin-left: 0;
+    justify-content: center;
+    padding: 9px 8px;
   }
 
   /* 한국어는 낱말 안에서도 줄이 바뀐다. 폭이 좁아지자 부제목이 "적어 /
