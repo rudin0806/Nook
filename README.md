@@ -102,7 +102,7 @@ npm run eval:judge:validate
 npm run validate
 ```
 
-현재 기준으로 단위 테스트 **205개**, PGlite migration **28개**와 SQL suite **13개**,
+현재 기준으로 단위 테스트 **206개**, PGlite migration **28개**와 SQL suite **13개**,
 Judge fixture **39개**를 관리합니다. `npm run validate`는 route type 생성, TypeScript,
 ESLint, production build를 차례로 검사합니다. 세부 범위와 모델 평가 해석은
 [`docs/VALIDATION.md`](docs/VALIDATION.md)에 정리했습니다.
