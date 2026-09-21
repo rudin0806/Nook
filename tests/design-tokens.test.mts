@@ -57,10 +57,14 @@ test("all shelf tones keep the small index legible in both themes", () => {
   }
 });
 
-test("the home shelf uses each book's foreground instead of a shared gray", () => {
+test("the home shelf keeps colored light-theme numbers and readable dark ones", () => {
   assert.match(
     css,
     /\.shelf-book-number\s*\{[\s\S]*?color:\s*var\(--book-fg,\s*var\(--nook-ink\)\);[\s\S]*?\}/,
+  );
+  assert.match(
+    css,
+    /:root\[data-theme="dark"\]\s+\.shelf-book-number[\s\S]*?color:\s*var\(--nook-ink\);/,
   );
   assert.doesNotMatch(css, /#4e6d60|#3f4654/i);
 });

@@ -2637,6 +2637,13 @@ body {
 .shelf-book:focus-visible .shelf-book-number {
   color: var(--book-fg, var(--nook-ink));
 }
+/* 다크모드의 작은 책등에서는 짙은 책별 전경색이 숫자를 삼킨다. 제목이나 표지의
+   색 체계는 건드리지 않고, 홈 책장 안의 번호만 공통 잉크색으로 올린다. */
+:root[data-theme="dark"] .shelf-book-number,
+:root[data-theme="dark"] .shelf-book:hover .shelf-book-number,
+:root[data-theme="dark"] .shelf-book:focus-visible .shelf-book-number {
+  color: var(--nook-ink);
+}
 
 /* 책등의 제목은 한 열로만 선다. 글자 수로 이미 잘라 두었으므로 넘칠 일은 없고,
    혹시 줄이 바뀌면 왼쪽에 새 열이 생겨 글이 두 갈래로 보인다. */
