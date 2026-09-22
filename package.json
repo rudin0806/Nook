@@ -15,6 +15,8 @@
     "format:check": "prettier --check .",
     "validate": "npm run typecheck && npm run lint && npm run build",
     "eval:validate": "node --experimental-strip-types scripts/validate-fixtures.mts",
+    "eval:reflection:validate": "node --experimental-strip-types scripts/validate-reflection-fixtures.mts",
+    "eval:reflection:model": "node --env-file-if-exists=.env.local --experimental-strip-types scripts/eval-reflection-ab.mts",
     "test:hedge": "node --experimental-strip-types --test tests/hedge.test.mts",
     "test:judge": "node --experimental-strip-types --test tests/judge.test.mts",
     "test:judge-runtime": "node --experimental-strip-types --test tests/judge-runtime.test.mts",

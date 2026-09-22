@@ -30,6 +30,7 @@ const input = (): JudgeInput => ({
       medium_reason: "SINGLE_SPONTANEOUS",
     },
   ],
+  corrected_previous_frame: false,
   turns: [turns[7], turns[8]],
 });
 
@@ -55,12 +56,36 @@ test("prepares a bounded non-persistent request without leaking history", () => 
   const serialized = JSON.stringify(prepared.request);
   assert.equal(prepared.hedgeSpeaker, true);
   assert.ok(serialized.includes("hedge_speaker: true"));
+  assert.ok(serialized.includes("corrected_previous_frame: false"));
   assert.ok(serialized.includes("U5"));
   assert.ok(!serialized.includes("처음엔 그런 것 같아"));
   assert.equal(prepared.request.store, false);
   assert.equal(prepared.request.model, "gpt-5.6-sol");
   assert.deepEqual(prepared.request.reasoning, { effort: "high" });
   assert.equal(prepared.request.max_output_tokens, 2_048);
+});
+
+test("defaults the correction signal and forwards an explicit correction", () => {
+  const withoutSignal: Partial<JudgeInput> = { ...input() };
+  delete withoutSignal.corrected_previous_frame;
+  const defaulted = prepareJudge(withoutSignal, turns, config);
+  assert.match(
+    defaulted.request.input[0].content[0].text,
+    /corrected_previous_frame: false/u,
+  );
+
+  const corrected = prepareJudge(
+    { ...input(), corrected_previous_frame: true },
+    turns,
+    config,
+  );
+  assert.match(
+    corrected.request.input[0].content[0].text,
+    /corrected_previous_frame: true/u,
+  );
+  assert.match(corrected.request.instructions, /가치가 높은\s+사용자 재료/u);
+  assert.match(corrected.request.instructions, /action을 고정하지 말고/u);
+  assert.match(corrected.request.instructions, /거부한 전제 A는 폐기한다/u);
 });
 
 test("requires the prompt window to match the server-owned session turns", () => {
