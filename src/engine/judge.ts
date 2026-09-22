@@ -33,7 +33,16 @@ export type JudgeModelRequest = {
   max_output_tokens: number;
   reasoning: { effort: NookReasoningEffort };
   store: false;
-  text: { format: { type: "json_object" } };
+  text: {
+    format:
+      | { type: "json_object" }
+      | {
+          type: "json_schema";
+          name: string;
+          strict: true;
+          schema: Record<string, unknown>;
+        };
+  };
 };
 
 export type PrepareJudgeOptions = {

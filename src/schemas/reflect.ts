@@ -5,11 +5,51 @@ export const questionTypeSchema = z.enum(["PRESENT", "PAST", "COMPARE"]);
 /** 질문이 중심 질문에 닿는지, 그 아래 세부로 내려가는지. 모델이 라벨만 내고
  *  연속 횟수를 세는 것과 돌아오라고 시키는 것은 코드가 한다(RULES 5.4.6). */
 export const questionScopeSchema = z.enum(["CENTER", "DETAIL"]);
-export const reflectOutputSchema = z.strictObject({
-  scope: questionScopeSchema,
-  question: z.string().trim().min(1),
-  type: questionTypeSchema,
-});
+
+/** 코드가 우선순위에 따라 하나만 선택한다. 모델은 모드를 판정하지 않는다. */
+export const reflectModeSchema = z.enum([
+  "DEFAULT",
+  "MEDIUM",
+  "CORRECTION",
+  "CONFUSED",
+  "NON_ANSWER",
+  "RETURN_CENTER",
+]);
+export type ReflectMode = z.infer<typeof reflectModeSchema>;
+
+/** 질문의 목적. 자유 형식 rationale 대신 이 작은 집합으로 생성·평가한다. */
+export const questionMoveSchema = z.enum([
+  "CONNECT",
+  "CRITERION",
+  "COUNTERWEIGHT",
+  "PRIORITY",
+  "SYNTHESIS",
+  "RECOVERY",
+]);
+export type QuestionMove = z.infer<typeof questionMoveSchema>;
+
+export const reflectOutputSchema = z
+  .strictObject({
+    scope: questionScopeSchema,
+    move: questionMoveSchema,
+    question: z.string().trim().min(1),
+    type: questionTypeSchema,
+    /** 질문의 발판이 된 사용자 발화와 그 안의 연속 인용. 복구 모드는 둘 다 null일 수 있다. */
+    source_turn: z
+      .string()
+      .regex(/^U\d+$/)
+      .nullable(),
+    source_quote: z.string().trim().min(1).max(1_000).nullable(),
+  })
+  .superRefine((output, ctx) => {
+    if ((output.source_turn === null) !== (output.source_quote === null))
+      ctx.addIssue({
+        code: "custom",
+        message:
+          "source_turn and source_quote must both be set or both be null",
+      });
+  });
+export type ReflectOutput = z.infer<typeof reflectOutputSchema>;
 export const reflectContextSchema = z.strictObject({
   main_question: z.string().trim().min(1),
   past_probe_count: z.union([z.literal(0), z.literal(1)]),

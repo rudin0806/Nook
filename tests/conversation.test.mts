@@ -31,6 +31,18 @@ const low = {
   invalidate_clarifications: [],
   promote_pile_item: null,
 };
+const reflectionOutput = (
+  question: string,
+  overrides: Record<string, unknown> = {},
+) => ({
+  scope: "CENTER",
+  move: "CONNECT",
+  question,
+  type: "PRESENT",
+  source_turn: "U1",
+  source_quote: "새 회사에서도 같은 일을 할까 봐 고민이야",
+  ...overrides,
+});
 const startNode = {
   id: id(3),
   segment_id: id(2),
@@ -84,12 +96,7 @@ const options = { judge: config, reframe: config, reflect: config };
 test("REFLECT routes through Judge then D and preserves no-store bounded requests", async () => {
   const replies = [
     low,
-    {
-      scope: "CENTER",
-      question:
-        "새 회사에서도 같은 일을 할까 봐 고민되는 건 어떤 점 때문인가요?",
-      type: "PRESENT",
-    },
+    reflectionOutput("같은 일을 반복하면 가장 아쉬운 건 뭐예요?"),
   ];
   let calls = 0;
   const plan = await planConversationTurn(
@@ -163,7 +170,7 @@ test("CLOSE never calls a generator and has no fabricated confidence", async () 
   assert.equal(calls, 1);
   assert.equal(Object.hasOwn(plan.judge!, "shift_confidence"), false);
 });
-test("Reflection rejects a second past probe and multi-question output", async () => {
+test("Reflection recovers from a second past probe and multi-question output", async () => {
   const context = {
     main_question: "이직할까?",
     past_probe_count: 1,
@@ -172,30 +179,43 @@ test("Reflection rejects a second past probe and multi-question output", async (
     turns: [{ id: "U1", role: "user", text: "고민이야" }],
     carryover: [],
   };
-  await assert.rejects(
-    () =>
-      executeReflection(low, context, config, async () => ({
-        status: "completed",
-        output_text: JSON.stringify({
-          scope: "CENTER",
-          question: "예전에는 어땠나요?",
-          type: "PAST",
+  const originalWarn = console.warn;
+  console.warn = () => {};
+  try {
+    for (const output of [
+      {
+        scope: "CENTER",
+        move: "CONNECT",
+        question: "예전에는 어땠나요?",
+        type: "PAST",
+        source_turn: "U1",
+        source_quote: "고민이야",
+      },
+      {
+        scope: "CENTER",
+        move: "CONNECT",
+        question: "언제인가요? 왜인가요?",
+        type: "PRESENT",
+        source_turn: "U1",
+        source_quote: "고민이야",
+      },
+    ]) {
+      const result = await executeReflection(
+        low,
+        context,
+        config,
+        async () => ({
+          status: "completed",
+          output_text: JSON.stringify(output),
         }),
-      })),
-    /PAST_NOT_ALLOWED/,
-  );
-  await assert.rejects(
-    () =>
-      executeReflection(low, context, config, async () => ({
-        status: "completed",
-        output_text: JSON.stringify({
-          scope: "CENTER",
-          question: "언제인가요? 왜인가요?",
-          type: "PRESENT",
-        }),
-      })),
-    /REFLECT_OUTPUT_INVALID/,
-  );
+      );
+      assert.equal(result.move, "RECOVERY");
+      assert.equal(result.scope, "CENTER");
+      assert.equal(result.question, "지금 질문에서 아직 남은 건 뭐예요?");
+    }
+  } finally {
+    console.warn = originalWarn;
+  }
 });
 function dependencies(behavior: "CONTINUE" | "STOP" | "HANDOFF" = "CONTINUE") {
   const events: string[] = [];
@@ -376,13 +396,7 @@ test("continuing preserves the declined closure context outside the current wind
     return {
       status: "completed",
       output_text: JSON.stringify(
-        calls++ === 0
-          ? low
-          : {
-              scope: "CENTER",
-              question: "업무에서 더 살펴보고 싶은 부분은 무엇인가요?",
-              type: "PRESENT",
-            },
+        calls++ === 0 ? low : reflectionOutput("업무에서 더 살펴볼 건 뭐예요?"),
       ),
     };
   });
@@ -404,13 +418,7 @@ test("the stored detail streak reaches Prompt D", async () => {
     return {
       status: "completed",
       output_text: JSON.stringify(
-        calls === 1
-          ? low
-          : {
-              scope: "CENTER",
-              question: "지금 가장 걸리는 게 뭐예요?",
-              type: "PRESENT",
-            },
+        calls === 1 ? low : reflectionOutput("지금 가장 걸리는 게 뭐예요?"),
       ),
     };
   });
