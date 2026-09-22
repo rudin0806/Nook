@@ -90,6 +90,8 @@ test("Prompt D has one compact common contract and one selected mode prompt", ()
   assert.match(REFLECT_SYSTEM, /어떤 마음\/기분이 들어요.*묻지 않는다/u);
   assert.match(REFLECT_SYSTEM, /얼마나 걸려요.*어느 쪽에 가까워졌는지/u);
   assert.match(REFLECT_MODE_PROMPTS.CORRECTION, /새로 만들지 않는다/u);
+  assert.match(REFLECT_MODE_PROMPTS.CORRECTION, /얼마나까지/u);
+  assert.match(REFLECT_MODE_PROMPTS.CONFUSED, /선택지 없는 방향 질문/u);
   assert.match(REFLECT_MODE_PROMPTS.MEDIUM, /중립적인 허용 범위·조건/u);
   assert.match(REFLECT_MODE_PROMPTS.MEDIUM, /바꿀 수 있다면/u);
 });
