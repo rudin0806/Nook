@@ -263,6 +263,7 @@ async function main() {
   const candidate = await loadRuntime(candidateRoot);
   const baseline = baselineRoot ? await loadRuntime(baselineRoot) : null;
   const reusedBaseline = candidateOnly ? loadReusedBaseline(fixtures) : null;
+  const reusedBaselineCount = reusedBaseline?.results.length ?? 0;
 
   const preflight = async (runtime: RuntimeModule, fixture: Fixture) => {
     await runtime
@@ -299,7 +300,7 @@ async function main() {
         fixtures: fixtures.length,
         mode: candidateOnly ? "candidate-only" : "full-ab",
         plannedCalls: candidateOnly ? fixtures.length : fixtures.length * 2,
-        reusedBaselineRows: reusedBaseline?.results.length ?? 0,
+        reusedBaselineRows: reusedBaselineCount,
         callLimit,
         model: MODEL,
         reasoning: REASONING,
@@ -334,7 +335,7 @@ async function main() {
       outputTokens: 0,
     },
   };
-  const results: CaseResult[] = reusedBaseline?.results ?? [];
+  const results: CaseResult[] = [...(reusedBaseline?.results ?? [])];
   let providerFailed = false;
 
   async function runCase(
@@ -467,7 +468,7 @@ async function main() {
     baselineReuse: reusedBaseline
       ? {
           sourceCommit: reusedBaseline.sourceCommit,
-          rows: reusedBaseline.results.length,
+          rows: reusedBaselineCount,
           billedCalls: 0,
         }
       : null,
