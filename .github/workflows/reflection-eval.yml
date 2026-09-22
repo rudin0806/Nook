@@ -1,9 +1,6 @@
-name: Reflection prompt candidate-only evaluation
+name: Reflection prompt evaluation (manual)
 
 on:
-  push:
-    branches:
-      - codex/reflection-prod-20260922
   workflow_dispatch:
 
 permissions:

@@ -14,7 +14,7 @@ npm run validate
 
 | 검사               |  현재 기준 | 확인 범위                            |
 | ------------------ | ---------: | ------------------------------------ |
-| 단위·계약 테스트   |    208/208 | 엔진, API, 인증, 보관, UI 계약       |
+| 단위·계약 테스트   |    230/230 | 엔진, API, 인증, 보관, UI 계약       |
 | PGlite DB replay   | 28+13 PASS | RLS, 소유권, 삭제, 동시성            |
 | Judge fixture      |       39건 | 라벨, confidence, 근거, 질문 이동    |
 | `npm run validate` |       PASS | TypeScript, ESLint, production build |
@@ -34,8 +34,13 @@ npm run validate
 | `terra / medium` | 34/39 |              3 |         3,919ms |
 
 이 수치는 작은 고정 fixture의 단일 표본이다. 따라서 절대 정확도가 아니라 회귀 탐지와
-설정 간 상대 비교에 사용한다. 생성 단계인 Reflection은 분류 fixture가 없어 실제 대화
-재연과 문장 검사기를 함께 사용한다.
+설정 간 상대 비교에 사용한다.
+
+Reflection `v5.7`은 기존 14개 고정 사례에서 기준선은 run 5 결과를 재사용하고 후보만
+14회 호출했다. [run 11](https://github.com/rudin0806/Nook/actions/runs/35680202925)은
+hard gate 14/14를 통과했고, 식별자·분류·기대값을 가린 문장 채점에서도 14/14가
+7/8 이상, 0점 항목 없음으로 통과했다. 평균은 7.71/8, 후보 호출 예상 비용은
+`$0.0454772`다. 세부 점수는 [v5.7 review](../eval/reflection-review-v5.7.md)에 있다.
 
 ## 데이터베이스 검증
 
