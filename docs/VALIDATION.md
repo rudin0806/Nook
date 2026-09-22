@@ -14,7 +14,7 @@ npm run validate
 
 | 검사               |  현재 기준 | 확인 범위                            |
 | ------------------ | ---------: | ------------------------------------ |
-| 단위·계약 테스트   |    230/230 | 엔진, API, 인증, 보관, UI 계약       |
+| 단위·계약 테스트   |    232/232 | 엔진, API, 인증, 보관, UI 계약       |
 | PGlite DB replay   | 28+13 PASS | RLS, 소유권, 삭제, 동시성            |
 | Judge fixture      |       39건 | 라벨, confidence, 근거, 질문 이동    |
 | `npm run validate` |       PASS | TypeScript, ESLint, production build |

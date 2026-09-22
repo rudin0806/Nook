@@ -1,7 +1,13 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Script from "next/script";
-import type { CaptchaGateState } from "@/lib/auth/captcha-gate";
+import {
+  captchaScriptSource,
+  captchaWidgetTheme,
+  HCAPTCHA_ONLOAD_CALLBACK,
+  type CaptchaGateState,
+  type CaptchaProvider,
+} from "@/lib/auth/captcha-gate";
 
 type CaptchaApi = {
   render(
@@ -22,6 +28,7 @@ declare global {
   interface Window {
     turnstile?: CaptchaApi;
     hcaptcha?: CaptchaApi;
+    nookHcaptchaReady?: () => void;
   }
 }
 
@@ -31,12 +38,22 @@ declare global {
  */
 const hcaptchaKey = process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY;
 const turnstileKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
-const provider = hcaptchaKey ? "hcaptcha" : turnstileKey ? "turnstile" : null;
+const provider: CaptchaProvider | null = hcaptchaKey
+  ? "hcaptcha"
+  : turnstileKey
+    ? "turnstile"
+    : null;
 const sitekey = hcaptchaKey || turnstileKey;
-const scriptSrc =
-  provider === "hcaptcha"
-    ? "https://js.hcaptcha.com/1/api.js?render=explicit"
-    : "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+const scriptSrc = provider ? captchaScriptSource(provider) : "";
+
+let hcaptchaScriptReady = false;
+const hcaptchaReadyListeners = new Set<() => void>();
+if (typeof window !== "undefined") {
+  window[HCAPTCHA_ONLOAD_CALLBACK] = () => {
+    hcaptchaScriptReady = true;
+    for (const listener of hcaptchaReadyListeners) listener();
+  };
+}
 
 /** Client presence alone never grants a session. */
 export function AnonymousVerification({
@@ -75,11 +92,27 @@ export function AnonymousVerification({
     return () => controller.abort();
   }, [onStateChange]);
   useEffect(() => {
+    if (provider !== "hcaptcha") return;
+    const markReady = () => setReady(true);
+    if (hcaptchaScriptReady || window.hcaptcha) {
+      markReady();
+      return;
+    }
+    hcaptchaReadyListeners.add(markReady);
+    return () => {
+      hcaptchaReadyListeners.delete(markReady);
+    };
+  }, []);
+  useEffect(() => {
     const api = provider === "hcaptcha" ? window.hcaptcha : window.turnstile;
-    if (!needed || !ready || !sitekey || !element.current || !api) return;
+    if (!needed || !ready || !provider || !sitekey || !element.current || !api)
+      return;
     const id = api.render(element.current, {
       sitekey,
-      theme: "auto",
+      theme: captchaWidgetTheme(
+        provider,
+        document.documentElement.dataset.theme === "dark",
+      ),
       // Turnstile accepts a flexible width; hCaptcha does not know that value.
       ...(provider === "turnstile" ? { size: "flexible" } : {}),
       callback: (token) => {
@@ -123,7 +156,9 @@ export function AnonymousVerification({
       <p>{solved ? "확인됐어요" : "계정 없이 시작하기 위한 사용자 확인"}</p>
       <Script
         src={scriptSrc}
-        onReady={() => setReady(true)}
+        onReady={() => {
+          if (provider === "turnstile") setReady(true);
+        }}
         onError={() => setError(true)}
       />
       <div className="anonymous-verification-box" ref={element} />
